@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS user_badges (
+    id SERIAL PRIMARY KEY,
+    badge_id INT NOT NULL REFERENCES badges(id),
+    user_id BIGINT NOT NULL REFERENCES users(id),
+    created_at BIGINT NOT NULL DEFAULT (EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT
+);

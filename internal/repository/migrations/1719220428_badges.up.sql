@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS badges (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(45) NOT NULL,
+    reward_points INT NOT NULL
+);
