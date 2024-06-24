@@ -10,3 +10,6 @@ CREATE TABLE IF NOT EXISTS resolutions (
     moderated_by BIGINT NOT NULL REFERENCES users(id),
     moderated_at BIGINT 
 );
+
+ALTER TABLE organizations ADD CONSTRAINT fk_created_by FOREIGN KEY (created_by) REFERENCES users(id);
+ALTER TABLE organizations ADD CONSTRAINT fk_updated_by FOREIGN KEY (updated_by) REFERENCES users(id);
