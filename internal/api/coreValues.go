@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -14,13 +13,8 @@ import (
 
 func listCoreValuesHandler(coreValueSvc corevalues.Service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		vars := mux.Vars(req)
-		var organisationID string = ""
-		if vars["organisation_id"] != "" {
-			organisationID = vars["organisation_id"]
-		}
 
-		coreValues, err := coreValueSvc.ListCoreValues(req.Context(), organisationID)
+		coreValues, err := coreValueSvc.ListCoreValues(req.Context())
 		if err != nil {
 
 			apperrors.ErrorResp(rw, err)
@@ -35,7 +29,7 @@ func getCoreValueHandler(coreValueSvc corevalues.Service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
 
-		coreValue, err := coreValueSvc.GetCoreValue(req.Context(), vars["organisation_id"], vars["id"])
+		coreValue, err := coreValueSvc.GetCoreValue(req.Context(), vars["id"])
 		if err != nil {
 			apperrors.ErrorResp(rw, err)
 			return
@@ -47,7 +41,6 @@ func getCoreValueHandler(coreValueSvc corevalues.Service) http.HandlerFunc {
 
 func createCoreValueHandler(coreValueSvc corevalues.Service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		vars := mux.Vars(req)
 		const userId int64 = 1
 		var coreValue dto.CreateCoreValueReq
 		err := json.NewDecoder(req.Body).Decode(&coreValue)
@@ -58,8 +51,7 @@ func createCoreValueHandler(coreValueSvc corevalues.Service) http.HandlerFunc {
 			return
 		}
 
-		fmt.Println("orgId (vars) = ", vars["organisation_id"])
-		resp, err := coreValueSvc.CreateCoreValue(req.Context(), vars["organisation_id"], userId, coreValue)
+		resp, err := coreValueSvc.CreateCoreValue(req.Context(), userId, coreValue)
 		if err != nil {
 
 			apperrors.ErrorResp(rw, err)
@@ -74,7 +66,7 @@ func deleteCoreValueHandler(coreValueSvc corevalues.Service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
 		const userId int64 = 1
-		err := coreValueSvc.DeleteCoreValue(req.Context(), vars["organisation_id"], vars["id"], userId)
+		err := coreValueSvc.DeleteCoreValue(req.Context(), vars["id"], userId)
 		if err != nil {
 
 			apperrors.ErrorResp(rw, err)
@@ -98,7 +90,7 @@ func updateCoreValueHandler(coreValueSvc corevalues.Service) http.HandlerFunc {
 			return
 		}
 
-		resp, err := coreValueSvc.UpdateCoreValue(req.Context(), vars["organisation_id"], vars["id"], updateReq)
+		resp, err := coreValueSvc.UpdateCoreValue(req.Context(), vars["id"], updateReq)
 		if err != nil {
 			apperrors.ErrorResp(rw, err)
 			return

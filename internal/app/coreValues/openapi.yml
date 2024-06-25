@@ -143,7 +143,7 @@ paths:
         '500':
           description: Internal server error
           
-  /organisations/{organisationId}/core_values:
+  /core_values:
     post:
       tags:
         - Core Values
@@ -189,6 +189,7 @@ paths:
         '500' :
           description: Internal server error
 
+  /organisations/{organisationId}/core_values:  
     get:
       tags:
         - Core Values
