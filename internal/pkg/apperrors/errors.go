@@ -47,6 +47,21 @@ const (
 	InternalServer       = CustomError("Failed to write organization db")
 	FailedToCreateDriver = CustomError("failure to create driver obj")
 	MigrationFailure     = CustomError("migrate failure")
+	OutOfRange = CustomError("request value is out of range")
+	OrganizationNotFound = CustomError("organization  not found")
+	InvalidContactEmail = CustomError("Contact email is already present")
+	InvalidDomainName = CustomError("Domain name is already present")
+	InvalidReferenceId = CustomError("Invalid reference id")
+	AttemptExceeded = CustomError(" 3 attempts exceeded ")
+	InvalidOTP  = CustomError("invalid otp")
+	TimeExceeded = CustomError("time exceeded")
+	ErrOTPAlreadyExists = CustomError("otp already exists")
+	ErrOTPAttemptsExceeded = CustomError("attempts exceeded for organization")
+	InvalidId = CustomError("Invalid id")
+	InernalServer = CustomError("Failed to write organization db")
+	JSONParsingErrorReq = CustomError("error in parsing request in json")
+	JSONParsingErrorResp = CustomError("error in parsing response in json")
+	ErrRecordNotFound = CustomError("Database record not found")
 )
 
 // helper functions
@@ -74,10 +89,18 @@ func ErrKeyNotSet(key string) (err error) {
 
 func GetHTTPStatusCode(err error) int {
 	switch err {
-	case InternalServer, FailedToCreateDriver, MigrationFailure:
+	case InternalServer, FailedToCreateDriver, MigrationFailure,JSONParsingErrorResp:
 		return http.StatusInternalServerError
-	case BadRequest:
+	case BadRequest,InvalidId,JSONParsingErrorReq:
 		return http.StatusBadRequest
+	case OrganizationNotFound,InvalidReferenceId:
+		return http.StatusNotFound
+	case InvalidContactEmail,InvalidDomainName:
+		return http.StatusConflict
+	case TimeExceeded,InvalidOTP:
+		return http.StatusGone
+	case AttemptExceeded:
+		return http.StatusTooManyRequests
 	default:
 		return http.StatusInternalServerError
 	}
