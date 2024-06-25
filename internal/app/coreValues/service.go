@@ -17,7 +17,6 @@ type Service interface {
 	ListCoreValues(ctx context.Context) (resp []dto.ListCoreValuesResp, err error)
 	GetCoreValue(ctx context.Context, coreValueID string) (coreValue dto.GetCoreValueResp, err error)
 	CreateCoreValue(ctx context.Context, userId int64, coreValue dto.CreateCoreValueReq) (resp dto.CreateCoreValueResp, err error)
-	DeleteCoreValue(ctx context.Context, coreValueID string, userId int64) (err error)
 	UpdateCoreValue(ctx context.Context, coreValueID string, coreValue dto.UpdateQueryRequest) (resp dto.UpdateCoreValuesResp, err error)
 }
 
@@ -75,35 +74,6 @@ func (cs *service) CreateCoreValue(ctx context.Context, userId int64, coreValue 
 	if err != nil {
 		logger.WithField("err", err.Error()).Error("Error while creating core value")
 		err = apperrors.InternalServerError
-		return
-	}
-
-	return
-}
-
-func (cs *service) DeleteCoreValue(ctx context.Context, coreValueID string, userId int64) (err error) {
-
-	coreValId, err := VarsStringToInt(coreValueID, "coreValueId")
-	if err != nil {
-		return
-	}
-
-	// coreValue, err := cs.coreValuesRepo.GetCoreValue(ctx, coreValId)
-	// if err != nil {
-	// 	logger.WithField("err", err.Error()).Error("Error while fetching data")
-	// 	return
-	// }
-
-	// if coreValue.SoftDelete {
-	// 	err = apperrors.InvalidCoreValueData
-	// 	return
-	// }
-
-	err = cs.coreValuesRepo.DeleteCoreValue(ctx, coreValId, userId)
-	if err != nil {
-		logger.WithField("err", err.Error()).Error("Error while deleting core value")
-		err = apperrors.InternalServerError
-
 		return
 	}
 

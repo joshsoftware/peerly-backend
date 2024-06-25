@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
@@ -18,7 +17,6 @@ type CoreValueStorer interface {
 	ListCoreValues(ctx context.Context) (coreValues []dto.ListCoreValuesResp, err error)
 	GetCoreValue(ctx context.Context, coreValueID int64) (coreValue dto.GetCoreValueResp, err error)
 	CreateCoreValue(ctx context.Context, userId int64, coreValue dto.CreateCoreValueReq) (resp dto.CreateCoreValueResp, err error)
-	DeleteCoreValue(ctx context.Context, coreValueID int64, userId int64) (err error)
 	UpdateCoreValue(ctx context.Context, coreValueID int64, coreValue dto.UpdateQueryRequest) (resp dto.UpdateCoreValuesResp, err error)
 	// CheckOrganisation(ctx context.Context, organisationId int64) (err error)
 	CheckUniqueCoreVal(ctx context.Context, text string) (res bool, err error)
@@ -105,41 +103,6 @@ func (cs *coreValueStore) CreateCoreValue(ctx context.Context, userId int64, cor
 			"err":               err.Error(),
 			"core_value_params": coreValue,
 		}).Error("Error while creating core value")
-		return
-	}
-
-	return
-}
-
-func (cs *coreValueStore) DeleteCoreValue(ctx context.Context, coreValueID int64, userId int64) (err error) {
-	now := time.Now()
-	_, err = cs.DB.ExecContext(
-		ctx,
-		deleteSubCoreValueQuery,
-		userId,
-		now,
-		coreValueID,
-	)
-	if err != nil {
-		logger.WithFields(logger.Fields{
-			"err":         err.Error(),
-			"coreValueId": coreValueID,
-		}).Error("Error while deleting sub core value")
-		return
-	}
-
-	_, err = cs.DB.ExecContext(
-		ctx,
-		deleteCoreValueQuery,
-		userId,
-		now,
-		coreValueID,
-	)
-	if err != nil {
-		logger.WithFields(logger.Fields{
-			"err":           err.Error(),
-			"core_value_id": coreValueID,
-		}).Error("Error while deleting core value")
 		return
 	}
 

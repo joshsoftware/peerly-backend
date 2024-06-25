@@ -31,8 +31,6 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 
 	router.Handle("/core_values", middleware.JwtAuthMiddleware(createCoreValueHandler(deps.CoreValueService))).Methods(http.MethodPost).Headers(versionHeader, v1)
 
-	router.Handle("/core_values/{id:[0-9]+}", middleware.JwtAuthMiddleware(deleteCoreValueHandler(deps.CoreValueService))).Methods(http.MethodDelete).Headers(versionHeader, v1)
-
 	router.Handle("/core_values/{id:[0-9]+}", middleware.JwtAuthMiddleware(updateCoreValueHandler(deps.CoreValueService))).Methods(http.MethodPut).Headers(versionHeader, v1)
 
 	// No version requirement for /ping

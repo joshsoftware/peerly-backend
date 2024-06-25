@@ -62,21 +62,6 @@ func createCoreValueHandler(coreValueSvc corevalues.Service) http.HandlerFunc {
 	})
 }
 
-func deleteCoreValueHandler(coreValueSvc corevalues.Service) http.HandlerFunc {
-	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		vars := mux.Vars(req)
-		const userId int64 = 1
-		err := coreValueSvc.DeleteCoreValue(req.Context(), vars["id"], userId)
-		if err != nil {
-
-			apperrors.ErrorResp(rw, err)
-			return
-		}
-
-		dto.Repsonse(rw, http.StatusOK, dto.SuccessResponse{Data: "Delete successful"})
-	})
-}
-
 func updateCoreValueHandler(coreValueSvc corevalues.Service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)

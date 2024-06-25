@@ -12,7 +12,7 @@ tags:
 
 paths:
 
-  /organisations/{organisationId}/core_values/{coreValueId}:
+  /core_values/{coreValueId}:
     put:
       tags:
         - Core Values
@@ -20,14 +20,6 @@ paths:
       description: Update an existing core value by Id
       operationId: updateCoreValue
       parameters:
-        - name: organisationId
-          in: path
-          description: ID of organisation
-          required: true
-          schema:
-            type: integer
-            format: int64
-          example: 1
         - name: coreValueId
           in: path
           description: ID of corevalue
@@ -57,7 +49,7 @@ paths:
         '400':
           description: Invalid input data
         '404':
-          description: Orgnisation id not found / Core value id not found
+          description: Core value id not found
         '500':
           description: Internal server error
           
@@ -65,17 +57,9 @@ paths:
       tags:
         - Core Values
       summary: Finds corevalue by id
-      description: get a corevalue by organisation id and corevalue id
+      description: get a corevalue corevalue id
       operationId: get a corevalue by id
       parameters:
-        - name: organisationId
-          in: path
-          description: ID of organisation
-          required: true
-          schema:
-            type: integer
-            format: int64
-          example: 1
         - name: coreValueId
           in: path
           description: ID of corevalue
@@ -83,7 +67,7 @@ paths:
           schema:
             type: integer
             format: int64
-          example: 30
+          example: 1
         - in: header
           name: Accept-Version
           required: true
@@ -102,47 +86,8 @@ paths:
                 items:
                   $ref: '#/components/schemas/GetCoreValuesResp'          
         '404':
-          description: Invalid organisation id / Invalid core value id
-          
-    delete:
-      tags:
-        - Core Values
-      summary: Deletes a corevalue
-      description: delete a corevalue
-      operationId: deleteCoreValue
-      parameters:
-        - name: organisationId
-          in: path
-          description: ID of organisation
-          required: true
-          schema:
-            type: integer
-            format: int64
-          example: 1
-        - name: coreValueId
-          in: path
-          description: ID of corevalue
-          required: true
-          schema:
-            type: integer
-            format: int64
-          example: 30
-        - in: header
-          name: Accept-Version
-          required: true
-          description: Defines the media type and version of the API endpoint
-          schema:
-            enum:
-              - 'application/vnd.peerly.v1'
-            type: string
-      responses:
-        '200':
-          description: Delete sucessfull
-        '404':
-          description: Invalid organisation id/ invalid corevalue id
-        '500':
-          description: Internal server error
-          
+          description: Invalid core value id
+                  
   /core_values:
     post:
       tags:
@@ -151,14 +96,6 @@ paths:
       description: Add a new core value
       operationId: addCoreValue
       parameters:
-        - name: organisationId
-          in: path
-          description: ID of organisation
-          required: true
-          schema:
-            type: integer
-            format: int64
-          example: 1
         - in: header
           name: Accept-Version
           required: true
@@ -184,12 +121,9 @@ paths:
 
         '400':
           description: Invalid input
-        '404':
-          description: Invalid organisation id
         '500' :
           description: Internal server error
 
-  /organisations/{organisationId}/core_values:  
     get:
       tags:
         - Core Values
@@ -197,14 +131,6 @@ paths:
       description: List all the core values of the specified organisation
       operationId: listCoreValues
       parameters:
-        - name: organisationId
-          in: path
-          description: ID of organisation
-          required: true
-          schema:
-            type: integer
-            format: int64
-          example: 1
         - in: header
           name: Accept-Version
           required: true
@@ -223,8 +149,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ListCoreValuesResp'          
-        '404':
-          description: Invalid organisation id
         '500':
           description: Internal server error
 
@@ -234,29 +158,23 @@ components:
     UpdateCoreValues:
       type: object
       properties:
-        text:
+        name:
           type: string
           example: Updated core value
         description:
           type: string
           example: updated description
-        thumbnail_url:
-          type: string
-          example: url string
     
     CreateCoreValues:
       type: object
       properties:
-        text:
+        name:
           type: string
           example: Updated core value
         description:
           type: string
           example: updated description
-        thumbnail_url:
-          type: string
-          example: url string
-        parent_id:
+        parent_core_value_id:
           type: integer
           format: int64
           example: 1
@@ -267,28 +185,11 @@ components:
         id:
           type: integer
           format: int64
-        org_id:
-          type: integer
-          format: int64
-        text:
+        name:
           type: string
         description:
           type: string
-        parent_id:
-          type: integer
-          format: int64
-        thumbnail_url:
-          type: string
-        created_at:
-          type: string
-        updated_at:
-          type: string
-        created_by: 
-          type: integer
-          format: int64
-        soft_delete: 
-          type: boolean
-        soft_delete_by:
+        parent_core_value_id:
           type: integer
           format: int64
           
@@ -298,28 +199,11 @@ components:
         id:
           type: integer
           format: int64
-        org_id:
-          type: integer
-          format: int64
-        text:
+        name:
           type: string
         description:
           type: string
-        parent_id:
-          type: integer
-          format: int64
-        thumbnail_url:
-          type: string
-        created_at:
-          type: string
-        updated_at:
-          type: string
-        created_by: 
-          type: integer
-          format: int64
-        soft_delete: 
-          type: boolean
-        soft_delete_by:
+        parent_core_value_id:
           type: integer
           format: int64
           
@@ -329,23 +213,11 @@ components:
         id:
           type: integer
           format: int64
-        org_id:
-          type: integer
-          format: int64
-        text:
+        name:
           type: string
         description:
           type: string
-        parent_id:
+        parent_core_value_id:
           type: integer
           format: int64
-        thumbnail_url:
-          type: string
-        created_at:
-          type: string
-        updated_at:
-          type: string
-        created_by: 
-          type: integer
-          format: int64
-          
+       
