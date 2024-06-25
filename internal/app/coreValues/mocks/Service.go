@@ -12,20 +12,20 @@ type Service struct {
 	mock.Mock
 }
 
-// CreateCoreValue provides a mock function with given fields: ctx, organisationID, userId, coreValue
-func (_m *Service) CreateCoreValue(ctx context.Context, organisationID string, userId int64, coreValue dto.CreateCoreValueReq) (dto.CreateCoreValueResp, error) {
-	ret := _m.Called(ctx, organisationID, userId, coreValue)
+// CreateCoreValue provides a mock function with given fields: ctx, userId, coreValue
+func (_m *Service) CreateCoreValue(ctx context.Context, userId int64, coreValue dto.CreateCoreValueReq) (dto.CreateCoreValueResp, error) {
+	ret := _m.Called(ctx, userId, coreValue)
 
 	var r0 dto.CreateCoreValueResp
-	if rf, ok := ret.Get(0).(func(context.Context, string, int64, dto.CreateCoreValueReq) dto.CreateCoreValueResp); ok {
-		r0 = rf(ctx, organisationID, userId, coreValue)
+	if rf, ok := ret.Get(0).(func(context.Context, int64, dto.CreateCoreValueReq) dto.CreateCoreValueResp); ok {
+		r0 = rf(ctx, userId, coreValue)
 	} else {
 		r0 = ret.Get(0).(dto.CreateCoreValueResp)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string, int64, dto.CreateCoreValueReq) error); ok {
-		r1 = rf(ctx, organisationID, userId, coreValue)
+	if rf, ok := ret.Get(1).(func(context.Context, int64, dto.CreateCoreValueReq) error); ok {
+		r1 = rf(ctx, userId, coreValue)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -33,34 +33,21 @@ func (_m *Service) CreateCoreValue(ctx context.Context, organisationID string, u
 	return r0, r1
 }
 
-// DeleteCoreValue provides a mock function with given fields: ctx, organisationID, coreValueID, userId
-func (_m *Service) DeleteCoreValue(ctx context.Context, organisationID string, coreValueID string, userId int64) error {
-	ret := _m.Called(ctx, organisationID, coreValueID, userId)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, int64) error); ok {
-		r0 = rf(ctx, organisationID, coreValueID, userId)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// GetCoreValue provides a mock function with given fields: ctx, organisationID, coreValueID
-func (_m *Service) GetCoreValue(ctx context.Context, organisationID string, coreValueID string) (dto.GetCoreValueResp, error) {
-	ret := _m.Called(ctx, organisationID, coreValueID)
+// GetCoreValue provides a mock function with given fields: ctx, coreValueID
+func (_m *Service) GetCoreValue(ctx context.Context, coreValueID string) (dto.GetCoreValueResp, error) {
+	ret := _m.Called(ctx, coreValueID)
 
 	var r0 dto.GetCoreValueResp
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) dto.GetCoreValueResp); ok {
-		r0 = rf(ctx, organisationID, coreValueID)
+	if rf, ok := ret.Get(0).(func(context.Context, string) dto.GetCoreValueResp); ok {
+		r0 = rf(ctx, coreValueID)
 	} else {
 		r0 = ret.Get(0).(dto.GetCoreValueResp)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, organisationID, coreValueID)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, coreValueID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -68,13 +55,13 @@ func (_m *Service) GetCoreValue(ctx context.Context, organisationID string, core
 	return r0, r1
 }
 
-// ListCoreValues provides a mock function with given fields: ctx, organisationID
-func (_m *Service) ListCoreValues(ctx context.Context, organisationID string) ([]dto.ListCoreValuesResp, error) {
-	ret := _m.Called(ctx, organisationID)
+// ListCoreValues provides a mock function with given fields: ctx
+func (_m *Service) ListCoreValues(ctx context.Context) ([]dto.ListCoreValuesResp, error) {
+	ret := _m.Called(ctx)
 
 	var r0 []dto.ListCoreValuesResp
-	if rf, ok := ret.Get(0).(func(context.Context, string) []dto.ListCoreValuesResp); ok {
-		r0 = rf(ctx, organisationID)
+	if rf, ok := ret.Get(0).(func(context.Context) []dto.ListCoreValuesResp); ok {
+		r0 = rf(ctx)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]dto.ListCoreValuesResp)
@@ -82,8 +69,8 @@ func (_m *Service) ListCoreValues(ctx context.Context, organisationID string) ([
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, organisationID)
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -91,20 +78,20 @@ func (_m *Service) ListCoreValues(ctx context.Context, organisationID string) ([
 	return r0, r1
 }
 
-// UpdateCoreValue provides a mock function with given fields: ctx, organisationID, coreValueID, coreValue
-func (_m *Service) UpdateCoreValue(ctx context.Context, organisationID string, coreValueID string, coreValue dto.UpdateQueryRequest) (dto.UpdateCoreValuesResp, error) {
-	ret := _m.Called(ctx, organisationID, coreValueID, coreValue)
+// UpdateCoreValue provides a mock function with given fields: ctx, coreValueID, coreValue
+func (_m *Service) UpdateCoreValue(ctx context.Context, coreValueID string, coreValue dto.UpdateQueryRequest) (dto.UpdateCoreValuesResp, error) {
+	ret := _m.Called(ctx, coreValueID, coreValue)
 
 	var r0 dto.UpdateCoreValuesResp
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, dto.UpdateQueryRequest) dto.UpdateCoreValuesResp); ok {
-		r0 = rf(ctx, organisationID, coreValueID, coreValue)
+	if rf, ok := ret.Get(0).(func(context.Context, string, dto.UpdateQueryRequest) dto.UpdateCoreValuesResp); ok {
+		r0 = rf(ctx, coreValueID, coreValue)
 	} else {
 		r0 = ret.Get(0).(dto.UpdateCoreValuesResp)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string, string, dto.UpdateQueryRequest) error); ok {
-		r1 = rf(ctx, organisationID, coreValueID, coreValue)
+	if rf, ok := ret.Get(1).(func(context.Context, string, dto.UpdateQueryRequest) error); ok {
+		r1 = rf(ctx, coreValueID, coreValue)
 	} else {
 		r1 = ret.Error(1)
 	}

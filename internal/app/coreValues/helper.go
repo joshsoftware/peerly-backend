@@ -11,14 +11,14 @@ import (
 	logger "github.com/sirupsen/logrus"
 )
 
-func validateParentCoreValue(ctx context.Context, storer repository.CoreValueStorer, organisationID, coreValueID int64) (ok bool) {
-	coreValue, err := storer.GetCoreValue(ctx, organisationID, coreValueID)
+func validateParentCoreValue(ctx context.Context, storer repository.CoreValueStorer, coreValueID int64) (ok bool) {
+	coreValue, err := storer.GetCoreValue(ctx, coreValueID)
 	if err != nil {
 		logger.WithField("err", err.Error()).Error("Parent core value id not present")
 		return
 	}
 
-	if coreValue.ParentID != nil || coreValue.SoftDelete {
+	if coreValue.ParentCoreValueID != nil {
 		logger.Error("Invalid parent core value id")
 		return
 	}
@@ -26,16 +26,16 @@ func validateParentCoreValue(ctx context.Context, storer repository.CoreValueSto
 	return true
 }
 
-func Validate(ctx context.Context, coreValue dto.CreateCoreValueReq, storer repository.CoreValueStorer, organisationID int64) (err error) {
+func Validate(ctx context.Context, coreValue dto.CreateCoreValueReq, storer repository.CoreValueStorer) (err error) {
 
-	if coreValue.Text == "" {
+	if coreValue.Name == "" {
 		err = apperrors.TextFieldBlank
 	}
 	if coreValue.Description == "" {
 		err = apperrors.DescFieldBlank
 	}
-	if coreValue.ParentID != nil {
-		if !validateParentCoreValue(ctx, storer, organisationID, *coreValue.ParentID) {
+	if coreValue.ParentCoreValueID != nil {
+		if !validateParentCoreValue(ctx, storer, *coreValue.ParentCoreValueID) {
 			err = apperrors.InvalidParentValue
 		}
 	}

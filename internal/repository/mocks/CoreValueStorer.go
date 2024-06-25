@@ -11,34 +11,20 @@ type CoreValueStorer struct {
 	mock.Mock
 }
 
-// CheckOrganisation provides a mock function with given fields: ctx, organisationId
-func (_m *CoreValueStorer) CheckOrganisation(ctx context.Context, organisationId int64) error {
-	ret := _m.Called(ctx, organisationId)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, int64) error); ok {
-		r0 = rf(ctx, organisationId)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// CheckUniqueCoreVal provides a mock function with given fields: ctx, organisationId, text
-func (_m *CoreValueStorer) CheckUniqueCoreVal(ctx context.Context, organisationId int64, text string) (bool, error) {
-	ret := _m.Called(ctx, organisationId, text)
+// CheckUniqueCoreVal provides a mock function with given fields: ctx, text
+func (_m *CoreValueStorer) CheckUniqueCoreVal(ctx context.Context, text string) (bool, error) {
+	ret := _m.Called(ctx, text)
 
 	var r0 bool
-	if rf, ok := ret.Get(0).(func(context.Context, int64, string) bool); ok {
-		r0 = rf(ctx, organisationId, text)
+	if rf, ok := ret.Get(0).(func(context.Context, string) bool); ok {
+		r0 = rf(ctx, text)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, int64, string) error); ok {
-		r1 = rf(ctx, organisationId, text)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, text)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -46,20 +32,20 @@ func (_m *CoreValueStorer) CheckUniqueCoreVal(ctx context.Context, organisationI
 	return r0, r1
 }
 
-// CreateCoreValue provides a mock function with given fields: ctx, organisationID, userId, coreValue
-func (_m *CoreValueStorer) CreateCoreValue(ctx context.Context, organisationID int64, userId int64, coreValue dto.CreateCoreValueReq) (dto.CreateCoreValueResp, error) {
-	ret := _m.Called(ctx, organisationID, userId, coreValue)
+// CreateCoreValue provides a mock function with given fields: ctx, userId, coreValue
+func (_m *CoreValueStorer) CreateCoreValue(ctx context.Context, userId int64, coreValue dto.CreateCoreValueReq) (dto.CreateCoreValueResp, error) {
+	ret := _m.Called(ctx, userId, coreValue)
 
 	var r0 dto.CreateCoreValueResp
-	if rf, ok := ret.Get(0).(func(context.Context, int64, int64, dto.CreateCoreValueReq) dto.CreateCoreValueResp); ok {
-		r0 = rf(ctx, organisationID, userId, coreValue)
+	if rf, ok := ret.Get(0).(func(context.Context, int64, dto.CreateCoreValueReq) dto.CreateCoreValueResp); ok {
+		r0 = rf(ctx, userId, coreValue)
 	} else {
 		r0 = ret.Get(0).(dto.CreateCoreValueResp)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, int64, int64, dto.CreateCoreValueReq) error); ok {
-		r1 = rf(ctx, organisationID, userId, coreValue)
+	if rf, ok := ret.Get(1).(func(context.Context, int64, dto.CreateCoreValueReq) error); ok {
+		r1 = rf(ctx, userId, coreValue)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -67,34 +53,21 @@ func (_m *CoreValueStorer) CreateCoreValue(ctx context.Context, organisationID i
 	return r0, r1
 }
 
-// DeleteCoreValue provides a mock function with given fields: ctx, organisationID, coreValueID, userId
-func (_m *CoreValueStorer) DeleteCoreValue(ctx context.Context, organisationID int64, coreValueID int64, userId int64) error {
-	ret := _m.Called(ctx, organisationID, coreValueID, userId)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, int64, int64, int64) error); ok {
-		r0 = rf(ctx, organisationID, coreValueID, userId)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// GetCoreValue provides a mock function with given fields: ctx, organisationID, coreValueID
-func (_m *CoreValueStorer) GetCoreValue(ctx context.Context, organisationID int64, coreValueID int64) (dto.GetCoreValueResp, error) {
-	ret := _m.Called(ctx, organisationID, coreValueID)
+// GetCoreValue provides a mock function with given fields: ctx, coreValueID
+func (_m *CoreValueStorer) GetCoreValue(ctx context.Context, coreValueID int64) (dto.GetCoreValueResp, error) {
+	ret := _m.Called(ctx, coreValueID)
 
 	var r0 dto.GetCoreValueResp
-	if rf, ok := ret.Get(0).(func(context.Context, int64, int64) dto.GetCoreValueResp); ok {
-		r0 = rf(ctx, organisationID, coreValueID)
+	if rf, ok := ret.Get(0).(func(context.Context, int64) dto.GetCoreValueResp); ok {
+		r0 = rf(ctx, coreValueID)
 	} else {
 		r0 = ret.Get(0).(dto.GetCoreValueResp)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, int64, int64) error); ok {
-		r1 = rf(ctx, organisationID, coreValueID)
+	if rf, ok := ret.Get(1).(func(context.Context, int64) error); ok {
+		r1 = rf(ctx, coreValueID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -102,13 +75,13 @@ func (_m *CoreValueStorer) GetCoreValue(ctx context.Context, organisationID int6
 	return r0, r1
 }
 
-// ListCoreValues provides a mock function with given fields: ctx, organisationID
-func (_m *CoreValueStorer) ListCoreValues(ctx context.Context, organisationID int64) ([]dto.ListCoreValuesResp, error) {
-	ret := _m.Called(ctx, organisationID)
+// ListCoreValues provides a mock function with given fields: ctx
+func (_m *CoreValueStorer) ListCoreValues(ctx context.Context) ([]dto.ListCoreValuesResp, error) {
+	ret := _m.Called(ctx)
 
 	var r0 []dto.ListCoreValuesResp
-	if rf, ok := ret.Get(0).(func(context.Context, int64) []dto.ListCoreValuesResp); ok {
-		r0 = rf(ctx, organisationID)
+	if rf, ok := ret.Get(0).(func(context.Context) []dto.ListCoreValuesResp); ok {
+		r0 = rf(ctx)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]dto.ListCoreValuesResp)
@@ -116,8 +89,8 @@ func (_m *CoreValueStorer) ListCoreValues(ctx context.Context, organisationID in
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, int64) error); ok {
-		r1 = rf(ctx, organisationID)
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -125,20 +98,20 @@ func (_m *CoreValueStorer) ListCoreValues(ctx context.Context, organisationID in
 	return r0, r1
 }
 
-// UpdateCoreValue provides a mock function with given fields: ctx, organisationID, coreValueID, coreValue
-func (_m *CoreValueStorer) UpdateCoreValue(ctx context.Context, organisationID int64, coreValueID int64, coreValue dto.UpdateQueryRequest) (dto.UpdateCoreValuesResp, error) {
-	ret := _m.Called(ctx, organisationID, coreValueID, coreValue)
+// UpdateCoreValue provides a mock function with given fields: ctx, coreValueID, coreValue
+func (_m *CoreValueStorer) UpdateCoreValue(ctx context.Context, coreValueID int64, coreValue dto.UpdateQueryRequest) (dto.UpdateCoreValuesResp, error) {
+	ret := _m.Called(ctx, coreValueID, coreValue)
 
 	var r0 dto.UpdateCoreValuesResp
-	if rf, ok := ret.Get(0).(func(context.Context, int64, int64, dto.UpdateQueryRequest) dto.UpdateCoreValuesResp); ok {
-		r0 = rf(ctx, organisationID, coreValueID, coreValue)
+	if rf, ok := ret.Get(0).(func(context.Context, int64, dto.UpdateQueryRequest) dto.UpdateCoreValuesResp); ok {
+		r0 = rf(ctx, coreValueID, coreValue)
 	} else {
 		r0 = ret.Get(0).(dto.UpdateCoreValuesResp)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, int64, int64, dto.UpdateQueryRequest) error); ok {
-		r1 = rf(ctx, organisationID, coreValueID, coreValue)
+	if rf, ok := ret.Get(1).(func(context.Context, int64, dto.UpdateQueryRequest) error); ok {
+		r1 = rf(ctx, coreValueID, coreValue)
 	} else {
 		r1 = ret.Error(1)
 	}
