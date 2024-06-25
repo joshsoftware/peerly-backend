@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS users (
     role_id INT NOT NULL REFERENCES roles(id),
     grade_id INT NOT NULL REFERENCES grades(id),
     created_at BIGINT DEFAULT (EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT,
-    created_by BIGINT REFERENCES users(id),
+    created_by BIGINT ,
     updated_at BIGINT,
-    updated_by BIGINT REFERENCES users(id)
+    updated_by BIGINT 
 );
