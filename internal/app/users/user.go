@@ -12,6 +12,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/config"
+	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
 	logger "github.com/sirupsen/logrus"
@@ -35,19 +36,22 @@ func NewService(userRepo repository.UserStorer) Service {
 
 func (cs *service) ValidatePeerly(ctx context.Context, authToken string) (data dto.ValidateResp, err error) {
 	client := &http.Client{}
-	validationReq, err := http.NewRequest("GET", "http://localhost:33001/intranet/validate", nil)
+	// validationReq, err := http.NewRequest("GET", "http://localhost:33001/intranet/validate", nil)
+	validationReq, err := http.NewRequest("POST", "https://pg-stage-intranet.joshsoftware.com/api/peerly/v1/sessions/login", nil)
 	if err != nil {
 		err = apperrors.InternalServerError
 		return
 	}
-	validationReq.Header.Add("Authorization", authToken)
-	validationReq.Header.Add("PeerlyCode", "peerly")
+	validationReq.Header.Add(constants.AuthorizationHeader, authToken)
+	validationReq.Header.Add(constants.ClientCode, "peerly_client")
 	resp, err := client.Do(validationReq)
 	if err != nil {
+		logger.WithField("err", err.Error()).Error("Error in intranet validation api. Status returned:  ", resp.StatusCode)
 		err = apperrors.InternalServerError
 		return
 	}
 	if resp.StatusCode != http.StatusOK {
+		logger.WithField("err", "err").Error("Status returned ", resp.StatusCode)
 		err = apperrors.IntranetValidationFailed
 		return
 	}

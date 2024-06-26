@@ -43,8 +43,12 @@ type RegisterUser struct {
 }
 
 type ValidateResp struct {
-	PeerlyToken string `json:"peerly_token"`
-	UserId      int    `json:"user_id"`
+	Data IntranetValidateApiData `json:"data"`
+}
+
+type IntranetValidateApiData struct {
+	JwtToken string `json:"jwt_token"`
+	UserId   int    `json:"user_id"`
 }
 
 type GetIntranetUserDataReq struct {

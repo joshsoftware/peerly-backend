@@ -40,7 +40,7 @@ const (
 
 	getRoleByNameQuery = `SELECT id FROM roles WHERE name=$1 LIMIT 1`
 
-	getGradeId = `SELECT id FROM grade WHERE name = $1`
+	getGradeId = `SELECT id FROM grades WHERE name = $1`
 )
 
 // User - basic struct representing a User

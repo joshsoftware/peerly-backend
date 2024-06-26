@@ -40,7 +40,7 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 
 	router.Handle("/intranet/getuser/{user_id:[0-9]+}", intranet.IntranetGetUserApi()).Methods(http.MethodGet)
 
-	router.Handle("/user/login", loginUser(deps.UserService)).Methods(http.MethodGet)
+	router.Handle("/user/login", loginUser(deps.UserService)).Methods(http.MethodPost)
 
 	// No version requirement for /ping
 	router.HandleFunc("/ping", pingHandler).Methods(http.MethodGet)
