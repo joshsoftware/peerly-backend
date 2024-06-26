@@ -7,16 +7,16 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 )
 
-func GetIntranetUserDataValidation(user dto.IntranetApiResp) (err error) {
+func GetIntranetUserDataValidation(user dto.IntranetUserData) (err error) {
 
-	if user.FirstName == "" || user.Designation == "" || user.Email == "" || user.Grade == "" || user.LastName == "" || user.ProfileImgUrl == "" {
+	if user.EmpolyeeDetail.Designation.Name == "" || user.Email == "" || user.EmpolyeeDetail.Grade == "" {
 		fmt.Println("Invalid user data")
 		fmt.Println("First Name: ", user.FirstName)
 		fmt.Println("Last Name: ", user.LastName)
-		fmt.Println("Designation: ", user.Designation)
+		fmt.Println("Designation: ", user.EmpolyeeDetail.Designation.Name)
 		fmt.Println("Email: ", user.Email)
-		fmt.Println("Grade: ", user.Grade)
-		fmt.Println("Profile image: ", user.ProfileImgUrl)
+		fmt.Println("Grade: ", user.EmpolyeeDetail.Grade)
+		fmt.Println("Profile image: ", user.PublicProfile.ProfileImgUrl)
 
 		err = apperrors.InvalidIntranetData
 	}

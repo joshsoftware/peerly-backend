@@ -21,6 +21,7 @@ type UserStorer interface {
 	GetRoleByName(ctx context.Context, name string) (roleId int, err error)
 	CreateNewUser(ctx context.Context, u dto.RegisterUser) (resp dto.GetUserResp, err error)
 	GetGradeByName(ctx context.Context, name string) (id int, err error)
+	GetRewardOuotaDefault(ctx context.Context) (id int, err error)
 }
 
 func NewUserRepo(db *sqlx.DB) UserStorer {
@@ -30,17 +31,18 @@ func NewUserRepo(db *sqlx.DB) UserStorer {
 }
 
 const (
-	getUserByEmailQuery = `SELECT id, first_name, org_id, last_name, email, profile_image_url, role_id, reward_quota_balance, designation, grade_id FROM users WHERE email=$1 LIMIT 1`
+	getUserByEmailQuery = `SELECT id, first_name, last_name, email, profile_image_url, role_id, reward_quota_balance, designation, grade_id FROM users WHERE email=$1 LIMIT 1`
 
-	createUser = `INSERT INTO users (
-		org_id, email, first_name, last_name, profile_image_url, role_id, reward_quota_balance, created_at, grade_id, designation
+	createUser = `INSERT INTO users ( email, first_name, last_name, profile_image_url, role_id, reward_quota_balance, grade_id, designation
 	) VALUES (
-		$1, $2, $3, $4, $5, $6, $7, $8, $9, $10
-	) RETURNING id, org_id, email, first_name, last_name, profile_image_url, role_id, reward_quota_balance, created_at, grade_id, designation`
+		$1, $2, $3, $4, $5, $6, $7, $8
+	) RETURNING id, email, first_name, last_name, profile_image_url, role_id, reward_quota_balance, created_at, grade_id, designation`
 
 	getRoleByNameQuery = `SELECT id FROM roles WHERE name=$1 LIMIT 1`
 
 	getGradeId = `SELECT id FROM grades WHERE name = $1`
+
+	getRewardQuotaBalanceDefault = "select reward_multiplier from organization_config where id = 1"
 )
 
 // User - basic struct representing a User
@@ -48,7 +50,6 @@ type User struct {
 	ID                  int           `db:"id" json:"id"`
 	FirstName           string        `db:"first_name" json:"first_name"`
 	LastName            string        `db:"last_name" json:"last_name"`
-	OrgID               int           `db:"org_id" json:"org_id"`
 	Email               string        `db:"email" json:"email"`
 	ProfileImageURL     string        `db:"profile_image_url" json:"profile_image_url"`
 	Grade               int           `db:"grade" json:"grade"`
@@ -96,22 +97,18 @@ func (us *userStore) GetRoleByName(ctx context.Context, name string) (roleId int
 // CreateNewUser - creates a new user in the database
 func (us *userStore) CreateNewUser(ctx context.Context, u dto.RegisterUser) (resp dto.GetUserResp, err error) {
 
-	u.CreatedAt = time.Now().UTC()
-
 	err = us.DB.GetContext(
 		ctx,
 		&resp,
 		createUser,
-		u.OrgId,
 		u.User.Email,
 		u.User.FirstName,
 		u.User.LastName,
-		u.User.ProfileImgUrl,
+		u.User.PublicProfile.ProfileImgUrl,
 		u.RoleId,
 		u.RewardQuotaBalance,
-		u.CreatedAt,
 		u.GradeId,
-		u.User.Designation,
+		u.User.EmpolyeeDetail.Designation.Name,
 	)
 
 	if err != nil {
@@ -133,6 +130,19 @@ func (us *userStore) GetGradeByName(ctx context.Context, name string) (id int, e
 		}
 		logger.WithField("err", err.Error()).Error("Error in retriving grade id of the grade ", name)
 		err = apperrors.InternalServerError
+		return
+	}
+	return
+}
+
+func (us *userStore) GetRewardOuotaDefault(ctx context.Context) (id int, err error) {
+	err = us.DB.Get(&id, getRewardQuotaBalanceDefault)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			logger.WithField("err", err.Error()).Error("No fields in organization config")
+			return
+		}
+		logger.WithField("err", err.Error()).Error("Error in retriving reward_multiplier from organization config")
 		return
 	}
 	return
