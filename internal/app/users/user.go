@@ -50,7 +50,7 @@ func (cs *service) ValidatePeerly(ctx context.Context, authToken string) (data d
 		return
 	}
 	if resp.StatusCode != http.StatusOK {
-		logger.WithField("err", "err").Error("Status returned ", resp.StatusCode)
+		logger.Error("Status returned ", resp.StatusCode)
 		err = apperrors.IntranetValidationFailed
 		return
 	}
@@ -158,13 +158,35 @@ func (cs *service) LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.L
 		resp.NewUserCreated = true
 	}
 
+	//sync user data
+	syncNeeded, dataToBeUpdated := syncData(u, user)
+	if syncNeeded {
+
+		gradeId, err := cs.userRepo.GetGradeByName(ctx, dataToBeUpdated.Grade)
+		if err != nil {
+			return resp, err
+		}
+		dataToBeUpdated.GradeId = gradeId
+
+		err = cs.userRepo.SyncData(ctx, dataToBeUpdated)
+		if err != nil {
+			err = apperrors.InternalServerError
+			return resp, err
+		}
+		user, err = cs.userRepo.GetUserByEmail(ctx, u.Email)
+		if err == apperrors.InternalServerError {
+			return resp, err
+		}
+
+	}
+
 	//login user
 
-	expirationTime := time.Now().Add(time.Hour * 5)
+	expirationTime := time.Now().Add(time.Hour * time.Duration(config.JWTExpiryDurationHours()))
 
 	claims := &dto.Claims{
-		Id:     user.Id,
-		RoleId: user.RoleId,
+		Id:   user.Id,
+		Role: constants.UserRole,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},

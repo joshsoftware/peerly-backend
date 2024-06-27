@@ -9,10 +9,10 @@ import (
 
 func GetIntranetUserDataValidation(user dto.IntranetUserData) (err error) {
 
-	if user.EmpolyeeDetail.Designation.Name == "" || user.Email == "" || user.EmpolyeeDetail.Grade == "" {
+	if user.PublicProfile.FirstName == "" || user.PublicProfile.LastName == "" || user.EmpolyeeDetail.Designation.Name == "" || user.Email == "" || user.EmpolyeeDetail.Grade == "" {
 		fmt.Println("Invalid user data")
-		fmt.Println("First Name: ", user.FirstName)
-		fmt.Println("Last Name: ", user.LastName)
+		fmt.Println("First Name: ", user.PublicProfile.FirstName)
+		fmt.Println("Last Name: ", user.PublicProfile.LastName)
 		fmt.Println("Designation: ", user.EmpolyeeDetail.Designation.Name)
 		fmt.Println("Email: ", user.Email)
 		fmt.Println("Grade: ", user.EmpolyeeDetail.Grade)

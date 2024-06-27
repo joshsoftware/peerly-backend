@@ -66,6 +66,7 @@ const (
 	UserNotFound             = CustomError("User not found")
 	InvalidIntranetData      = CustomError("Invalid data recieved from intranet")
 	GradeNotFound            = CustomError("Grade not found")
+	RoleUnathorized          = CustomError("Role unauthorized")
 )
 
 // helper functions
@@ -97,10 +98,13 @@ func GetHTTPStatusCode(err error) int {
 		return http.StatusInternalServerError
 	case OrganizationNotFound, InvalidCoreValueData, InvalidParentValue, InvalidOrgId, GradeNotFound:
 		return http.StatusNotFound
-	case InvalidId, JSONParsingErrorReq, TextFieldBlank, DescFieldBlank, UniqueCoreValue, InvalidAuthToken, IntranetValidationFailed:
+	case InvalidId, JSONParsingErrorReq, TextFieldBlank, DescFieldBlank, UniqueCoreValue, IntranetValidationFailed:
 		return http.StatusBadRequest
 	case InvalidContactEmail, InvalidDomainName:
 		return http.StatusConflict
+	case InvalidAuthToken, RoleUnathorized:
+		return http.StatusUnauthorized
+
 	default:
 		return http.StatusInternalServerError
 	}
