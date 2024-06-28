@@ -34,7 +34,7 @@ func NewService(userRepo repository.UserStorer) Service {
 	}
 }
 
-func (cs *service) ValidatePeerly(ctx context.Context, authToken string) (data dto.ValidateResp, err error) {
+func (us *service) ValidatePeerly(ctx context.Context, authToken string) (data dto.ValidateResp, err error) {
 	client := &http.Client{}
 	validationReq, err := http.NewRequest("POST", "https://pg-stage-intranet.joshsoftware.com/api/peerly/v1/sessions/login", nil)
 	if err != nil {
@@ -68,7 +68,7 @@ func (cs *service) ValidatePeerly(ctx context.Context, authToken string) (data d
 	return
 }
 
-func (cs *service) GetIntranetUserData(ctx context.Context, req dto.GetIntranetUserDataReq) (data dto.IntranetUserData, err error) {
+func (us *service) GetIntranetUserData(ctx context.Context, req dto.GetIntranetUserDataReq) (data dto.IntranetUserData, err error) {
 
 	client := &http.Client{}
 	url := fmt.Sprintf("https://pg-stage-intranet.joshsoftware.com/api/peerly/v1/users/%d", req.UserId)
@@ -112,46 +112,18 @@ func (cs *service) GetIntranetUserData(ctx context.Context, req dto.GetIntranetU
 	return
 }
 
-func (cs *service) LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.LoginUserResp, error) {
+func (us *service) LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.LoginUserResp, error) {
 	var resp dto.LoginUserResp
 	resp.NewUserCreated = false
-	user, err := cs.userRepo.GetUserByEmail(ctx, u.Email)
+	user, err := us.userRepo.GetUserByEmail(ctx, u.Email)
 	if err == apperrors.InternalServerError {
 		return resp, err
 	}
 
 	if err == apperrors.UserNotFound {
 
-		//get grade id
-		gradeId, err := cs.userRepo.GetGradeByName(ctx, u.EmpolyeeDetail.Grade)
+		user, err = us.RegisterUser(ctx, u)
 		if err != nil {
-			return resp, err
-		}
-
-		//reward_quota_balance from organization config
-		reward_quota_balance, err := cs.userRepo.GetRewardOuotaDefault(ctx)
-		if err != nil {
-			err = apperrors.InternalServerError
-			return resp, err
-		}
-
-		//get role by name
-		roleId, err := cs.userRepo.GetRoleByName(ctx, constants.UserRole)
-		if err != nil {
-			err = apperrors.InternalServerError
-			return resp, err
-		}
-
-		var userData dto.RegisterUser
-		userData.User = u
-		userData.GradeId = gradeId
-		userData.RewardQuotaBalance = reward_quota_balance
-		userData.RoleId = roleId
-
-		//register user
-		user, err = cs.userRepo.CreateNewUser(ctx, userData)
-		if err != nil {
-			err = apperrors.InternalServerError
 			return resp, err
 		}
 
@@ -162,18 +134,18 @@ func (cs *service) LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.L
 	syncNeeded, dataToBeUpdated := syncData(u, user)
 	if syncNeeded {
 
-		gradeId, err := cs.userRepo.GetGradeByName(ctx, dataToBeUpdated.Grade)
+		gradeId, err := us.userRepo.GetGradeByName(ctx, dataToBeUpdated.Grade)
 		if err != nil {
 			return resp, err
 		}
 		dataToBeUpdated.GradeId = gradeId
 
-		err = cs.userRepo.SyncData(ctx, dataToBeUpdated)
+		err = us.userRepo.SyncData(ctx, dataToBeUpdated)
 		if err != nil {
 			err = apperrors.InternalServerError
 			return resp, err
 		}
-		user, err = cs.userRepo.GetUserByEmail(ctx, u.Email)
+		user, err = us.userRepo.GetUserByEmail(ctx, u.Email)
 		if err == apperrors.InternalServerError {
 			return resp, err
 		}
@@ -208,4 +180,41 @@ func (cs *service) LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.L
 
 	return resp, nil
 
+}
+
+func (us *service) RegisterUser(ctx context.Context, u dto.IntranetUserData) (user dto.GetUserResp, err error) {
+	//get grade id
+	gradeId, err := us.userRepo.GetGradeByName(ctx, u.EmpolyeeDetail.Grade)
+	if err != nil {
+		return
+	}
+
+	//reward_quota_balance from organization config
+	reward_quota_balance, err := us.userRepo.GetRewardOuotaDefault(ctx)
+	if err != nil {
+		err = apperrors.InternalServerError
+		return
+	}
+
+	//get role by name
+	roleId, err := us.userRepo.GetRoleByName(ctx, constants.UserRole)
+	if err != nil {
+		err = apperrors.InternalServerError
+		return
+	}
+
+	var userData dto.RegisterUser
+	userData.User = u
+	userData.GradeId = gradeId
+	userData.RewardQuotaBalance = reward_quota_balance
+	userData.RoleId = roleId
+
+	//register user
+	user, err = us.userRepo.CreateNewUser(ctx, userData)
+	if err != nil {
+		err = apperrors.InternalServerError
+		return
+	}
+
+	return
 }
