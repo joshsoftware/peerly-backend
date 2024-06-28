@@ -26,6 +26,7 @@ type Service interface {
 	ValidatePeerly(ctx context.Context, authToken string) (data dto.ValidateResp, err error)
 	GetIntranetUserData(ctx context.Context, req dto.GetIntranetUserDataReq) (data dto.IntranetUserData, err error)
 	LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.LoginUserResp, error)
+	RegisterUser(ctx context.Context, u dto.IntranetUserData) (user dto.GetUserResp, err error)
 }
 
 func NewService(userRepo repository.UserStorer) Service {

@@ -53,6 +53,27 @@ func (_m *Service) LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.L
 	return r0, r1
 }
 
+// RegisterUser provides a mock function with given fields: ctx, u
+func (_m *Service) RegisterUser(ctx context.Context, u dto.IntranetUserData) (dto.GetUserResp, error) {
+	ret := _m.Called(ctx, u)
+
+	var r0 dto.GetUserResp
+	if rf, ok := ret.Get(0).(func(context.Context, dto.IntranetUserData) dto.GetUserResp); ok {
+		r0 = rf(ctx, u)
+	} else {
+		r0 = ret.Get(0).(dto.GetUserResp)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, dto.IntranetUserData) error); ok {
+		r1 = rf(ctx, u)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ValidatePeerly provides a mock function with given fields: ctx, authToken
 func (_m *Service) ValidatePeerly(ctx context.Context, authToken string) (dto.ValidateResp, error) {
 	ret := _m.Called(ctx, authToken)
