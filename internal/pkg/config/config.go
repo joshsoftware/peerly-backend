@@ -21,10 +21,11 @@ func Load(configFile string) {
 	viper.SetDefault("APP_PORT", "8002")
 
 	viper.SetConfigName(configFile)
-	viper.SetConfigType("yaml")
+	viper.SetConfigType("yml")
 	viper.AddConfigPath("./")
 	viper.AddConfigPath("./..")
 	viper.AddConfigPath("./../..")
+	viper.AddConfigPath("./../../..")
 	viper.ReadInConfig()
 	viper.AutomaticEnv()
 

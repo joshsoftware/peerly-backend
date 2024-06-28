@@ -33,8 +33,6 @@ func NewUserRepo(db *sqlx.DB) UserStorer {
 }
 
 const (
-	getUserByEmailQuery1 = `SELECT id,employee_id, first_name, last_name, email, profile_image_url, role_id, reward_quota_balance, designation, grade_id FROM users WHERE email=$1 LIMIT 1`
-
 	getUserByEmailQuery = `SELECT users.id, users.employee_id, users.first_name, users.last_name, users.email, users.profile_image_url, users.role_id, users.reward_quota_balance, users.designation, users.grade_id, grades.name FROM users JOIN grades ON grades.id = users.grade_id WHERE users.email = $1;
 `
 
