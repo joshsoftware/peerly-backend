@@ -3,8 +3,10 @@ package app
 import (
 	"github.com/jmoiron/sqlx"
 	corevalues "github.com/joshsoftware/peerly-backend/internal/app/coreValues"
+
 	user "github.com/joshsoftware/peerly-backend/internal/app/users"
-	"github.com/joshsoftware/peerly-backend/internal/repository"
+
+	repository "github.com/joshsoftware/peerly-backend/internal/repository/postgresdb"
 )
 
 // Dependencies holds the dependencies required by the application.
