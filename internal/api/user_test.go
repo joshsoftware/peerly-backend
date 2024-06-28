@@ -147,6 +147,144 @@ func TestLoginUser(t *testing.T) {
 			},
 			expectedStatusCode: http.StatusInternalServerError,
 		},
+		{
+			name:      "Error for invalid first name",
+			authToken: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjo2fQ.XaYo0qdBCdDh1-nEeuUSdTbtp0enWFIySKnw-oQpTBg",
+			setup: func(mockSvc *mocks.Service) {
+				mockSvc.On("ValidatePeerly", mock.Anything, mock.Anything).Return(dto.ValidateResp{
+					Data: dto.IntranetValidateApiData{
+						JwtToken: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjo2fQ.qdKwgFLwHeNg8PaYFEjLT7g4sk0DGdoSHt-wZ7eq5LQ",
+						UserId:   6,
+					},
+				}, nil).Once()
+				mockSvc.On("GetIntranetUserData", mock.Anything, mock.Anything).Return(dto.IntranetUserData{
+					Id:    1,
+					Email: "sharyu@josh.com",
+					PublicProfile: dto.PublicProfile{
+						ProfileImgUrl: "image url",
+						LastName:      "Marwadi",
+					},
+					EmpolyeeDetail: dto.EmpolyeeDetail{
+						EmployeeId: "26",
+						Designation: dto.Designation{
+							Name: "Manager",
+						},
+						Grade: "J2",
+					},
+				}, nil).Once()
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name:      "Error for invalid last name",
+			authToken: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjo2fQ.XaYo0qdBCdDh1-nEeuUSdTbtp0enWFIySKnw-oQpTBg",
+			setup: func(mockSvc *mocks.Service) {
+				mockSvc.On("ValidatePeerly", mock.Anything, mock.Anything).Return(dto.ValidateResp{
+					Data: dto.IntranetValidateApiData{
+						JwtToken: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjo2fQ.qdKwgFLwHeNg8PaYFEjLT7g4sk0DGdoSHt-wZ7eq5LQ",
+						UserId:   6,
+					},
+				}, nil).Once()
+				mockSvc.On("GetIntranetUserData", mock.Anything, mock.Anything).Return(dto.IntranetUserData{
+					Id:    1,
+					Email: "sharyu@josh.com",
+					PublicProfile: dto.PublicProfile{
+						ProfileImgUrl: "image url",
+						FirstName:     "Sharyu",
+					},
+					EmpolyeeDetail: dto.EmpolyeeDetail{
+						EmployeeId: "26",
+						Designation: dto.Designation{
+							Name: "Manager",
+						},
+						Grade: "J2",
+					},
+				}, nil).Once()
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name:      "Error for invalid designation",
+			authToken: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjo2fQ.XaYo0qdBCdDh1-nEeuUSdTbtp0enWFIySKnw-oQpTBg",
+			setup: func(mockSvc *mocks.Service) {
+				mockSvc.On("ValidatePeerly", mock.Anything, mock.Anything).Return(dto.ValidateResp{
+					Data: dto.IntranetValidateApiData{
+						JwtToken: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjo2fQ.qdKwgFLwHeNg8PaYFEjLT7g4sk0DGdoSHt-wZ7eq5LQ",
+						UserId:   6,
+					},
+				}, nil).Once()
+				mockSvc.On("GetIntranetUserData", mock.Anything, mock.Anything).Return(dto.IntranetUserData{
+					Id:    1,
+					Email: "sharyu@josh.com",
+					PublicProfile: dto.PublicProfile{
+						ProfileImgUrl: "image url",
+						FirstName:     "Sharyu",
+						LastName:      "Marwadi",
+					},
+					EmpolyeeDetail: dto.EmpolyeeDetail{
+						EmployeeId: "26",
+						Grade:      "J2",
+					},
+				}, nil).Once()
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name:      "Error for invalid email",
+			authToken: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjo2fQ.XaYo0qdBCdDh1-nEeuUSdTbtp0enWFIySKnw-oQpTBg",
+			setup: func(mockSvc *mocks.Service) {
+				mockSvc.On("ValidatePeerly", mock.Anything, mock.Anything).Return(dto.ValidateResp{
+					Data: dto.IntranetValidateApiData{
+						JwtToken: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjo2fQ.qdKwgFLwHeNg8PaYFEjLT7g4sk0DGdoSHt-wZ7eq5LQ",
+						UserId:   6,
+					},
+				}, nil).Once()
+				mockSvc.On("GetIntranetUserData", mock.Anything, mock.Anything).Return(dto.IntranetUserData{
+					Id: 1,
+					PublicProfile: dto.PublicProfile{
+						ProfileImgUrl: "image url",
+						FirstName:     "Sharyu",
+						LastName:      "Marwadi",
+					},
+					EmpolyeeDetail: dto.EmpolyeeDetail{
+						EmployeeId: "26",
+						Designation: dto.Designation{
+							Name: "Manager",
+						},
+						Grade: "J2",
+					},
+				}, nil).Once()
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name:      "Error for invalid grade",
+			authToken: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjo2fQ.XaYo0qdBCdDh1-nEeuUSdTbtp0enWFIySKnw-oQpTBg",
+			setup: func(mockSvc *mocks.Service) {
+				mockSvc.On("ValidatePeerly", mock.Anything, mock.Anything).Return(dto.ValidateResp{
+					Data: dto.IntranetValidateApiData{
+						JwtToken: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjo2fQ.qdKwgFLwHeNg8PaYFEjLT7g4sk0DGdoSHt-wZ7eq5LQ",
+						UserId:   6,
+					},
+				}, nil).Once()
+				mockSvc.On("GetIntranetUserData", mock.Anything, mock.Anything).Return(dto.IntranetUserData{
+					Id:    1,
+					Email: "sharyu@josh.com",
+					PublicProfile: dto.PublicProfile{
+						ProfileImgUrl: "image url",
+						FirstName:     "Sharyu",
+						LastName:      "Marwadi",
+					},
+					EmpolyeeDetail: dto.EmpolyeeDetail{
+						EmployeeId: "26",
+						Designation: dto.Designation{
+							Name: "Manager",
+						},
+					},
+				}, nil).Once()
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
 	}
 
 	for _, test := range tests {

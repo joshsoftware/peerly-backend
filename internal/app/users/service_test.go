@@ -152,9 +152,154 @@ func TestLoginUser(t *testing.T) {
 					GradeId:            1,
 					Grade:              "J12",
 					CreatedAt:          0,
-				}, apperrors.UserNotFound).Once()
+				}, nil).Once()
 			},
 			isErrorExpected: false,
+		},
+		{
+			name:    "GetGradeByName Faliure",
+			context: context.Background(),
+			u: dto.IntranetUserData{
+				Id:    1,
+				Email: "sharyu@josh.com",
+				PublicProfile: dto.PublicProfile{
+					ProfileImgUrl: "image url",
+					FirstName:     "sharyu",
+					LastName:      "marwadi",
+				},
+				EmpolyeeDetail: dto.EmpolyeeDetail{
+					EmployeeId: "26",
+					Designation: dto.Designation{
+						Name: "Intern",
+					},
+					Grade: "J12",
+				},
+			},
+			setup: func(userMock *mocks.UserStorer) {
+				userMock.On("GetUserByEmail", mock.Anything, mock.Anything).Return(dto.GetUserResp{}, apperrors.UserNotFound).Once()
+				userMock.On("GetGradeByName", mock.Anything, mock.Anything).Return(0, apperrors.GradeNotFound).Once()
+			},
+			isErrorExpected: true,
+		},
+		{
+			name:    "GetRewardOuotaDefault Faliure",
+			context: context.Background(),
+			u: dto.IntranetUserData{
+				Id:    1,
+				Email: "sharyu@josh.com",
+				PublicProfile: dto.PublicProfile{
+					ProfileImgUrl: "image url",
+					FirstName:     "sharyu",
+					LastName:      "marwadi",
+				},
+				EmpolyeeDetail: dto.EmpolyeeDetail{
+					EmployeeId: "26",
+					Designation: dto.Designation{
+						Name: "Intern",
+					},
+					Grade: "J12",
+				},
+			},
+			setup: func(userMock *mocks.UserStorer) {
+				userMock.On("GetUserByEmail", mock.Anything, mock.Anything).Return(dto.GetUserResp{}, apperrors.UserNotFound).Once()
+				userMock.On("GetGradeByName", mock.Anything, mock.Anything).Return(1, nil).Once()
+				userMock.On("GetRewardOuotaDefault", mock.Anything).Return(10, apperrors.InternalServerError).Once()
+			},
+			isErrorExpected: true,
+		},
+		{
+			name:    "GetRoleByName Faliure",
+			context: context.Background(),
+			u: dto.IntranetUserData{
+				Id:    1,
+				Email: "sharyu@josh.com",
+				PublicProfile: dto.PublicProfile{
+					ProfileImgUrl: "image url",
+					FirstName:     "sharyu",
+					LastName:      "marwadi",
+				},
+				EmpolyeeDetail: dto.EmpolyeeDetail{
+					EmployeeId: "26",
+					Designation: dto.Designation{
+						Name: "Intern",
+					},
+					Grade: "J12",
+				},
+			},
+			setup: func(userMock *mocks.UserStorer) {
+				userMock.On("GetUserByEmail", mock.Anything, mock.Anything).Return(dto.GetUserResp{}, apperrors.UserNotFound).Once()
+				userMock.On("GetGradeByName", mock.Anything, mock.Anything).Return(1, nil).Once()
+				userMock.On("GetRewardOuotaDefault", mock.Anything).Return(10, nil).Once()
+				userMock.On("GetRoleByName", mock.Anything, mock.Anything).Return(1, apperrors.InternalServerError).Once()
+			},
+			isErrorExpected: true,
+		},
+		{
+			name:    "Create user faliure",
+			context: context.Background(),
+			u: dto.IntranetUserData{
+				Id:    1,
+				Email: "sharyu@josh.com",
+				PublicProfile: dto.PublicProfile{
+					ProfileImgUrl: "image url",
+					FirstName:     "sharyu",
+					LastName:      "marwadi",
+				},
+				EmpolyeeDetail: dto.EmpolyeeDetail{
+					EmployeeId: "26",
+					Designation: dto.Designation{
+						Name: "Intern",
+					},
+					Grade: "J12",
+				},
+			},
+			setup: func(userMock *mocks.UserStorer) {
+				userMock.On("GetUserByEmail", mock.Anything, mock.Anything).Return(dto.GetUserResp{}, apperrors.UserNotFound).Once()
+				userMock.On("GetGradeByName", mock.Anything, mock.Anything).Return(1, nil).Once()
+				userMock.On("GetRewardOuotaDefault", mock.Anything).Return(10, nil).Once()
+				userMock.On("GetRoleByName", mock.Anything, mock.Anything).Return(1, nil).Once()
+				userMock.On("CreateNewUser", mock.Anything, mock.Anything).Return(dto.GetUserResp{}, apperrors.InternalServerError).Once()
+			},
+			isErrorExpected: true,
+		},
+		{
+			name:    "Sync data faliure",
+			context: context.Background(),
+			u: dto.IntranetUserData{
+				Id:    1,
+				Email: "sharyu@josh.com",
+				PublicProfile: dto.PublicProfile{
+					ProfileImgUrl: "image url",
+					FirstName:     "sharyu",
+					LastName:      "marwadi",
+				},
+				EmpolyeeDetail: dto.EmpolyeeDetail{
+					EmployeeId: "26",
+					Designation: dto.Designation{
+						Name: "Intern",
+					},
+					Grade: "J12",
+				},
+			},
+			setup: func(userMock *mocks.UserStorer) {
+				userMock.On("GetUserByEmail", mock.Anything, mock.Anything).Return(dto.GetUserResp{
+					Id:                 1,
+					EmployeeId:         "26",
+					FirstName:          "sharyu",
+					LastName:           "marwadi",
+					Email:              "sharyu@josh.com",
+					ProfileImgUrl:      "image url",
+					RoleId:             1,
+					RewardQuotaBalance: 10,
+					Designation:        "Manager",
+					GradeId:            1,
+					Grade:              "J12",
+					CreatedAt:          0,
+				}, nil).Once()
+				userMock.On("GetGradeByName", mock.Anything, mock.Anything).Return(1, nil).Once()
+				userMock.On("SyncData", mock.Anything, mock.Anything).Return(apperrors.InternalServerError).Once()
+			},
+			isErrorExpected: true,
 		},
 	}
 
