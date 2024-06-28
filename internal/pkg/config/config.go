@@ -9,10 +9,8 @@ import (
 )
 
 var (
-	appName                string
-	appPort                int
-	jwtKey                 string
-	jwtExpiryDurationHours int
+	appName string
+	appPort int
 )
 
 // Load - loads all the environment variables and/or params in application.yml

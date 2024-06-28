@@ -12,6 +12,11 @@ import (
 func loginUser(userSvc user.Service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		authToken := req.Header.Get("Authorization")
+		if authToken == "" {
+			err := apperrors.InvalidAuthToken
+			apperrors.ErrorResp(rw, err)
+			return
+		}
 
 		validateResp, err := userSvc.ValidatePeerly(req.Context(), authToken)
 		if err != nil {
