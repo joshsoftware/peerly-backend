@@ -44,12 +44,12 @@ func JSONError(rw http.ResponseWriter, status int, err error) {
 
 const (
 	BadRequest               = CustomError("Bad request")
-	InternalServer           = CustomError("Failed to write organization db")
+	InternalServer           = CustomError("Internal Server Error")
 	FailedToCreateDriver     = CustomError("failure to create driver obj")
 	MigrationFailure         = CustomError("migrate failure")
+	JSONParsingErrorReq      = CustomError("error in parsing request in json")
 	InvalidId                = CustomError("Invalid id")
 	InternalServerError      = CustomError("Internal server error")
-	JSONParsingErrorReq      = CustomError("error in parsing request in json")
 	JSONParsingErrorResp     = CustomError("error in parsing response in json")
 	OutOfRange               = CustomError("request value is out of range")
 	OrganizationNotFound     = CustomError("organization of given id not found")
@@ -66,6 +66,7 @@ const (
 	UserNotFound             = CustomError("User not found")
 	InvalidIntranetData      = CustomError("Invalid data recieved from intranet")
 	GradeNotFound            = CustomError("Grade not found")
+	AppreciationNotFound     = CustomError("appreciation not found")
 )
 
 // helper functions
@@ -95,9 +96,9 @@ func GetHTTPStatusCode(err error) int {
 	switch err {
 	case InternalServerError, JSONParsingErrorResp, InvalidIntranetData:
 		return http.StatusInternalServerError
-	case OrganizationNotFound, InvalidCoreValueData, InvalidParentValue, InvalidOrgId, GradeNotFound:
+	case OrganizationNotFound, InvalidCoreValueData, InvalidParentValue, InvalidOrgId, GradeNotFound,AppreciationNotFound:
 		return http.StatusNotFound
-	case InvalidId, JSONParsingErrorReq, TextFieldBlank, DescFieldBlank, UniqueCoreValue, InvalidAuthToken, IntranetValidationFailed:
+	case BadRequest,InvalidId, JSONParsingErrorReq, TextFieldBlank, DescFieldBlank, UniqueCoreValue, InvalidAuthToken, IntranetValidationFailed:
 		return http.StatusBadRequest
 	case InvalidContactEmail, InvalidDomainName:
 		return http.StatusConflict
