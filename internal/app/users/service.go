@@ -120,18 +120,27 @@ func (us *service) GetIntranetUserData(ctx context.Context, req dto.GetIntranetU
 func (us *service) LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.LoginUserResp, error) {
 	var resp dto.LoginUserResp
 	resp.NewUserCreated = false
-	user, err := us.userRepo.GetUserByEmail(ctx, u.Email)
-	if err == apperrors.InternalServerError {
+	// user, err := us.userRepo.GetUserByEmail(ctx, u.Email)
+	// if err == apperrors.InternalServerError {
+	// 	return resp, err
+	// }
+
+	// if err == apperrors.UserNotFound {
+
+	// 	user, err = us.RegisterUser(ctx, u)
+	// 	if err != nil {
+	// 		return resp, err
+	// 	}
+
+	// 	resp.NewUserCreated = true
+	// }
+
+	user, err := us.RegisterUser(ctx, u)
+	if err != nil && err != apperrors.RepeatedUser {
 		return resp, err
 	}
 
-	if err == apperrors.UserNotFound {
-
-		user, err = us.RegisterUser(ctx, u)
-		if err != nil {
-			return resp, err
-		}
-
+	if err == nil {
 		resp.NewUserCreated = true
 	}
 
