@@ -27,7 +27,7 @@ type Service interface {
 	GetIntranetUserData(ctx context.Context, req dto.GetIntranetUserDataReq) (data dto.IntranetUserData, err error)
 	LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.LoginUserResp, error)
 	RegisterUser(ctx context.Context, u dto.IntranetUserData) (user dto.GetUserResp, err error)
-	GetUserList(ctx context.Context, reqData dto.GetUserListReq) (data []dto.IntranetUserData, err error)
+	GetUserListIntranet(ctx context.Context, reqData dto.GetUserListReq) (data []dto.IntranetUserData, err error)
 }
 
 func NewService(userRepo repository.UserStorer) Service {
@@ -188,6 +188,13 @@ func (us *service) LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.L
 }
 
 func (us *service) RegisterUser(ctx context.Context, u dto.IntranetUserData) (user dto.GetUserResp, err error) {
+
+	user, err = us.userRepo.GetUserByEmail(ctx, u.Email)
+	if err == apperrors.InternalServerError || err == nil {
+		err = apperrors.RepeatedUser
+		return
+	}
+
 	//get grade id
 	gradeId, err := us.userRepo.GetGradeByName(ctx, u.EmpolyeeDetail.Grade)
 	if err != nil {
@@ -224,7 +231,7 @@ func (us *service) RegisterUser(ctx context.Context, u dto.IntranetUserData) (us
 	return
 }
 
-func (us *service) GetUserList(ctx context.Context, reqData dto.GetUserListReq) (data []dto.IntranetUserData, err error) {
+func (us *service) GetUserListIntranet(ctx context.Context, reqData dto.GetUserListReq) (data []dto.IntranetUserData, err error) {
 	client := &http.Client{}
 	url := fmt.Sprintf("https://pg-stage-intranet.joshsoftware.com/api/peerly/v1/users?page=%d&per_page=%d", reqData.Page, constants.PerPage)
 	intranetReq, err := http.NewRequest("GET", url, nil)

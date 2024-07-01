@@ -68,6 +68,7 @@ const (
 	GradeNotFound            = CustomError("Grade not found")
 	RoleUnathorized          = CustomError("Role unauthorized")
 	PageParamNotFound        = CustomError("Page parameter not found")
+	RepeatedUser             = CustomError("Repeated user")
 )
 
 // helper functions
@@ -99,7 +100,7 @@ func GetHTTPStatusCode(err error) int {
 		return http.StatusInternalServerError
 	case OrganizationNotFound, InvalidCoreValueData, InvalidParentValue, InvalidOrgId, GradeNotFound, PageParamNotFound:
 		return http.StatusNotFound
-	case InvalidId, JSONParsingErrorReq, TextFieldBlank, DescFieldBlank, UniqueCoreValue, IntranetValidationFailed:
+	case InvalidId, JSONParsingErrorReq, TextFieldBlank, DescFieldBlank, UniqueCoreValue, IntranetValidationFailed, RepeatedUser:
 		return http.StatusBadRequest
 	case InvalidContactEmail, InvalidDomainName:
 		return http.StatusConflict

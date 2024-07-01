@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
+	logger "github.com/sirupsen/logrus"
 )
 
 func loginUser(userSvc user.Service) http.HandlerFunc {
@@ -54,7 +56,7 @@ func loginUser(userSvc user.Service) http.HandlerFunc {
 	}
 }
 
-func getUserListHandler(userSvc user.Service) http.HandlerFunc {
+func getIntranetUserListHandler(userSvc user.Service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
 
 		authToken := req.Header.Get(constants.IntranetAuth)
@@ -83,26 +85,45 @@ func getUserListHandler(userSvc user.Service) http.HandlerFunc {
 			Page:      pageInt,
 		}
 
-		usersData, err := userSvc.GetUserList(req.Context(), reqData)
+		usersData, err := userSvc.GetUserListIntranet(req.Context(), reqData)
 		if err != nil {
 			apperrors.ErrorResp(rw, err)
 			return
 		}
 
-		var users []dto.GetUserListResp
+		// var users []dto.GetUserListResp
 
-		for i := 0; i < len(usersData); i++ {
-			var user dto.GetUserListResp
-			user.EmployeeId = usersData[i].EmpolyeeDetail.EmployeeId
-			user.FirstName = usersData[i].PublicProfile.FirstName
-			user.LastName = usersData[i].PublicProfile.LastName
-			user.Email = usersData[i].Email
-			user.Grade = usersData[i].EmpolyeeDetail.Grade
-			user.Designation = usersData[i].EmpolyeeDetail.Designation.Name
-			user.ProfileImg = usersData[i].PublicProfile.ProfileImgUrl
-			users = append(users, user)
+		// for i := 0; i < len(usersData); i++ {
+		// 	var user dto.GetUserListResp
+		// 	user.EmployeeId = usersData[i].EmpolyeeDetail.EmployeeId
+		// 	user.FirstName = usersData[i].PublicProfile.FirstName
+		// 	user.LastName = usersData[i].PublicProfile.LastName
+		// 	user.Email = usersData[i].Email
+		// 	user.Grade = usersData[i].EmpolyeeDetail.Grade
+		// 	user.Designation = usersData[i].EmpolyeeDetail.Designation.Name
+		// 	user.ProfileImg = usersData[i].PublicProfile.ProfileImgUrl
+		// 	users = append(users, user)
+		// }
+
+		dto.Repsonse(rw, http.StatusOK, dto.SuccessResponse{Data: usersData})
+	}
+}
+
+func registerUser(userSvc user.Service) http.HandlerFunc {
+	return func(rw http.ResponseWriter, req *http.Request) {
+		var user dto.IntranetUserData
+		err := json.NewDecoder(req.Body).Decode(&user)
+		if err != nil {
+			logger.WithField("err", err.Error()).Error("Error while decoding request data")
+			err = apperrors.JSONParsingErrorReq
+			apperrors.ErrorResp(rw, err)
+			return
 		}
-
-		dto.Repsonse(rw, http.StatusOK, dto.SuccessResponse{Data: users})
+		resp, err := userSvc.RegisterUser(req.Context(), user)
+		if err != nil {
+			apperrors.ErrorResp(rw, err)
+			return
+		}
+		dto.Repsonse(rw, http.StatusOK, dto.SuccessResponse{Data: resp})
 	}
 }
