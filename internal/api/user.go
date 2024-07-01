@@ -7,12 +7,13 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/api/validation"
 	user "github.com/joshsoftware/peerly-backend/internal/app/users"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
+	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 )
 
 func loginUser(userSvc user.Service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
-		authToken := req.Header.Get("Authorization")
+		authToken := req.Header.Get(constants.IntranetAuth)
 		if authToken == "" {
 			err := apperrors.InvalidAuthToken
 			apperrors.ErrorResp(rw, err)
@@ -56,7 +57,7 @@ func loginUser(userSvc user.Service) http.HandlerFunc {
 func getUserListHandler(userSvc user.Service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
 
-		authToken := req.Header.Get("Intranet-Auth")
+		authToken := req.Header.Get(constants.IntranetAuth)
 		if authToken == "" {
 			err := apperrors.InvalidAuthToken
 			apperrors.ErrorResp(rw, err)
