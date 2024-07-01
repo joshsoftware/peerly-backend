@@ -34,7 +34,7 @@ func TestLoginUser(t *testing.T) {
 					FirstName:     "sharyu",
 					LastName:      "marwadi",
 				},
-				EmpolyeeDetail: dto.EmpolyeeDetail{
+				EmpolyeeDetail: dto.EmployeeDetail{
 					EmployeeId: "26",
 					Designation: dto.Designation{
 						Name: "Intern",
@@ -72,7 +72,7 @@ func TestLoginUser(t *testing.T) {
 					FirstName:     "sharyu",
 					LastName:      "marwadi",
 				},
-				EmpolyeeDetail: dto.EmpolyeeDetail{
+				EmpolyeeDetail: dto.EmployeeDetail{
 					EmployeeId: "26",
 					Designation: dto.Designation{
 						Name: "Intern",
@@ -114,7 +114,7 @@ func TestLoginUser(t *testing.T) {
 					FirstName:     "sharyu",
 					LastName:      "marwadi",
 				},
-				EmpolyeeDetail: dto.EmpolyeeDetail{
+				EmpolyeeDetail: dto.EmployeeDetail{
 					EmployeeId: "26",
 					Designation: dto.Designation{
 						Name: "Intern",
@@ -167,7 +167,7 @@ func TestLoginUser(t *testing.T) {
 					FirstName:     "sharyu",
 					LastName:      "marwadi",
 				},
-				EmpolyeeDetail: dto.EmpolyeeDetail{
+				EmpolyeeDetail: dto.EmployeeDetail{
 					EmployeeId: "26",
 					Designation: dto.Designation{
 						Name: "Intern",
@@ -192,7 +192,7 @@ func TestLoginUser(t *testing.T) {
 					FirstName:     "sharyu",
 					LastName:      "marwadi",
 				},
-				EmpolyeeDetail: dto.EmpolyeeDetail{
+				EmpolyeeDetail: dto.EmployeeDetail{
 					EmployeeId: "26",
 					Designation: dto.Designation{
 						Name: "Intern",
@@ -218,7 +218,7 @@ func TestLoginUser(t *testing.T) {
 					FirstName:     "sharyu",
 					LastName:      "marwadi",
 				},
-				EmpolyeeDetail: dto.EmpolyeeDetail{
+				EmpolyeeDetail: dto.EmployeeDetail{
 					EmployeeId: "26",
 					Designation: dto.Designation{
 						Name: "Intern",
@@ -245,7 +245,7 @@ func TestLoginUser(t *testing.T) {
 					FirstName:     "sharyu",
 					LastName:      "marwadi",
 				},
-				EmpolyeeDetail: dto.EmpolyeeDetail{
+				EmpolyeeDetail: dto.EmployeeDetail{
 					EmployeeId: "26",
 					Designation: dto.Designation{
 						Name: "Intern",
@@ -273,7 +273,7 @@ func TestLoginUser(t *testing.T) {
 					FirstName:     "sharyu",
 					LastName:      "marwadi",
 				},
-				EmpolyeeDetail: dto.EmpolyeeDetail{
+				EmpolyeeDetail: dto.EmployeeDetail{
 					EmployeeId: "26",
 					Designation: dto.Designation{
 						Name: "Intern",

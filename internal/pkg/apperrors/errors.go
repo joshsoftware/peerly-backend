@@ -67,6 +67,7 @@ const (
 	InvalidIntranetData      = CustomError("Invalid data recieved from intranet")
 	GradeNotFound            = CustomError("Grade not found")
 	RoleUnathorized          = CustomError("Role unauthorized")
+	PageParamNotFound        = CustomError("Page parameter not found")
 )
 
 // helper functions
@@ -96,7 +97,7 @@ func GetHTTPStatusCode(err error) int {
 	switch err {
 	case InternalServerError, JSONParsingErrorResp, InvalidIntranetData:
 		return http.StatusInternalServerError
-	case OrganizationNotFound, InvalidCoreValueData, InvalidParentValue, InvalidOrgId, GradeNotFound:
+	case OrganizationNotFound, InvalidCoreValueData, InvalidParentValue, InvalidOrgId, GradeNotFound, PageParamNotFound:
 		return http.StatusNotFound
 	case InvalidId, JSONParsingErrorReq, TextFieldBlank, DescFieldBlank, UniqueCoreValue, IntranetValidationFailed:
 		return http.StatusBadRequest

@@ -27,6 +27,7 @@ type Service interface {
 	GetIntranetUserData(ctx context.Context, req dto.GetIntranetUserDataReq) (data dto.IntranetUserData, err error)
 	LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.LoginUserResp, error)
 	RegisterUser(ctx context.Context, u dto.IntranetUserData) (user dto.GetUserResp, err error)
+	GetUserList(ctx context.Context, reqData dto.GetUserListReq) (data []dto.IntranetUserData, err error)
 }
 
 func NewService(userRepo repository.UserStorer) Service {
@@ -58,10 +59,13 @@ func (us *service) ValidatePeerly(ctx context.Context, authToken string) (data d
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
+		logger.WithField("err", err.Error()).Error("Error in readall parsing")
 		err = apperrors.JSONParsingErrorResp
+		return
 	}
 	err = json.Unmarshal(body, &data)
 	if err != nil {
+		logger.WithField("err", err.Error()).Error("Error in unmarshal parsing")
 		err = apperrors.JSONParsingErrorResp
 		return
 	}
@@ -217,5 +221,47 @@ func (us *service) RegisterUser(ctx context.Context, u dto.IntranetUserData) (us
 		return
 	}
 
+	return
+}
+
+func (us *service) GetUserList(ctx context.Context, reqData dto.GetUserListReq) (data []dto.IntranetUserData, err error) {
+	client := &http.Client{}
+	url := fmt.Sprintf("https://pg-stage-intranet.joshsoftware.com/api/peerly/v1/users?page=%d&per_page=%d", reqData.Page, constants.PerPage)
+	intranetReq, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		err = apperrors.InternalServerError
+		return
+	}
+
+	intranetReq.Header.Add(constants.AuthorizationHeader, reqData.AuthToken)
+	resp, err := client.Do(intranetReq)
+	if err != nil {
+		logger.WithField("err", err.Error()).Error("Error in intranet get user api. Status returned:  ", resp.StatusCode)
+		err = apperrors.InternalServerError
+		return
+	}
+	if resp.StatusCode != http.StatusOK {
+		logger.WithField("err", "err").Error("Status returned ", resp.StatusCode)
+		err = apperrors.InternalServerError
+		return
+	}
+	defer resp.Body.Close()
+
+	var respData dto.GetUserListRespData
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		logger.WithField("err", err.Error()).Error("Error in io.readall")
+		err = apperrors.JSONParsingErrorResp
+	}
+
+	err = json.Unmarshal(body, &respData)
+	if err != nil {
+		logger.WithField("err", err.Error()).Error("Error in unmarshalling data")
+		err = apperrors.JSONParsingErrorResp
+		return
+	}
+
+	data = respData.Data
 	return
 }

@@ -41,7 +41,7 @@ func TestLoginUser(t *testing.T) {
 						FirstName:     "Sharyu",
 						LastName:      "Marwadi",
 					},
-					EmpolyeeDetail: dto.EmpolyeeDetail{
+					EmpolyeeDetail: dto.EmployeeDetail{
 						EmployeeId: "26",
 						Designation: dto.Designation{
 							Name: "Manager",
@@ -135,7 +135,7 @@ func TestLoginUser(t *testing.T) {
 						FirstName:     "Sharyu",
 						LastName:      "Marwadi",
 					},
-					EmpolyeeDetail: dto.EmpolyeeDetail{
+					EmpolyeeDetail: dto.EmployeeDetail{
 						EmployeeId: "26",
 						Designation: dto.Designation{
 							Name: "Manager",
@@ -164,7 +164,7 @@ func TestLoginUser(t *testing.T) {
 						ProfileImgUrl: "image url",
 						LastName:      "Marwadi",
 					},
-					EmpolyeeDetail: dto.EmpolyeeDetail{
+					EmpolyeeDetail: dto.EmployeeDetail{
 						EmployeeId: "26",
 						Designation: dto.Designation{
 							Name: "Manager",
@@ -192,7 +192,7 @@ func TestLoginUser(t *testing.T) {
 						ProfileImgUrl: "image url",
 						FirstName:     "Sharyu",
 					},
-					EmpolyeeDetail: dto.EmpolyeeDetail{
+					EmpolyeeDetail: dto.EmployeeDetail{
 						EmployeeId: "26",
 						Designation: dto.Designation{
 							Name: "Manager",
@@ -221,7 +221,7 @@ func TestLoginUser(t *testing.T) {
 						FirstName:     "Sharyu",
 						LastName:      "Marwadi",
 					},
-					EmpolyeeDetail: dto.EmpolyeeDetail{
+					EmpolyeeDetail: dto.EmployeeDetail{
 						EmployeeId: "26",
 						Grade:      "J2",
 					},
@@ -246,7 +246,7 @@ func TestLoginUser(t *testing.T) {
 						FirstName:     "Sharyu",
 						LastName:      "Marwadi",
 					},
-					EmpolyeeDetail: dto.EmpolyeeDetail{
+					EmpolyeeDetail: dto.EmployeeDetail{
 						EmployeeId: "26",
 						Designation: dto.Designation{
 							Name: "Manager",
@@ -275,7 +275,7 @@ func TestLoginUser(t *testing.T) {
 						FirstName:     "Sharyu",
 						LastName:      "Marwadi",
 					},
-					EmpolyeeDetail: dto.EmpolyeeDetail{
+					EmpolyeeDetail: dto.EmployeeDetail{
 						EmployeeId: "26",
 						Designation: dto.Designation{
 							Name: "Manager",

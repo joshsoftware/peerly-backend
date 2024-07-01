@@ -6,7 +6,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/joshsoftware/peerly-backend/internal/app"
-	intranet "github.com/joshsoftware/peerly-backend/internal/dummyIntranet"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/config"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/middleware"
@@ -37,11 +36,13 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 
 	//login
 
-	router.Handle("/intranet/validate", intranet.ValidatePeerly()).Methods(http.MethodGet)
+	// router.Handle("/intranet/validate", intranet.ValidatePeerly()).Methods(http.MethodGet)
 
-	router.Handle("/intranet/getuser/{user_id:[0-9]+}", intranet.IntranetGetUserApi()).Methods(http.MethodGet)
+	// router.Handle("/intranet/getuser/{user_id:[0-9]+}", intranet.IntranetGetUserApi()).Methods(http.MethodGet)
 
 	router.Handle("/user/login", loginUser(deps.UserService)).Methods(http.MethodPost)
+
+	router.Handle("/users", middleware.JwtAuthMiddleware(getUserListHandler(deps.UserService), []string{constants.UserRole})).Methods(http.MethodGet)
 
 	// No version requirement for /ping
 	router.HandleFunc("/ping", pingHandler).Methods(http.MethodGet)
