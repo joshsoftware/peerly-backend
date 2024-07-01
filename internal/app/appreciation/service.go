@@ -5,7 +5,6 @@ import (
 
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
-	"github.com/joshsoftware/peerly-backend/internal/pkg/middleware"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
 )
 
@@ -34,7 +33,7 @@ func (apprSvc *service) CreateAppreciation(ctx context.Context, apprecication dt
 	apprecication.Quarter = GetQuarter()
 
 	//add sender
-	apprecication.Sender = ctx.Value(middleware.UserIDKey).(int64)
+	apprecication.Sender = ctx.Value("userId").(int64)
 
 	//initializing database transaction
 	tx, err := apprSvc.appreciationRepo.BeginTx(ctx)
