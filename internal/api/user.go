@@ -11,7 +11,7 @@ import (
 
 func loginUser(userSvc user.Service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
-		authToken := req.Header.Get("Authorization")
+		authToken := req.Header.Get("Intranet-Auth")
 		if authToken == "" {
 			err := apperrors.InvalidAuthToken
 			apperrors.ErrorResp(rw, err)

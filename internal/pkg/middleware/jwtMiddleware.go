@@ -14,6 +14,7 @@ import (
 
 func JwtAuthMiddleware(next http.Handler, roles []string) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		// next.ServeHTTP(rw, req)
 		jwtKey := config.JWTKey()
 		authToken := req.Header.Get("Authorization")
 		if authToken == "" {

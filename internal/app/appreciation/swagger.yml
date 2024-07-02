@@ -15,6 +15,8 @@ tags:
 paths:
   /appreciation/{id}:
     get:
+      security:
+        - basicAuth: []
       tags: 
         - Appreciation
       summary: get appreciation by id
@@ -245,6 +247,10 @@ paths:
 
       
 components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
   schemas:
     SuccessResponse:
       type: object

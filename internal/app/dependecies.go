@@ -4,10 +4,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/joshsoftware/peerly-backend/internal/app/appreciation"
 	corevalues "github.com/joshsoftware/peerly-backend/internal/app/coreValues"
-	repo "github.com/joshsoftware/peerly-backend/internal/repository/postgresdb"
-
 	user "github.com/joshsoftware/peerly-backend/internal/app/users"
-
 	repository "github.com/joshsoftware/peerly-backend/internal/repository/postgresdb"
 )
 
@@ -26,7 +23,7 @@ func NewServices(db *sqlx.DB) Dependencies {
 	userRepo := repository.NewUserRepo(db)
 	coreValueService := corevalues.NewService(coreValueRepo)
 
-	appreciationRepo := repo.NewAppreciationRepo(db)
+	appreciationRepo := repository.NewAppreciationRepo(db)
 	appreciationService := appreciation.NewService(appreciationRepo, coreValueRepo)
 	userService := user.NewService(userRepo)
 
