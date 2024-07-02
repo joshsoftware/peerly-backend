@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strings"
 
 	"net/http"
 	"time"
@@ -284,6 +285,13 @@ func (us *service) GetUserListIntranet(ctx context.Context, reqData dto.GetUserL
 }
 
 func (us *service) GetUserList(ctx context.Context, reqData dto.UserListReq) (users []dto.GetUserListResp, err error) {
+
+	var names []string
+	for _, data := range reqData.Name {
+		names = append(names, strings.ToLower(data))
+	}
+
+	reqData.Name = names
 
 	users, err = us.userRepo.GetUserList(ctx, reqData)
 

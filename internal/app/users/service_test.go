@@ -316,3 +316,51 @@ func TestLoginUser(t *testing.T) {
 		})
 	}
 }
+
+func TestGetUserList(t *testing.T) {
+	userRepo := mocks.NewUserStorer(t)
+	service := NewService(userRepo)
+
+	tests := []struct {
+		name            string
+		context         context.Context
+		reqData         dto.UserListReq
+		setup           func(userMock *mocks.UserStorer)
+		isErrorExpected bool
+	}{
+		{
+			name:    "Success for get user list",
+			context: context.Background(),
+			reqData: dto.UserListReq{},
+			setup: func(userMock *mocks.UserStorer) {
+				userMock.On("GetUserList", mock.Anything, mock.Anything).Return([]dto.GetUserListResp{}, nil).Once()
+
+			},
+			isErrorExpected: false,
+		},
+		{
+			name:    "Faliure for get user list",
+			context: context.Background(),
+			reqData: dto.UserListReq{},
+			setup: func(userMock *mocks.UserStorer) {
+				userMock.On("GetUserList", mock.Anything, mock.Anything).Return([]dto.GetUserListResp{}, apperrors.InternalServerError).Once()
+
+			},
+			isErrorExpected: true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			test.setup(userRepo)
+
+			// test service
+			_, err := service.GetUserList(test.context, test.reqData)
+
+			if (err != nil) != test.isErrorExpected {
+				t.Errorf("Test Failed, expected error to be %v, but got err %v", test.isErrorExpected, err != nil)
+			}
+		})
+	}
+
+}
