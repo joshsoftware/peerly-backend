@@ -99,15 +99,21 @@ type GetUserListReq struct {
 }
 
 type GetUserListResp struct {
-	EmployeeId  string `json:"employee_id"`
-	Email       string `json:"email"`
-	FirstName   string `json:"first_name"`
-	LastName    string `json:"last_name"`
-	Grade       string `json:"grade"`
-	Designation string `json:"designation"`
-	ProfileImg  string `json:"profile_img_url"`
+	EmployeeId  string `json:"employee_id" db:"employee_id"`
+	Email       string `json:"email" db:"email"`
+	FirstName   string `json:"first_name" db:"first_name"`
+	LastName    string `json:"last_name" db:"last_name"`
+	Grade       string `json:"grade" db:"name"`
+	Designation string `json:"designation" db:"designation"`
+	ProfileImg  string `json:"profile_image_url" db:"profile_image_url"`
 }
 
 type GetUserListRespData struct {
 	Data []IntranetUserData `json:"data"`
+}
+
+type UserListReq struct {
+	Page    int
+	PerPage int
+	Name    []string
 }
