@@ -42,7 +42,7 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 
 	router.Handle("/user/register", registerUser(deps.UserService)).Methods(http.MethodPost)
 
-	router.Handle("/user/login", loginUser(deps.UserService)).Methods(http.MethodPost)
+	router.Handle("/user/login", loginUser(deps.UserService)).Methods(http.MethodGet).Headers(versionHeader, v1)
 
 	router.Handle("/users", getIntranetUserListHandler(deps.UserService)).Methods(http.MethodGet)
 
