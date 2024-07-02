@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -21,7 +22,7 @@ func listCoreValuesHandler(coreValueSvc corevalues.Service) http.HandlerFunc {
 			return
 		}
 
-		dto.Repsonse(rw, http.StatusOK, dto.SuccessResponse{Data: coreValues})
+		dto.Repsonse(rw, http.StatusOK, dto.SuccessResponse{Data: coreValues, Message: "List of all the core values", Success: true})
 	})
 }
 
@@ -35,7 +36,7 @@ func getCoreValueHandler(coreValueSvc corevalues.Service) http.HandlerFunc {
 			return
 		}
 
-		dto.Repsonse(rw, http.StatusOK, dto.SuccessResponse{Data: coreValue})
+		dto.Repsonse(rw, http.StatusOK, dto.SuccessResponse{Data: coreValue, Message: fmt.Sprintf("Data of core value with id: %s", vars["id"]), Success: true})
 	})
 }
 
@@ -58,7 +59,7 @@ func createCoreValueHandler(coreValueSvc corevalues.Service) http.HandlerFunc {
 			return
 		}
 
-		dto.Repsonse(rw, http.StatusCreated, dto.SuccessResponse{Data: resp})
+		dto.Repsonse(rw, http.StatusCreated, dto.SuccessResponse{Data: resp, Message: "Core value successfully created", Success: true})
 	})
 }
 
@@ -81,6 +82,6 @@ func updateCoreValueHandler(coreValueSvc corevalues.Service) http.HandlerFunc {
 			return
 		}
 
-		dto.Repsonse(rw, http.StatusOK, dto.SuccessResponse{Data: resp})
+		dto.Repsonse(rw, http.StatusOK, dto.SuccessResponse{Data: resp, Message: "Core value successfully updated", Success: true})
 	})
 }
