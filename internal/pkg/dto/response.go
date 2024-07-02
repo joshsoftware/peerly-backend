@@ -8,7 +8,9 @@ import (
 )
 
 type SuccessResponse struct {
-	Data interface{} `json:"data"`
+	Data    interface{} `json:"data"`
+	Message string      `json:"message"`
+	Success bool        `json:"success"`
 }
 
 type ErrorResponse struct {

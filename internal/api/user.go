@@ -52,7 +52,7 @@ func loginUser(userSvc user.Service) http.HandlerFunc {
 			return
 		}
 
-		dto.Repsonse(rw, http.StatusOK, dto.SuccessResponse{Data: resp})
+		dto.Repsonse(rw, http.StatusOK, dto.SuccessResponse{Data: resp, Message: "Login successful", Success: true})
 
 	}
 }
@@ -91,20 +91,6 @@ func getIntranetUserListHandler(userSvc user.Service) http.HandlerFunc {
 			apperrors.ErrorResp(rw, err)
 			return
 		}
-
-		// var users []dto.GetUserListResp
-
-		// for i := 0; i < len(usersData); i++ {
-		// 	var user dto.GetUserListResp
-		// 	user.EmployeeId = usersData[i].EmpolyeeDetail.EmployeeId
-		// 	user.FirstName = usersData[i].PublicProfile.FirstName
-		// 	user.LastName = usersData[i].PublicProfile.LastName
-		// 	user.Email = usersData[i].Email
-		// 	user.Grade = usersData[i].EmpolyeeDetail.Grade
-		// 	user.Designation = usersData[i].EmpolyeeDetail.Designation.Name
-		// 	user.ProfileImg = usersData[i].PublicProfile.ProfileImgUrl
-		// 	users = append(users, user)
-		// }
 
 		dto.Repsonse(rw, http.StatusOK, dto.SuccessResponse{Data: usersData})
 	}

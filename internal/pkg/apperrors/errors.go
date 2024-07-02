@@ -22,6 +22,7 @@ func (e CustomError) Error() string {
 type ErrorStruct struct {
 	Message string `json:"message,omitempty"` // Your message to the end user or developer
 	Status  int    `json:"status,omitempty"`  // HTTP status code that should go with the message/log (if any)
+	Success bool   `json:"success"`
 }
 
 // JSONError - This function writes out an error response with the status
@@ -78,6 +79,7 @@ func ErrorResp(rw http.ResponseWriter, err error) {
 	errObj := ErrorStruct{
 		Message: err.Error(),
 		Status:  statusCode,
+		Success: false,
 	}
 
 	errJSON, err := json.Marshal(&errObj)
