@@ -55,7 +55,7 @@ func (_m *UserStorer) GetGradeByName(ctx context.Context, name string) (reposito
 }
 
 // GetRewardOuotaDefault provides a mock function with given fields: ctx
-func (_m *UserStorer) GetRewardOuotaDefault(ctx context.Context) (int, error) {
+func (_m *UserStorer) GetRewardMultiplier(ctx context.Context) (int, error) {
 	ret := _m.Called(ctx)
 
 	var r0 int

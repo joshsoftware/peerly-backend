@@ -36,7 +36,7 @@ const (
 
 	getGradeId = `SELECT id, name, points FROM grades WHERE name = $1`
 
-	getRewardQuotaBalanceDefault = "select reward_multiplier from organization_config where id = 1"
+	getRewardMultiplier = "select reward_multiplier from organization_config where id = 1"
 
 	updateUserQuery = `UPDATE users SET (first_name, last_name, profile_image_url, designation, grade_id) =
 		($1, $2, $3, $4, $5) where email = $6`
@@ -110,8 +110,8 @@ func (us *userStore) GetGradeByName(ctx context.Context, name string) (grade rep
 	return
 }
 
-func (us *userStore) GetRewardOuotaDefault(ctx context.Context) (id int, err error) {
-	err = us.DB.Get(&id, getRewardQuotaBalanceDefault)
+func (us *userStore) GetRewardMultiplier(ctx context.Context) (value int, err error) {
+	err = us.DB.Get(&value, getRewardMultiplier)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			logger.WithField("err", err.Error()).Error("No fields in organization config")

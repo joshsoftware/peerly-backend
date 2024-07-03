@@ -212,8 +212,13 @@ func (us *service) RegisterUser(ctx context.Context, u dto.IntranetUserData) (us
 		return
 	}
 
-	//reward_quota_balance from organization config
-	reward_quota_balance := grade.Points * 10
+	//reward_multiplier from organization config
+	reward_multiplier, err := us.userRepo.GetRewardMultiplier(ctx)
+	if err != nil {
+		err = apperrors.InternalServerError
+		return
+	}
+	reward_quota_balance := grade.Points * reward_multiplier
 
 	//get role by name
 	roleId, err := us.userRepo.GetRoleByName(ctx, constants.UserRole)
