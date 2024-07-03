@@ -9,10 +9,8 @@ import (
 )
 
 var (
-	appName                string
-	appPort                int
-	jwtKey                 string
-	jwtExpiryDurationHours int
+	appName string
+	appPort int
 )
 
 // Load - loads all the environment variables and/or params in application.yml
@@ -21,10 +19,11 @@ func Load(configFile string) {
 	viper.SetDefault("APP_PORT", "8002")
 
 	viper.SetConfigName(configFile)
-	viper.SetConfigType("yaml")
+	viper.SetConfigType("yml")
 	viper.AddConfigPath("./")
 	viper.AddConfigPath("./..")
 	viper.AddConfigPath("./../..")
+	viper.AddConfigPath("./../../..")
 	viper.ReadInConfig()
 	viper.AutomaticEnv()
 
@@ -86,4 +85,8 @@ func checkIfSet(key string) {
 		// err := errors.New(fmt.Sprintf("Key %s is not set", key))
 		panic(apperrors.ErrKeyNotSet(key))
 	}
+}
+
+func IntranetClientCode() string {
+	return ReadEnvString("INTRANET_CLIENT_CODE")
 }

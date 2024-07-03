@@ -5,86 +5,41 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
 	ae "github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
-	logger "github.com/sirupsen/logrus"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/logger"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
+	logger "github.com/sirupsen/logrus"
 )
 
 const (
-	createOrganizationQuery = `INSERT INTO organizations (
-		name,
-		contact_email,
-		domain_name,
-		subscription_status,
-		subscription_valid_upto,
-		hi5_limit,
-		hi5_quota_renewal_frequency,
+	createOrganizationQuery = `INSERT INTO organization_config (
+		id,
+		reward_multiplier,
+		reward_quota_renewal_frequency,
 		timezone,
-		created_by)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`
-
-	deleteOrganizationQuery = `UPDATE organizations SET soft_delete = true, soft_delete_by = $1 WHERE id = $2`
+		created_by,updated_by)
+		VALUES ($1, $2, $3, $4,$5,$6) RETURNING id`
 
 	getOrganizationQuery = `SELECT id,
-		name,
-		contact_email,
-		domain_name,
-		subscription_status,
-		subscription_valid_upto,
-		hi5_limit,
-		hi5_quota_renewal_frequency,
+		reward_multiplier,
+		reward_quota_renewal_frequency,
 		timezone,
 		created_at,
 		created_by,
-		updated_at FROM organizations WHERE id=$1 AND soft_delete = FALSE`
+		updated_at,updated_by FROM organization_config WHERE id=$1`
 
-	listOrganizationsQuery = `SELECT id,
-		name,
-		contact_email,
-		domain_name,
-		subscription_status,
-		subscription_valid_upto,
-		hi5_limit,
-		hi5_quota_renewal_frequency,
-		timezone,
-		created_at,
-		created_by,
-		updated_at FROM organizations WHERE soft_delete = FALSE ORDER BY name ASC`
-
-	getOrganizationByDomainNameQuery = `SELECT id,
-		name,
-		contact_email,
-		domain_name,
-		subscription_status,
-		subscription_valid_upto,
-		hi5_limit,
-		hi5_quota_renewal_frequency,
-		timezone,
-		created_at,
-		created_by,
-		updated_at FROM organizations WHERE domain_name=$1 AND soft_delete = FALSE LIMIT 1`
 	getOrganizationByIDQuery = `SELECT id,
-		name,
-		contact_email,
-		domain_name,
-		subscription_status,
-		subscription_valid_upto,
-		hi5_limit,
-		hi5_quota_renewal_frequency,
+		reward_multiplier,
+		reward_quota_renewal_frequency,
 		timezone,
 		created_at,
 		created_by,
-		updated_at FROM organizations WHERE id=$1 LIMIT 1`
-	getCountOfContactEmailQuery = `SELECT COUNT(*) FROM organizations WHERE contact_email = $1 AND soft_delete = FALSE`
-	getCountOfDomainNameQuery   = `SELECT COUNT(*) FROM organizations WHERE domain_name = $1 AND soft_delete = FALSE`
-	getCountOfIdQuery           = `SELECT COUNT(*) FROM organizations WHERE id = $1 AND soft_delete = FALSE`
+		updated_at,updated_by FROM organization_config WHERE id=$1`
 )
 
 type OrganizationStore struct {
@@ -97,31 +52,16 @@ func NewOrganizationRepo(db *sqlx.DB) repository.OrganizationStorer {
 	}
 }
 
-func (orgStr *OrganizationStore) ListOrganizations(ctx context.Context) (organizations []repository.Organization, err error) {
-	err = orgStr.DB.Select(&organizations, listOrganizationsQuery)
-	if err != nil {
-		logger.WithField("err", err.Error()).Error("Error listing organizations")
-		return organizations, ae.InternalServer
-	}
-	return
-}
-
-func (s *OrganizationStore) CreateOrganization(ctx context.Context, org dto.Organization) (createdOrganization repository.Organization, err error) {
-	// Set org.CreatedAt so we get a valid created_at value from the database going forward
-	org.CreatedAt = time.Now().UTC()
-
+func (s *OrganizationStore) CreateOrganizationConfig(ctx context.Context, org dto.OrganizationConfig) (createdOrganization repository.OrganizationConfig, err error) {
 	lastInsertID := 0
 	err = s.DB.QueryRow(
 		createOrganizationQuery,
-		org.Name,
-		org.ContactEmail,
-		org.DomainName,
-		org.SubscriptionStatus,
-		org.SubscriptionValidUpto,
-		org.Hi5Limit,
-		org.Hi5QuotaRenewalFrequency,
+		1,
+		org.RewardMultiplier,
+		org.RewardQuotaRenewalFrequency,
 		org.Timezone,
 		org.CreatedBy,
+		org.UpdatedBy,
 	).Scan(&lastInsertID)
 	if err != nil {
 		logger.WithField("err", err.Error()).Error("Error creating organization")
@@ -138,57 +78,20 @@ func (s *OrganizationStore) CreateOrganization(ctx context.Context, org dto.Orga
 	return
 }
 
-func (s *OrganizationStore) UpdateOrganization(ctx context.Context, reqOrganization dto.Organization) (updatedOrganization repository.Organization, err error) {
-	err = s.DB.Get(&updatedOrganization, getOrganizationQuery, reqOrganization.ID)
-	if err != nil {
-		log.Error(ae.ErrRecordNotFound, "Cannot find organization id "+fmt.Sprint(reqOrganization.ID), err)
-		return repository.Organization{}, ae.OrganizationNotFound
-	}
-
-	var dbOrganization repository.Organization
-	err = s.DB.Get(&dbOrganization, getOrganizationQuery, reqOrganization.ID)
-	if err != nil {
-		logger.WithField("err", err.Error()).Error("Error fetching organization")
-		return
-	}
+func (s *OrganizationStore) UpdateOrganizationCofig(ctx context.Context, reqOrganization dto.OrganizationConfig) (updatedOrganization repository.OrganizationConfig, err error) {
 
 	updateFields := []string{}
 	args := []interface{}{}
 	argID := 1
 
-	if reqOrganization.Name != "" {
-		updateFields = append(updateFields, fmt.Sprintf("name = $%d", argID))
-		args = append(args, reqOrganization.Name)
+	if reqOrganization.RewardMultiplier != 0 {
+		updateFields = append(updateFields, fmt.Sprintf("reward_multiplier = $%d", argID))
+		args = append(args, reqOrganization.RewardMultiplier)
 		argID++
 	}
-	if reqOrganization.ContactEmail != "" {
-		updateFields = append(updateFields, fmt.Sprintf("contact_email = $%d", argID))
-		updateFields = append(updateFields,"is_email_verified = false")
-		args = append(args, reqOrganization.ContactEmail)
-		argID++
-	}
-	if reqOrganization.DomainName != "" {
-		updateFields = append(updateFields, fmt.Sprintf("domain_name = $%d", argID))
-		args = append(args, reqOrganization.DomainName)
-		argID++
-	}
-
-	if !reqOrganization.SubscriptionValidUpto.IsZero() {
-		updateFields = append(updateFields, fmt.Sprintf("subscription_valid_upto = $%d", argID))
-		args = append(args, reqOrganization.SubscriptionValidUpto)
-		argID++
-		updateFields = append(updateFields, fmt.Sprintf("subscription_status = $%d", argID))
-		args = append(args, 1)
-		argID++
-	}
-	if reqOrganization.Hi5Limit != 0 {
-		updateFields = append(updateFields, fmt.Sprintf("hi5_limit = $%d", argID))
-		args = append(args, reqOrganization.Hi5Limit)
-		argID++
-	}
-	if reqOrganization.Hi5QuotaRenewalFrequency != "" {
-		updateFields = append(updateFields, fmt.Sprintf("hi5_quota_renewal_frequency = $%d", argID))
-		args = append(args, reqOrganization.Hi5QuotaRenewalFrequency)
+	if reqOrganization.RewardQuotaRenewalFrequency != 0 {
+		updateFields = append(updateFields, fmt.Sprintf("reward_quota_renewal_frequency = $%d", argID))
+		args = append(args, reqOrganization.RewardQuotaRenewalFrequency)
 		argID++
 	}
 	if reqOrganization.Timezone != "" {
@@ -200,24 +103,26 @@ func (s *OrganizationStore) UpdateOrganization(ctx context.Context, reqOrganizat
 	if len(updateFields) > 0 {
 
 		updateFields = append(updateFields, fmt.Sprintf("updated_at = $%d", argID))
-		args = append(args, time.Now())
+		args = append(args, time.Now().UnixMilli())
+		argID++
+
+		updateFields = append(updateFields, fmt.Sprintf("updated_by = $%d", argID))
+		args = append(args, reqOrganization.UpdatedBy)
 		argID++
 		// Append the organization ID for the WHERE clause
 
-		args = append(args, reqOrganization.ID)
-		updateQuery := fmt.Sprintf("UPDATE organizations SET %s WHERE id = $%d", strings.Join(updateFields, ", "), argID)
-		fmt.Println("update query: ------------->\n", updateQuery)
-		fmt.Println("update args: ------------->\n", args)
+		args = append(args, 1)
+		updateQuery := fmt.Sprintf("UPDATE organization_config SET %s WHERE id = $%d", strings.Join(updateFields, ", "), argID)
 		stmt, err := s.DB.Prepare(updateQuery)
 		if err != nil {
 			logger.WithField("err", err.Error()).Error("Error preparing update statement")
-			return repository.Organization{}, err
+			return repository.OrganizationConfig{}, err
 		}
 		defer stmt.Close()
 		_, err = stmt.Exec(args...)
 		if err != nil {
 			logger.WithField("err", err.Error()).Error("Error executing update statement")
-			return repository.Organization{}, err
+			return repository.OrganizationConfig{}, err
 		}
 	}
 
@@ -230,108 +135,32 @@ func (s *OrganizationStore) UpdateOrganization(ctx context.Context, reqOrganizat
 	return
 }
 
-func (s *OrganizationStore) DeleteOrganization(ctx context.Context, organizationID int, userId int64) (err error) {
-	sqlRes, err := s.DB.Exec(deleteOrganizationQuery, userId, organizationID)
-	if err != nil {
-		logger.WithField("err", err.Error()).Error("Error deleting organization")
-		return ae.InternalServer
-	}
-
-	rowsAffected, err := sqlRes.RowsAffected()
-	if err != nil {
-		logger.WithField("err", err.Error()).Error("Error fetching rows affected count")
-		return ae.InternalServer
-	}
-
-	if rowsAffected == 0 {
-		err = fmt.Errorf("organization with ID %d not found", organizationID)
-		logger.WithField("organizationID", organizationID).Warn(err.Error())
-		return ae.OrganizationNotFound
-	}
-
-	return nil
-}
-
 // GetOrganization - returns an organization from the database if it exists based on its ID primary key
-func (s *OrganizationStore) GetOrganization(ctx context.Context, organizationID int) (organization repository.Organization, err error) {
-	err = s.DB.Get(&organization, getOrganizationQuery, organizationID)
+func (s *OrganizationStore) GetOrganizationConfig(ctx context.Context) (organization repository.OrganizationConfig, err error) {
+	err = s.DB.Get(&organization, getOrganizationQuery, 1)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			logger.WithField("organizationID", organizationID).Warn("Organization not found")
-			return repository.Organization{}, ae.OrganizationNotFound
+			logger.WithField("organizationID", 1).Warn("Organization not found")
+			return repository.OrganizationConfig{}, ae.OrganizationNotFound
 		}
 		logger.WithField("err", err.Error()).Error("Error fetching organization")
-		return repository.Organization{}, err
+		return repository.OrganizationConfig{}, err
 	}
 
 	return
-}
-
-func (s *OrganizationStore) GetOrganizationByDomainName(ctx context.Context, domainName string) (organization repository.Organization, err error) {
-	fmt.Println("GetOrganizationByDomainName ------------------------>")
-	err = s.DB.Get(&organization, getOrganizationByDomainNameQuery, domainName)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			logger.WithField("organization domain name", domainName).Warn("Organization not found by domain name")
-			return repository.Organization{}, ae.OrganizationNotFound
-		}
-		logger.WithField("err", err.Error()).Error("Error fetching organization")
-		return repository.Organization{}, err
-	}
-	return
-}
-
-func (s *OrganizationStore) IsEmailPresent(ctx context.Context, email string) bool {
-
-	var count int
-
-	err := s.DB.QueryRowContext(ctx, getCountOfContactEmailQuery, email).Scan(&count)
-	if err != nil {
-		logger.WithField("err", err.Error()).Error("Error fetching contact email of organization by contact email id: " + email)
-		return false
-	}
-
-	return count > 0
-}
-
-func (s *OrganizationStore) IsDomainPresent(ctx context.Context, domainName string) bool {
-
-	var count int
-
-	err := s.DB.QueryRowContext(ctx, getCountOfDomainNameQuery, domainName).Scan(&count)
-	if err != nil {
-		logger.WithField("err", err.Error()).Error("Error fetching domain name of organization by contact email id: " + domainName)
-		return false
-	}
-
-	return count > 0
-}
-
-func (s *OrganizationStore) IsOrganizationIdPresent(ctx context.Context, organizationId int64) bool {
-	var count int
-
-	err := s.DB.QueryRowContext(ctx, getCountOfIdQuery, organizationId).Scan(&count)
-	if err != nil {
-		logger.WithField("err", err.Error()).Error("Error fetching id of organization: " + strconv.FormatInt(organizationId, 10))
-		return false
-	}
-
-	return count > 0
 }
 
 ///helper functions Organization
 
-func OrganizationToDB(org dto.Organization) repository.Organization {
-	return repository.Organization{
-		ID:                       org.ID,
-		Name:                     org.Name,
-		ContactEmail:             org.ContactEmail,
-		DomainName:               org.DomainName,
-		SubscriptionStatus:       org.SubscriptionStatus,
-		SubscriptionValidUpto:    org.SubscriptionValidUpto,
-		Hi5Limit:                 org.Hi5Limit,
-		Hi5QuotaRenewalFrequency: org.Hi5QuotaRenewalFrequency,
-		Timezone:                 org.Timezone,
-		CreatedAt:                org.CreatedAt,
+func OrganizationConfigToDB(org dto.OrganizationConfig) repository.OrganizationConfig {
+	return repository.OrganizationConfig{
+		RewardMultiplier:            org.RewardMultiplier,
+		ID:                          org.ID,
+		RewardQuotaRenewalFrequency: org.RewardQuotaRenewalFrequency,
+		Timezone:                    org.Timezone,
+		CreatedAt:                   org.CreatedAt,
+		CreatedBy:                   org.CreatedBy,
+		UpdatedAt:                   org.UpdatedAt,
+		UpdatedBy:                   org.UpdatedBy,
 	}
 }
