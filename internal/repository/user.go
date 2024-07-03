@@ -14,7 +14,7 @@ type UserStorer interface {
 	GetRoleByName(ctx context.Context, name string) (roleId int, err error)
 	CreateNewUser(ctx context.Context, u dto.RegisterUser) (resp dto.GetUserResp, err error)
 	GetGradeByName(ctx context.Context, name string) (grade Grade, err error)
-	GetRewardOuotaDefault(ctx context.Context) (id int, err error)
+	GetRewardMultiplier(ctx context.Context) (value int, err error)
 	SyncData(ctx context.Context, updateData dto.UpdateUserData) (err error)
 }
 
