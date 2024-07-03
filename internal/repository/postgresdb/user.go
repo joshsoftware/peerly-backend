@@ -34,7 +34,7 @@ const (
 
 	getRoleByNameQuery = `SELECT id FROM roles WHERE name=$1 LIMIT 1`
 
-	getGradeId = `SELECT id FROM grades WHERE name = $1`
+	getGradeId = `SELECT id, name, points FROM grades WHERE name = $1`
 
 	getRewardQuotaBalanceDefault = "select reward_multiplier from organization_config where id = 1"
 
@@ -96,8 +96,8 @@ func (us *userStore) CreateNewUser(ctx context.Context, u dto.RegisterUser) (res
 	return
 }
 
-func (us *userStore) GetGradeByName(ctx context.Context, name string) (id int, err error) {
-	err = us.DB.Get(&id, getGradeId, name)
+func (us *userStore) GetGradeByName(ctx context.Context, name string) (grade repository.Grade, err error) {
+	err = us.DB.Get(&grade, getGradeId, name)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			err = apperrors.GradeNotFound

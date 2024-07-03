@@ -150,11 +150,11 @@ func (us *service) LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.L
 	syncNeeded, dataToBeUpdated := syncData(u, user)
 	if syncNeeded {
 
-		gradeId, err := us.userRepo.GetGradeByName(ctx, dataToBeUpdated.Grade)
+		grade, err := us.userRepo.GetGradeByName(ctx, dataToBeUpdated.Grade)
 		if err != nil {
 			return resp, err
 		}
-		dataToBeUpdated.GradeId = gradeId
+		dataToBeUpdated.GradeId = grade.Id
 
 		err = us.userRepo.SyncData(ctx, dataToBeUpdated)
 		if err != nil {
@@ -207,17 +207,13 @@ func (us *service) RegisterUser(ctx context.Context, u dto.IntranetUserData) (us
 	}
 
 	//get grade id
-	gradeId, err := us.userRepo.GetGradeByName(ctx, u.EmpolyeeDetail.Grade)
+	grade, err := us.userRepo.GetGradeByName(ctx, u.EmpolyeeDetail.Grade)
 	if err != nil {
 		return
 	}
 
 	//reward_quota_balance from organization config
-	reward_quota_balance, err := us.userRepo.GetRewardOuotaDefault(ctx)
-	if err != nil {
-		err = apperrors.InternalServerError
-		return
-	}
+	reward_quota_balance := grade.Points * 10
 
 	//get role by name
 	roleId, err := us.userRepo.GetRoleByName(ctx, constants.UserRole)
@@ -228,7 +224,7 @@ func (us *service) RegisterUser(ctx context.Context, u dto.IntranetUserData) (us
 
 	var userData dto.RegisterUser
 	userData.User = u
-	userData.GradeId = gradeId
+	userData.GradeId = grade.Id
 	userData.RewardQuotaBalance = reward_quota_balance
 	userData.RoleId = roleId
 
