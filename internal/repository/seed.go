@@ -33,8 +33,8 @@ func SeedData() (err error) {
 		`INSERT INTO grades (id,name, points) VALUES (10,'J12',100)`,
 
 		//corevalues
-		`INSERT INTO core_values (id,name,description, parent_core_value_id) VALUES (1,"Leadership","leadership quality",null)`,
-		`INSERT INTO core_values (id,name,description, parent_core_value_id) VALUES (2,"Technical Excellence","tech genius",null)`,
+		`INSERT INTO core_values (id,name,description, parent_core_value_id) VALUES (1,'Leadership','leadership quality',null)`,
+		`INSERT INTO core_values (id,name,description, parent_core_value_id) VALUES (2,'Technical Excellence','tech genius',null)`,
 
 		//badges
 		`INSERT INTO badges (id,name,reward_points) VALUES (1,'Bronze',1500)`,
@@ -46,7 +46,7 @@ func SeedData() (err error) {
 		`INSERT INTO users (id,employee_id,first_name,last_name,email,designation,reward_quota_balance,role_id,grade_id)
 		VALUES (1,'26','Sameer','Tilak','sameer.tilak@joshsoftware.com','Digital Head',900,1,2)`,
 		//organization config
-		`INSERT INTO organization_config (id,reward_multiplier,reward_quota_renewal_frequency,timezone,created_by) VALUES (1,10,1,"UTC",1)`,
+		`INSERT INTO organization_config (id,reward_multiplier,reward_quota_renewal_frequency,timezone,created_by) VALUES (1,10,1,'UTC',1)`,
 	}
 
 	for _, query := range seedQueries {
