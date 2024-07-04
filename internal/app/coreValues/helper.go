@@ -46,7 +46,7 @@ func Validate(ctx context.Context, coreValue dto.CreateCoreValueReq, storer repo
 func VarsStringToInt(inp string, label string) (result int64, err error) {
 
 	if len(inp) <= 0 {
-		err = apperrors.InvalidOrgId
+		err = apperrors.InvalidId
 		return
 	}
 	result, err = strconv.ParseInt(inp, 10, 64)

@@ -43,8 +43,8 @@ func JwtAuthMiddleware(next http.Handler, roles []string) http.Handler {
 			return
 		}
 
-		Id := claims.Id
-		Role := claims.Role
+		var Id int64 = claims.Id
+		var Role string = claims.Role
 
 		if !slices.Contains(roles, Role) {
 			err := apperrors.RoleUnathorized
