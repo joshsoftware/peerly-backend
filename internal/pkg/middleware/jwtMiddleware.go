@@ -20,7 +20,7 @@ func JwtAuthMiddleware(next http.Handler, roles []string) http.Handler {
 		if authToken == "" {
 			logger.Error("Empty auth token")
 			err := apperrors.InvalidAuthToken
-			apperrors.ErrorResp(rw, err)
+			dto.ErrorRepsonse(rw, apperrors.GetHTTPStatusCode(err), err.Error(), nil)
 			return
 		}
 
@@ -32,14 +32,14 @@ func JwtAuthMiddleware(next http.Handler, roles []string) http.Handler {
 		if err != nil {
 			logger.WithField("err", err.Error()).Error("Error in parse with claims function")
 			err = apperrors.InvalidAuthToken
-			apperrors.ErrorResp(rw, err)
+			dto.ErrorRepsonse(rw, apperrors.GetHTTPStatusCode(err), err.Error(), nil)
 			return
 		}
 
 		if !tkn.Valid {
 			logger.Error("Invalid token")
 			err = apperrors.InvalidAuthToken
-			apperrors.ErrorResp(rw, err)
+			dto.ErrorRepsonse(rw, apperrors.GetHTTPStatusCode(err), err.Error(), nil)
 			return
 		}
 
@@ -48,13 +48,13 @@ func JwtAuthMiddleware(next http.Handler, roles []string) http.Handler {
 
 		if !slices.Contains(roles, Role) {
 			err := apperrors.RoleUnathorized
-			apperrors.ErrorResp(rw, err)
+			dto.ErrorRepsonse(rw, apperrors.GetHTTPStatusCode(err), err.Error(), nil)
 			return
 		}
 
 		// set id and role to context
-		ctx := context.WithValue(req.Context(),constants.UserId, Id)
-		ctx = context.WithValue(ctx,constants.Role, Role)
+		ctx := context.WithValue(req.Context(), constants.UserId, Id)
+		ctx = context.WithValue(ctx, constants.Role, Role)
 		req = req.WithContext(ctx)
 
 		next.ServeHTTP(rw, req)

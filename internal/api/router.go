@@ -35,18 +35,13 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 	router.Handle("/core_values/{id:[0-9]+}", middleware.JwtAuthMiddleware(updateCoreValueHandler(deps.CoreValueService), []string{constants.UserRole})).Methods(http.MethodPut).Headers(versionHeader, v1)
 
 	//login
-
-	// router.Handle("/intranet/validate", intranet.ValidatePeerly()).Methods(http.MethodGet)
-
-	// router.Handle("/intranet/getuser/{user_id:[0-9]+}", intranet.IntranetGetUserApi()).Methods(http.MethodGet)
-
 	router.Handle("/user/register", registerUser(deps.UserService)).Methods(http.MethodPost)
 
 	router.Handle("/user/login", loginUser(deps.UserService)).Methods(http.MethodGet).Headers(versionHeader, v1)
 
 	router.Handle("/users", getIntranetUserListHandler(deps.UserService)).Methods(http.MethodGet)
 
-	router.Handle("/users/all", getUserHandler(deps.UserService)).Methods(http.MethodGet).Headers(versionHeader, v1)
+	router.Handle("/users/all", middleware.JwtAuthMiddleware(getUserHandler(deps.UserService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
 	// No version requirement for /ping
 	router.HandleFunc("/ping", pingHandler).Methods(http.MethodGet)
 
