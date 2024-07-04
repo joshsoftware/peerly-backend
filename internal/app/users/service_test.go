@@ -13,7 +13,7 @@ import (
 )
 
 func TestLoginUser(t *testing.T) {
-	config.Load("application")
+	config.Load()
 	userRepo := mocks.NewUserStorer(t)
 	service := NewService(userRepo)
 
