@@ -7,5 +7,5 @@ import (
 )
 
 func pingHandler(rw http.ResponseWriter, req *http.Request) {
-	dto.SuccessRepsonse(rw, http.StatusOK, "pong", nil)
+	dto.SuccessRepsonse(rw, http.StatusOK, "Success", "pong")
 }
