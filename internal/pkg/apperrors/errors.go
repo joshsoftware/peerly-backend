@@ -17,7 +17,7 @@ func (e CustomError) Error() string {
 
 const (
 	BadRequest           = CustomError("Bad request")
-	InternalServer       = CustomError("Failed to write organization db")
+	InternalServer       = CustomError("Internal Server")
 	FailedToCreateDriver = CustomError("failure to create driver obj")
 	MigrationFailure     = CustomError("migrate failure")
 )

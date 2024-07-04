@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	logger "github.com/sirupsen/logrus"
 )
 
@@ -35,12 +36,12 @@ func SuccessRepsonse(rw http.ResponseWriter, status int, message string, data in
 	rw.Write(respBytes)
 }
 
-func ErrorRepsonse(rw http.ResponseWriter, status int, message string, errorBody interface{}) {
+func ErrorRepsonse(rw http.ResponseWriter, err error, errorBody interface{}) {
 
 	var resp Response
 	resp.Success = false
-	resp.Status = status
-	resp.Message = message
+	resp.Status = apperrors.GetHTTPStatusCode(err)
+	resp.Message = err.Error()
 	resp.Error = errorBody
 
 	respBytes, err := json.Marshal(resp)
@@ -51,6 +52,6 @@ func ErrorRepsonse(rw http.ResponseWriter, status int, message string, errorBody
 	}
 
 	rw.Header().Add("Content-Type", "application/json")
-	rw.WriteHeader(status)
+	rw.WriteHeader(resp.Status)
 	rw.Write(respBytes)
 }
