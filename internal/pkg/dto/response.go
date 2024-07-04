@@ -7,26 +7,43 @@ import (
 	logger "github.com/sirupsen/logrus"
 )
 
-type SuccessResponse struct {
-	Data interface{} `json:"data"`
+type Response struct {
+	Success bool        `json:"success"`
+	Message string      `json:"message"`
+	Status  int         `json:"status_code"`
+	Data    interface{} `json:"data"`
+	Error   interface{} `json:"error"`
 }
 
-type ErrorResponse struct {
-	Error interface{} `json:"error"`
+func SuccessRepsonse(rw http.ResponseWriter, status int, message string, data interface{}) {
+
+	var resp Response
+	resp.Success = true
+	resp.Status = status
+	resp.Message = message
+	resp.Data = data
+
+	respBytes, err := json.Marshal(resp)
+	if err != nil {
+		logger.WithField("err", err.Error()).Error("Error while marshaling core values data")
+		rw.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	rw.Header().Add("Content-Type", "application/json")
+	rw.WriteHeader(status)
+	rw.Write(respBytes)
 }
 
-type MessageObject struct {
-	Message string `json:"message"`
-}
+func ErrorRepsonse(rw http.ResponseWriter, status int, message string, errorBody interface{}) {
 
-type ErrorObject struct {
-	Code string `json:"code"`
-	MessageObject
-	Fields map[string]string `json:"fields"`
-}
+	var resp Response
+	resp.Success = false
+	resp.Status = status
+	resp.Message = message
+	resp.Error = errorBody
 
-func Repsonse(rw http.ResponseWriter, status int, responseBody interface{}) {
-	respBytes, err := json.Marshal(responseBody)
+	respBytes, err := json.Marshal(resp)
 	if err != nil {
 		logger.WithField("err", err.Error()).Error("Error while marshaling core values data")
 		rw.WriteHeader(http.StatusInternalServerError)
