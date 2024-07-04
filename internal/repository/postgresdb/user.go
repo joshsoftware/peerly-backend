@@ -164,8 +164,6 @@ func (us *userStore) GetUserList(ctx context.Context, reqData dto.UserListReq) (
 	str := fmt.Sprint(" limit " + strconv.Itoa(reqData.PerPage) + " offset " + strconv.Itoa(reqData.PerPage*(reqData.Page-1)+1))
 	getUserListQuery += str
 
-	fmt.Println(getUserListQuery)
-
 	err = us.DB.Select(&resp, getUserListQuery)
 	if err != nil {
 		if err == sql.ErrNoRows {
