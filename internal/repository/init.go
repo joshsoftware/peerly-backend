@@ -9,8 +9,9 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
-	"github.com/joshsoftware/peerly-backend/internal/pkg/config"
+	"github.com/joshsoftware/peerly-backend/pkg/apperrors"
+	"github.com/joshsoftware/peerly-backend/pkg/config"
+	"github.com/joshsoftware/peerly-backend/pkg/constants"
 	logger "github.com/sirupsen/logrus"
 
 	// Import PostgreSQL database driver
@@ -27,7 +28,7 @@ const (
 )
 
 func InitializeDatabase() (db *sqlx.DB, err error) {
-	uri := config.ReadEnvString("DB_URI")
+	uri := config.ReadEnvString(constants.DBURI)
 
 	conn, err := sqlx.Connect(dbDriver, uri)
 	if err != nil {
@@ -39,7 +40,7 @@ func InitializeDatabase() (db *sqlx.DB, err error) {
 
 // RunMigrations - runs all database migrations (see ../migrtions/*.up.sql)
 func RunMigrations() (err error) {
-	uri := config.ReadEnvString("DB_URI")
+	uri := config.ReadEnvString(constants.DBURI)
 
 	db, _ := sql.Open(dbDriver, uri)
 
@@ -72,8 +73,8 @@ func CreateMigrationFile(filename string) (err error) {
 	}
 
 	timeStamp := time.Now().Unix()
-	upMigrationFilePath := fmt.Sprintf("%s/%d_%s.up.sql", config.ReadEnvString("MIGRATION_FOLDER_PATH"), timeStamp, filename)
-	downMigrationFilePath := fmt.Sprintf("%s/%d_%s.down.sql", config.ReadEnvString("MIGRATION_FOLDER_PATH"), timeStamp, filename)
+	upMigrationFilePath := fmt.Sprintf("%s/%d_%s.up.sql", config.ReadEnvString(constants.MigrationFolderPath), timeStamp, filename)
+	downMigrationFilePath := fmt.Sprintf("%s/%d_%s.down.sql", config.ReadEnvString(constants.MigrationFolderPath), timeStamp, filename)
 
 	err = createFile(upMigrationFilePath)
 	if err != nil {
@@ -96,7 +97,7 @@ func CreateMigrationFile(filename string) (err error) {
 
 // RollbackMigrations - Used to run the "down" database migrations in ../migrations/*.down.sql
 func RollbackMigrations(s string) (err error) {
-	uri := config.ReadEnvString("DB_URI")
+	uri := config.ReadEnvString(constants.DBURI)
 
 	steps, err := strconv.Atoi(s)
 	if err != nil {
@@ -128,5 +129,5 @@ func createFile(filename string) (err error) {
 }
 
 func getMigrationPath() string {
-	return fmt.Sprintf("file://%s", config.ReadEnvString("MIGRATION_FOLDER_PATH"))
+	return fmt.Sprintf("file://%s", config.ReadEnvString(constants.MigrationFolderPath))
 }
