@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"log"
-	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
@@ -15,10 +14,6 @@ type BaseRepository struct {
 
 type BaseTransaction struct {
 	tx *sqlx.Tx
-}
-
-func (repo *BaseRepository) TimeNow() time.Time {
-	return time.Now()
 }
 
 func (repo *BaseRepository) BeginTx(ctx context.Context) (repository.Transaction, error) {

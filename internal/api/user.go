@@ -19,13 +19,13 @@ func loginUser(userSvc user.Service) http.HandlerFunc {
 		authToken := req.Header.Get(constants.IntranetAuth)
 		if authToken == "" {
 			err := apperrors.InvalidAuthToken
-			apperrors.ErrorResp(rw, err)
+			dto.ErrorRepsonse(rw, apperrors.GetHTTPStatusCode(err), err.Error(), nil)
 			return
 		}
 
 		validateResp, err := userSvc.ValidatePeerly(req.Context(), authToken)
 		if err != nil {
-			apperrors.ErrorResp(rw, err)
+			dto.ErrorRepsonse(rw, apperrors.GetHTTPStatusCode(err), err.Error(), nil)
 			return
 		}
 
@@ -36,23 +36,23 @@ func loginUser(userSvc user.Service) http.HandlerFunc {
 
 		user, err := userSvc.GetIntranetUserData(req.Context(), reqData)
 		if err != nil {
-			apperrors.ErrorResp(rw, err)
+			dto.ErrorRepsonse(rw, apperrors.GetHTTPStatusCode(err), err.Error(), nil)
 			return
 		}
 
 		err = validation.GetIntranetUserDataValidation(user)
 		if err != nil {
-			apperrors.ErrorResp(rw, err)
+			dto.ErrorRepsonse(rw, apperrors.GetHTTPStatusCode(err), err.Error(), nil)
 			return
 		}
 
 		resp, err := userSvc.LoginUser(req.Context(), user)
 		if err != nil {
-			apperrors.ErrorResp(rw, err)
+			dto.ErrorRepsonse(rw, apperrors.GetHTTPStatusCode(err), err.Error(), nil)
 			return
 		}
 
-		dto.Repsonse(rw, http.StatusOK, dto.SuccessResponse{Data: resp, Message: "Login successful", Success: true})
+		dto.SuccessRepsonse(rw, http.StatusOK, "Login successful", resp)
 
 	}
 }
@@ -63,21 +63,21 @@ func getIntranetUserListHandler(userSvc user.Service) http.HandlerFunc {
 		authToken := req.Header.Get(constants.IntranetAuth)
 		if authToken == "" {
 			err := apperrors.InvalidAuthToken
-			apperrors.ErrorResp(rw, err)
+			dto.ErrorRepsonse(rw, apperrors.GetHTTPStatusCode(err), err.Error(), nil)
 			return
 		}
 
 		page := req.URL.Query().Get("page")
 		if page == "" {
 			err := apperrors.PageParamNotFound
-			apperrors.ErrorResp(rw, err)
+			dto.ErrorRepsonse(rw, apperrors.GetHTTPStatusCode(err), err.Error(), nil)
 			return
 		}
 		pageInt, _ := strconv.Atoi(page)
 
 		validateResp, err := userSvc.ValidatePeerly(req.Context(), authToken)
 		if err != nil {
-			apperrors.ErrorResp(rw, err)
+			dto.ErrorRepsonse(rw, apperrors.GetHTTPStatusCode(err), err.Error(), nil)
 			return
 		}
 
@@ -88,11 +88,11 @@ func getIntranetUserListHandler(userSvc user.Service) http.HandlerFunc {
 
 		usersData, err := userSvc.GetUserListIntranet(req.Context(), reqData)
 		if err != nil {
-			apperrors.ErrorResp(rw, err)
+			dto.ErrorRepsonse(rw, apperrors.GetHTTPStatusCode(err), err.Error(), nil)
 			return
 		}
 
-		dto.Repsonse(rw, http.StatusOK, dto.SuccessResponse{Data: usersData})
+		dto.SuccessRepsonse(rw, http.StatusOK, "Intranet users listed", usersData)
 	}
 }
 
@@ -103,15 +103,15 @@ func registerUser(userSvc user.Service) http.HandlerFunc {
 		if err != nil {
 			logger.WithField("err", err.Error()).Error("Error while decoding request data")
 			err = apperrors.JSONParsingErrorReq
-			apperrors.ErrorResp(rw, err)
+			dto.ErrorRepsonse(rw, apperrors.GetHTTPStatusCode(err), err.Error(), nil)
 			return
 		}
 		resp, err := userSvc.RegisterUser(req.Context(), user)
 		if err != nil {
-			apperrors.ErrorResp(rw, err)
+			dto.ErrorRepsonse(rw, apperrors.GetHTTPStatusCode(err), err.Error(), nil)
 			return
 		}
-		dto.Repsonse(rw, http.StatusOK, dto.SuccessResponse{Data: resp})
+		dto.SuccessRepsonse(rw, http.StatusOK, "User registered successfully", resp)
 	}
 }
 
