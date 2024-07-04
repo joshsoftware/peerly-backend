@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS grades (
 
 CREATE TABLE IF NOT EXISTS users (
     id BIGSERIAL PRIMARY KEY,
+    employee_id varchar(225) UNIQUE NOT NULL,
     first_name VARCHAR(50) NOT NULL,
     last_name VARCHAR(50) NOT NULL,
     email VARCHAR(50) NOT NULL,
@@ -59,7 +60,7 @@ CREATE TABLE IF NOT EXISTS appreciations (
     core_value_id INT NOT NULL REFERENCES core_values(id),
     description TEXT NOT NULL, -- reason
     is_valid BOOLEAN NOT NULL DEFAULT true,
-    total_rewards INT DEFAULT 0,
+    total_reward_points INT DEFAULT 0,
     quarter INT NOT NULL,
     sender BIGINT NOT NULL REFERENCES users(id),
     receiver BIGINT NOT NULL REFERENCES users(id),
@@ -78,20 +79,19 @@ CREATE TABLE IF NOT EXISTS rewards (
 CREATE TABLE IF NOT EXISTS resolutions (
     id SERIAL PRIMARY KEY,
     appreciation_id INT NOT NULL REFERENCES appreciations(id),
-    reporting_action INT NOT NULL,
     reporting_comment VARCHAR NOT NULL,
     reported_by BIGINT NOT NULL REFERENCES users(id),
     reported_at BIGINT DEFAULT (EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT,
     moderator_action INT,
     moderator_comment VARCHAR(45),
-    moderated_by BIGINT NOT NULL REFERENCES users(id),
+    moderated_by BIGINT  REFERENCES users(id),
     moderated_at BIGINT 
 );
 
 CREATE TABLE organization_config (
     id BIGSERIAL PRIMARY KEY,
     reward_multiplier INT,
-    reward_quota_renewal_frequency INT, -- Assuming month is just a unit for this integer value
+    reward_quota_renewal_frequency INT, -- Assuming month is only a unit for this integer value
     timezone VARCHAR(100) DEFAULT 'UTC',
     created_at BIGINT DEFAULT (EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT,
     created_by BIGINT REFERENCES users(id),

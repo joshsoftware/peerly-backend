@@ -71,15 +71,18 @@ func CreateMigrationFile(filename string) (err error) {
 		err = errors.New("filename is not provided")
 		return
 	}
-
+	
 	timeStamp := time.Now().Unix()
 	upMigrationFilePath := fmt.Sprintf("%s/%d_%s.up.sql", config.ReadEnvString(constants.MigrationFolderPath), timeStamp, filename)
 	downMigrationFilePath := fmt.Sprintf("%s/%d_%s.down.sql", config.ReadEnvString(constants.MigrationFolderPath), timeStamp, filename)
-
+	fmt.Println("up: ",upMigrationFilePath)
+	fmt.Println("down: ",downMigrationFilePath)
 	err = createFile(upMigrationFilePath)
 	if err != nil {
+		fmt.Println("err: ",err.Error())
 		return
 	}
+	fmt.Println("**********")
 
 	err = createFile(downMigrationFilePath)
 	if err != nil {
@@ -121,6 +124,7 @@ func RollbackMigrations(s string) (err error) {
 func createFile(filename string) (err error) {
 	f, err := os.Create(filename)
 	if err != nil {
+		fmt.Println("create: ",err.Error())
 		return
 	}
 
