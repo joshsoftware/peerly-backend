@@ -27,7 +27,7 @@ func main() {
 		TimestampFormat: "02-01-2006 15:04:05",
 	})
 
-	config.Load("application")
+	config.Load()
 
 	cliApp := cli.NewApp()
 	cliApp.Name = config.AppName()
@@ -65,6 +65,13 @@ func main() {
 				return repository.RollbackMigrations(c.Args().Get(0))
 			},
 		},
+		{
+			Name:  "seed",
+			Usage: "seed data in database",
+			Action: func(c *cli.Context) error {
+				return repository.SeedData()
+			},
+		},
 	}
 
 	if err := cliApp.Run(os.Args); err != nil {
@@ -92,7 +99,7 @@ func startApp() (err error) {
 	})
 
 	//initialize service dependencies
-	services := app.NewServices(dbInstance)
+	services := app.NewService(dbInstance)
 
 	//initialize router
 	router := api.NewRouter(services)

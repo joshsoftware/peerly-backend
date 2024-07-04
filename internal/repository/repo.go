@@ -10,7 +10,7 @@ import (
 type RepositoryTransaction interface {
 	// return a transaction from a sql connection
 	BeginTx(ctx context.Context) (Transaction, error)
-	HandleTransaction(ctx context.Context, tx Transaction, incomingErr error) error
+	HandleTransaction(ctx context.Context, tx Transaction, isSuccess bool) error
 	InitiateQueryExecutor(tx Transaction) (executor sqlx.Ext)
 }
 

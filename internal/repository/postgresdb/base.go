@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"log"
-	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
@@ -15,10 +14,6 @@ type BaseRepository struct {
 
 type BaseTransaction struct {
 	tx *sqlx.Tx
-}
-
-func (repo *BaseRepository) TimeNow() time.Time {
-	return time.Now()
 }
 
 func (repo *BaseRepository) BeginTx(ctx context.Context) (repository.Transaction, error) {
@@ -34,22 +29,22 @@ func (repo *BaseRepository) BeginTx(ctx context.Context) (repository.Transaction
 	}, nil
 }
 
-func (repo *BaseRepository) HandleTransaction(ctx context.Context, tx repository.Transaction, incomingErr error) (err error) {
-	if incomingErr != nil {
-		err = tx.Rollback()
-		if err != nil {
-			log.Printf("error occured while rollback database transaction: %v", err.Error())
-			return
-		}
-		return
-	}
+func (repo *BaseRepository) HandleTransaction(ctx context.Context, tx repository.Transaction, isSuccess bool) error {    var err error
+    if !isSuccess {
+        err = tx.Rollback()
+        if err != nil {
+            log.Printf("error occurred while rollback database transaction: %v", err.Error())
+            return err
+        }
+        return err
+    }
 
-	err = tx.Commit()
-	if err != nil {
-		log.Printf("error occured while commit database transaction: %v", err.Error())
-		return
-	}
-	return
+    err = tx.Commit()
+    if err != nil {
+        log.Printf("error occurred while commit database transaction: %v", err.Error())
+        return err
+    }
+    return err
 }
 
 func (repo *BaseTransaction) Commit() error {

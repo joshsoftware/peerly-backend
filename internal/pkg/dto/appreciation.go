@@ -36,7 +36,7 @@ type ResponseAppreciation struct {
 	UpdatedAt           int64  `json:"updated_at"`
 }
 
-func (appr *Appreciation)CreateAppreciation() (errorResponse ErrorResponse, valid bool) {
+func (appr *Appreciation)CreateAppreciation() (errorObj ErrorObject, valid bool) {
 	fieldErrors := make(map[string]string)
 
 	if appr.CoreValueID <= 0 {
@@ -56,13 +56,12 @@ func (appr *Appreciation)CreateAppreciation() (errorResponse ErrorResponse, vali
 		return
 	}
 
-	errorResponse = ErrorResponse{
-		Error: ErrorObject{
+	errorObj = ErrorObject{
 			Code:          "invalid_data",
-			MessageObject: MessageObject{Message: "Please provide valid appreciation data"},
+			Message: "Please provide valid appreciation data",
 			Fields:        fieldErrors,
-		},
-	}
+		}
+
 
 	return
 }

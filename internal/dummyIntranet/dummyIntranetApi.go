@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
+	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 	logger "github.com/sirupsen/logrus"
 
 	"github.com/gorilla/mux"
@@ -31,7 +32,7 @@ func ValidatePeerly() http.HandlerFunc {
 		peerlyCode := req.Header.Get("PeerlyCode")
 		if authToken != "peerly" || peerlyCode != "peerly" {
 			err := apperrors.InvalidAuthToken
-			apperrors.ErrorResp(rw, err)
+			dto.ErrorRepsonse(rw,err,nil)
 			return
 		}
 		resp := ValidateResp{
@@ -41,7 +42,7 @@ func ValidatePeerly() http.HandlerFunc {
 		respBody, err := json.Marshal(resp)
 		if err != nil {
 			err := apperrors.JSONParsingErrorResp
-			apperrors.ErrorResp(rw, err)
+			dto.ErrorRepsonse(rw,err,nil)
 			return
 		}
 		rw.WriteHeader(http.StatusOK)
@@ -55,14 +56,14 @@ func IntranetGetUserApi() http.HandlerFunc {
 		vars := mux.Vars(req)
 		if vars["user_id"] == "" {
 			err := apperrors.InternalServerError
-			apperrors.ErrorResp(rw, err)
+			dto.ErrorRepsonse(rw,err,nil)
 			return
 		}
 		fmt.Println("response for user id: ", vars["user_id"])
 		if authToken != "peerly" {
 			logger.WithField("err", "err").Error("Error in authtoken! Authtoken = ", authToken)
 			err := apperrors.InvalidAuthToken
-			apperrors.ErrorResp(rw, err)
+			dto.ErrorRepsonse(rw,err,nil)
 			return
 		}
 		user := User{
@@ -76,7 +77,7 @@ func IntranetGetUserApi() http.HandlerFunc {
 		resp, err := json.Marshal(user)
 		if err != nil {
 			err := apperrors.JSONParsingErrorResp
-			apperrors.ErrorResp(rw, err)
+			dto.ErrorRepsonse(rw,err,nil)
 			return
 		}
 		rw.WriteHeader(http.StatusOK)

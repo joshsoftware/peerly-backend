@@ -7,6 +7,7 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
+	logger "github.com/sirupsen/logrus"
 )
 
 type service struct {
@@ -45,12 +46,21 @@ func (apprSvc *service) CreateAppreciation(ctx context.Context, apprecication dt
 	}
 
 	defer func() {
-		txErr := apprSvc.appreciationRepo.HandleTransaction(ctx, tx, err)
-		if txErr != nil {
-			err = txErr
-			return
-		}
-	}()
+        rvr := recover()
+        defer func() {
+            if rvr != nil {
+                logger.Info(ctx, "Transaction aborted because of panic: %v, Propagating panic further", rvr)
+                panic(rvr)
+            }
+        }()
+
+        txErr := apprSvc.appreciationRepo.HandleTransaction(ctx, tx, err == nil && rvr == nil)
+        if txErr != nil {
+            err = txErr
+            logger.Info(ctx, "error in creating transaction, err: %s", txErr.Error())
+            return
+        }
+    }()
 
 
 	//check is corevalue present in database
