@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/joshsoftware/peerly-backend/pkg/apperrors"
-	"github.com/joshsoftware/peerly-backend/pkg/config"
-	"github.com/joshsoftware/peerly-backend/pkg/constants"
+	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
+	"github.com/joshsoftware/peerly-backend/internal/pkg/config"
+	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	logger "github.com/sirupsen/logrus"
 
 	// Import PostgreSQL database driver

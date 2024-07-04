@@ -12,7 +12,7 @@ import (
 
 	"github.com/joshsoftware/peerly-backend/internal/api"
 	"github.com/joshsoftware/peerly-backend/internal/app"
-	"github.com/joshsoftware/peerly-backend/pkg/config"
+	"github.com/joshsoftware/peerly-backend/internal/pkg/config"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
 	logger "github.com/sirupsen/logrus"
 	"github.com/urfave/cli"

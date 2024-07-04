@@ -5,8 +5,8 @@ import (
 	"strconv"
 
 	"github.com/joho/godotenv"
-	"github.com/joshsoftware/peerly-backend/pkg/apperrors"
-	"github.com/joshsoftware/peerly-backend/pkg/constants"
+	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
+	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/spf13/viper"
 	
 )
