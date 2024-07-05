@@ -20,19 +20,19 @@ func createAppreciationHandler(appreciationSvc appreciation.Service) http.Handle
 		if err != nil {
 			logger.WithField("err", err.Error()).Error("Error while decoding request data")
 			err = apperrors.JSONParsingErrorReq
-			dto.ErrorRepsonse(rw, err,nil)
+			dto.ErrorRepsonse(rw, err)
 			return
 		}
 
-		errorResponse, ok := appreciation.CreateAppreciation()
+		err = appreciation.CreateAppreciation()
 
-		if !ok {
-			dto.ErrorRepsonse(rw, apperrors.BadRequest,errorResponse)
+		if err != nil {
+			dto.ErrorRepsonse(rw, err)
 			return
 		}
 		resp, err := appreciationSvc.CreateAppreciation(req.Context(), appreciation)
 		if err != nil {
-			dto.ErrorRepsonse(rw, err,nil)
+			dto.ErrorRepsonse(rw, err)
 			return
 		}
 		dto.SuccessRepsonse(rw, http.StatusCreated,"Appreciation created successfully" ,resp)
@@ -45,13 +45,13 @@ func getAppreciationByIdHandler(appreciationSvc appreciation.Service) http.Handl
 		vars := mux.Vars(req)
 		apprId, err := strconv.Atoi(vars["id"])
 		if err != nil {
-			dto.ErrorRepsonse(rw, err,nil)
+			dto.ErrorRepsonse(rw, err)
 			return
 		}
 		fmt.Println("appr: ",apprId)
 		resp, err := appreciationSvc.GetAppreciationById(req.Context(), apprId)
 		if err != nil {
-			dto.ErrorRepsonse(rw, err,nil)
+			dto.ErrorRepsonse(rw, err)
 			return
 		}
 		dto.SuccessRepsonse(rw, http.StatusOK,"Appreciation data got successfully" , resp)
@@ -71,7 +71,7 @@ func getAppreciationsHandler(appreciationSvc appreciation.Service) http.HandlerF
 		// Call your appreciationService to fetch appreciations based on filter
 		appreciations, err := appreciationSvc.GetAppreciation(req.Context(), filter)
 		if err != nil {
-			dto.ErrorRepsonse(rw, err,nil)
+			dto.ErrorRepsonse(rw, err)
 			return
 		}
 		dto.SuccessRepsonse(rw, http.StatusOK,"Appreciations data got successfully " ,appreciations)
@@ -83,17 +83,17 @@ func validateAppreciationHandler(appreciationSvc appreciation.Service) http.Hand
 		vars := mux.Vars(req)
 		apprId, err := strconv.Atoi(vars["id"])
 		if err != nil {
-			dto.ErrorRepsonse(rw, apperrors.BadRequest,nil)
+			dto.ErrorRepsonse(rw, apperrors.BadRequest)
 			return
 		}
 		
 		res,err := appreciationSvc.ValidateAppreciation(req.Context(),false,apprId)
 		if err != nil {
-			dto.ErrorRepsonse(rw, err,nil)
+			dto.ErrorRepsonse(rw, err)
 			return 
 		}
 		if !res {
-			dto.ErrorRepsonse(rw, apperrors.InternalServer,nil)
+			dto.ErrorRepsonse(rw, apperrors.InternalServer)
 			return
 		} 
 		dto.SuccessRepsonse(rw,http.StatusOK,"Appreciation invalidate successfully",nil)

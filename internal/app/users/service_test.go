@@ -7,12 +7,13 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/config"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
+	"github.com/joshsoftware/peerly-backend/internal/repository"
 	"github.com/joshsoftware/peerly-backend/internal/repository/mocks"
 	"github.com/stretchr/testify/mock"
 )
 
 func TestLoginUser(t *testing.T) {
-	config.Load("application")
+	config.Load()
 	userRepo := mocks.NewUserStorer(t)
 	service := NewService(userRepo)
 
@@ -34,7 +35,7 @@ func TestLoginUser(t *testing.T) {
 					FirstName:     "sharyu",
 					LastName:      "marwadi",
 				},
-				EmpolyeeDetail: dto.EmpolyeeDetail{
+				EmpolyeeDetail: dto.EmployeeDetail{
 					EmployeeId: "26",
 					Designation: dto.Designation{
 						Name: "Intern",
@@ -72,7 +73,7 @@ func TestLoginUser(t *testing.T) {
 					FirstName:     "sharyu",
 					LastName:      "marwadi",
 				},
-				EmpolyeeDetail: dto.EmpolyeeDetail{
+				EmpolyeeDetail: dto.EmployeeDetail{
 					EmployeeId: "26",
 					Designation: dto.Designation{
 						Name: "Intern",
@@ -82,8 +83,11 @@ func TestLoginUser(t *testing.T) {
 			},
 			setup: func(userMock *mocks.UserStorer) {
 				userMock.On("GetUserByEmail", mock.Anything, mock.Anything).Return(dto.GetUserResp{}, apperrors.UserNotFound).Once()
-				userMock.On("GetGradeByName", mock.Anything, mock.Anything).Return(1, nil).Once()
-				userMock.On("GetRewardOuotaDefault", mock.Anything).Return(10, nil).Once()
+				userMock.On("GetGradeByName", mock.Anything, mock.Anything).Return(repository.Grade{
+					Id:     1,
+					Name:   "J12",
+					Points: 100,
+				}, nil).Once()
 				userMock.On("GetRoleByName", mock.Anything, mock.Anything).Return(1, nil).Once()
 				userMock.On("CreateNewUser", mock.Anything, mock.Anything).Return(dto.GetUserResp{
 					Id:                 1,
@@ -114,7 +118,7 @@ func TestLoginUser(t *testing.T) {
 					FirstName:     "sharyu",
 					LastName:      "marwadi",
 				},
-				EmpolyeeDetail: dto.EmpolyeeDetail{
+				EmpolyeeDetail: dto.EmployeeDetail{
 					EmployeeId: "26",
 					Designation: dto.Designation{
 						Name: "Intern",
@@ -137,7 +141,11 @@ func TestLoginUser(t *testing.T) {
 					Grade:              "J12",
 					CreatedAt:          0,
 				}, nil).Once()
-				userMock.On("GetGradeByName", mock.Anything, mock.Anything).Return(1, nil).Once()
+				userMock.On("GetGradeByName", mock.Anything, mock.Anything).Return(repository.Grade{
+					Id:     1,
+					Name:   "J12",
+					Points: 100,
+				}, nil).Once()
 				userMock.On("SyncData", mock.Anything, mock.Anything).Return(nil).Once()
 				userMock.On("GetUserByEmail", mock.Anything, mock.Anything).Return(dto.GetUserResp{
 					Id:                 1,
@@ -167,7 +175,7 @@ func TestLoginUser(t *testing.T) {
 					FirstName:     "sharyu",
 					LastName:      "marwadi",
 				},
-				EmpolyeeDetail: dto.EmpolyeeDetail{
+				EmpolyeeDetail: dto.EmployeeDetail{
 					EmployeeId: "26",
 					Designation: dto.Designation{
 						Name: "Intern",
@@ -177,33 +185,7 @@ func TestLoginUser(t *testing.T) {
 			},
 			setup: func(userMock *mocks.UserStorer) {
 				userMock.On("GetUserByEmail", mock.Anything, mock.Anything).Return(dto.GetUserResp{}, apperrors.UserNotFound).Once()
-				userMock.On("GetGradeByName", mock.Anything, mock.Anything).Return(0, apperrors.GradeNotFound).Once()
-			},
-			isErrorExpected: true,
-		},
-		{
-			name:    "GetRewardOuotaDefault Faliure",
-			context: context.Background(),
-			u: dto.IntranetUserData{
-				Id:    1,
-				Email: "sharyu@josh.com",
-				PublicProfile: dto.PublicProfile{
-					ProfileImgUrl: "image url",
-					FirstName:     "sharyu",
-					LastName:      "marwadi",
-				},
-				EmpolyeeDetail: dto.EmpolyeeDetail{
-					EmployeeId: "26",
-					Designation: dto.Designation{
-						Name: "Intern",
-					},
-					Grade: "J12",
-				},
-			},
-			setup: func(userMock *mocks.UserStorer) {
-				userMock.On("GetUserByEmail", mock.Anything, mock.Anything).Return(dto.GetUserResp{}, apperrors.UserNotFound).Once()
-				userMock.On("GetGradeByName", mock.Anything, mock.Anything).Return(1, nil).Once()
-				userMock.On("GetRewardOuotaDefault", mock.Anything).Return(10, apperrors.InternalServerError).Once()
+				userMock.On("GetGradeByName", mock.Anything, mock.Anything).Return(repository.Grade{}, apperrors.GradeNotFound).Once()
 			},
 			isErrorExpected: true,
 		},
@@ -218,7 +200,7 @@ func TestLoginUser(t *testing.T) {
 					FirstName:     "sharyu",
 					LastName:      "marwadi",
 				},
-				EmpolyeeDetail: dto.EmpolyeeDetail{
+				EmpolyeeDetail: dto.EmployeeDetail{
 					EmployeeId: "26",
 					Designation: dto.Designation{
 						Name: "Intern",
@@ -228,8 +210,11 @@ func TestLoginUser(t *testing.T) {
 			},
 			setup: func(userMock *mocks.UserStorer) {
 				userMock.On("GetUserByEmail", mock.Anything, mock.Anything).Return(dto.GetUserResp{}, apperrors.UserNotFound).Once()
-				userMock.On("GetGradeByName", mock.Anything, mock.Anything).Return(1, nil).Once()
-				userMock.On("GetRewardOuotaDefault", mock.Anything).Return(10, nil).Once()
+				userMock.On("GetGradeByName", mock.Anything, mock.Anything).Return(repository.Grade{
+					Id:     1,
+					Name:   "J12",
+					Points: 100,
+				}, nil).Once()
 				userMock.On("GetRoleByName", mock.Anything, mock.Anything).Return(1, apperrors.InternalServerError).Once()
 			},
 			isErrorExpected: true,
@@ -245,7 +230,7 @@ func TestLoginUser(t *testing.T) {
 					FirstName:     "sharyu",
 					LastName:      "marwadi",
 				},
-				EmpolyeeDetail: dto.EmpolyeeDetail{
+				EmpolyeeDetail: dto.EmployeeDetail{
 					EmployeeId: "26",
 					Designation: dto.Designation{
 						Name: "Intern",
@@ -255,8 +240,11 @@ func TestLoginUser(t *testing.T) {
 			},
 			setup: func(userMock *mocks.UserStorer) {
 				userMock.On("GetUserByEmail", mock.Anything, mock.Anything).Return(dto.GetUserResp{}, apperrors.UserNotFound).Once()
-				userMock.On("GetGradeByName", mock.Anything, mock.Anything).Return(1, nil).Once()
-				userMock.On("GetRewardOuotaDefault", mock.Anything).Return(10, nil).Once()
+				userMock.On("GetGradeByName", mock.Anything, mock.Anything).Return(repository.Grade{
+					Id:     1,
+					Name:   "J12",
+					Points: 100,
+				}, nil).Once()
 				userMock.On("GetRoleByName", mock.Anything, mock.Anything).Return(1, nil).Once()
 				userMock.On("CreateNewUser", mock.Anything, mock.Anything).Return(dto.GetUserResp{}, apperrors.InternalServerError).Once()
 			},
@@ -273,7 +261,7 @@ func TestLoginUser(t *testing.T) {
 					FirstName:     "sharyu",
 					LastName:      "marwadi",
 				},
-				EmpolyeeDetail: dto.EmpolyeeDetail{
+				EmpolyeeDetail: dto.EmployeeDetail{
 					EmployeeId: "26",
 					Designation: dto.Designation{
 						Name: "Intern",
@@ -296,7 +284,11 @@ func TestLoginUser(t *testing.T) {
 					Grade:              "J12",
 					CreatedAt:          0,
 				}, nil).Once()
-				userMock.On("GetGradeByName", mock.Anything, mock.Anything).Return(1, nil).Once()
+				userMock.On("GetGradeByName", mock.Anything, mock.Anything).Return(repository.Grade{
+					Id:     1,
+					Name:   "J12",
+					Points: 100,
+				}, nil).Once()
 				userMock.On("SyncData", mock.Anything, mock.Anything).Return(apperrors.InternalServerError).Once()
 			},
 			isErrorExpected: true,
@@ -315,4 +307,52 @@ func TestLoginUser(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGetUserList(t *testing.T) {
+	userRepo := mocks.NewUserStorer(t)
+	service := NewService(userRepo)
+
+	tests := []struct {
+		name            string
+		context         context.Context
+		reqData         dto.UserListReq
+		setup           func(userMock *mocks.UserStorer)
+		isErrorExpected bool
+	}{
+		{
+			name:    "Success for get user list",
+			context: context.Background(),
+			reqData: dto.UserListReq{},
+			setup: func(userMock *mocks.UserStorer) {
+				userMock.On("GetUserList", mock.Anything, mock.Anything).Return([]dto.GetUserListResp{}, nil).Once()
+
+			},
+			isErrorExpected: false,
+		},
+		{
+			name:    "Faliure for get user list",
+			context: context.Background(),
+			reqData: dto.UserListReq{},
+			setup: func(userMock *mocks.UserStorer) {
+				userMock.On("GetUserList", mock.Anything, mock.Anything).Return([]dto.GetUserListResp{}, apperrors.InternalServerError).Once()
+
+			},
+			isErrorExpected: true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			test.setup(userRepo)
+
+			// test service
+			_, err := service.GetUserList(test.context, test.reqData)
+
+			if (err != nil) != test.isErrorExpected {
+				t.Errorf("Test Failed, expected error to be %v, but got err %v", test.isErrorExpected, err != nil)
+			}
+		})
+	}
+
 }

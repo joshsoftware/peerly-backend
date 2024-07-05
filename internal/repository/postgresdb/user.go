@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strconv"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
@@ -33,9 +34,9 @@ const (
 
 	getRoleByNameQuery = `SELECT id FROM roles WHERE name=$1 LIMIT 1`
 
-	getGradeId = `SELECT id FROM grades WHERE name = $1`
+	getGradeId = `SELECT id, name, points FROM grades WHERE name = $1`
 
-	getRewardQuotaBalanceDefault = "select reward_multiplier from organization_config where id = 1"
+	getRewardMultiplier = "select reward_multiplier from organization_config where id = 1"
 
 	updateUserQuery = `UPDATE users SET (first_name, last_name, profile_image_url, designation, grade_id) =
 		($1, $2, $3, $4, $5) where email = $6`
@@ -95,8 +96,8 @@ func (us *userStore) CreateNewUser(ctx context.Context, u dto.RegisterUser) (res
 	return
 }
 
-func (us *userStore) GetGradeByName(ctx context.Context, name string) (id int, err error) {
-	err = us.DB.Get(&id, getGradeId, name)
+func (us *userStore) GetGradeByName(ctx context.Context, name string) (grade repository.Grade, err error) {
+	err = us.DB.Get(&grade, getGradeId, name)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			err = apperrors.GradeNotFound
@@ -109,8 +110,8 @@ func (us *userStore) GetGradeByName(ctx context.Context, name string) (id int, e
 	return
 }
 
-func (us *userStore) GetRewardOuotaDefault(ctx context.Context) (id int, err error) {
-	err = us.DB.Get(&id, getRewardQuotaBalanceDefault)
+func (us *userStore) GetRewardMultiplier(ctx context.Context) (value int, err error) {
+	err = us.DB.Get(&value, getRewardMultiplier)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			logger.WithField("err", err.Error()).Error("No fields in organization config")
@@ -142,4 +143,38 @@ func (us *userStore) SyncData(ctx context.Context, updateData dto.UpdateUserData
 
 	return
 
+}
+
+func (us *userStore) GetUserList(ctx context.Context, reqData dto.UserListReq) (resp []dto.GetUserListResp, err error) {
+	getUserListQuery := "Select users.employee_id, users.email, users.first_name, users.last_name, grades.name, users.designation, users.profile_image_url from users join grades on grades.id = users.grade_id "
+
+	if len(reqData.Name) >= 0 {
+		getUserListQuery += "where"
+	}
+	for i, name := range reqData.Name {
+		if i == 0 {
+			str := fmt.Sprint(" lower(first_name) like '%" + name + "%' or lower(last_name) like '%" + name + "%'")
+			getUserListQuery += str
+		} else {
+			str := fmt.Sprint(" or lower(first_name) like '%" + name + "%' or lower(last_name) like '%" + name + "%'")
+			getUserListQuery += str
+		}
+	}
+
+	str := fmt.Sprint(" limit " + strconv.Itoa(reqData.PerPage) + " offset " + strconv.Itoa(reqData.PerPage*(reqData.Page-1)+1))
+	getUserListQuery += str
+
+	err = us.DB.Select(&resp, getUserListQuery)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			logger.WithField("err", err.Error()).Error("No fields returned")
+			err = nil
+			return
+		}
+		logger.WithField("err", err.Error()).Error("Error in fetching users from database")
+		err = apperrors.InternalServerError
+		return
+	}
+
+	return
 }

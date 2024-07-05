@@ -6,7 +6,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/joshsoftware/peerly-backend/internal/app"
-	intranet "github.com/joshsoftware/peerly-backend/internal/dummyIntranet"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/config"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/middleware"
@@ -36,12 +35,13 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 	router.Handle("/core_values/{id:[0-9]+}", middleware.JwtAuthMiddleware(updateCoreValueHandler(deps.CoreValueService), []string{constants.UserRole})).Methods(http.MethodPut).Headers(versionHeader, v1)
 
 	//login
+	router.Handle("/user/register", registerUser(deps.UserService)).Methods(http.MethodPost)
 
-	router.Handle("/intranet/validate", intranet.ValidatePeerly()).Methods(http.MethodGet)
+	router.Handle("/user/login", loginUser(deps.UserService)).Methods(http.MethodGet).Headers(versionHeader, v1)
 
-	router.Handle("/intranet/getuser/{user_id:[0-9]+}", intranet.IntranetGetUserApi()).Methods(http.MethodGet)
+	router.Handle("/users", getIntranetUserListHandler(deps.UserService)).Methods(http.MethodGet)
 
-	router.Handle("/user/login", loginUser(deps.UserService)).Methods(http.MethodPost)
+	router.Handle("/users/all", middleware.JwtAuthMiddleware(getUserHandler(deps.UserService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
 
 	//appreciations
 
@@ -52,6 +52,8 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 	router.Handle("/appreciation/{id:[0-9]+}", middleware.JwtAuthMiddleware(validateAppreciationHandler(deps.AppreciationService), []string{constants.UserRole})).Methods(http.MethodDelete).Headers(versionHeader, v1)
 
 	router.Handle("/appreciation", middleware.JwtAuthMiddleware(createAppreciationHandler(deps.AppreciationService), []string{constants.UserRole})).Methods(http.MethodPost).Headers(versionHeader, v1)
+	// No version requirement for /ping
+	router.HandleFunc("/ping", pingHandler).Methods(http.MethodGet)
 
 	return router
 }

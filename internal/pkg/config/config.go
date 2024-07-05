@@ -8,12 +8,11 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/spf13/viper"
-	
 )
 
 var (
-	appName                string
-	appPort                int
+	appName string
+	appPort int
 )
 
 // Load - loads all the environment variables and/or params in application.yml
@@ -24,10 +23,9 @@ func Load() {
 	if err != nil {
 		panic(fmt.Sprintf("Error loading .env file: %v", err))
 	}
-	
 	viper.ReadInConfig()
 	viper.AutomaticEnv()
-	
+
 	viper.SetDefault(constants.AppName, "app")
 	viper.SetDefault(constants.AppPort, "8002")
 

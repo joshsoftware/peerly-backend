@@ -3,7 +3,6 @@ package apperrors
 import (
 	"fmt"
 	"net/http"
-
 )
 
 // CustomError represents a custom error type as a string.
@@ -15,15 +14,11 @@ func (e CustomError) Error() string {
 	return string(e)
 }
 
-
+// Custome errors with errormessage
 const (
-	BadRequest               = CustomError("Bad request")
-	InternalServer           = CustomError("Internal Server Error")
-	FailedToCreateDriver     = CustomError("failure to create driver obj")
-	MigrationFailure         = CustomError("migrate failure")
-	JSONParsingErrorReq      = CustomError("error in parsing request in json")
 	InvalidId                = CustomError("Invalid id")
 	InternalServerError      = CustomError("Internal server error")
+	JSONParsingErrorReq      = CustomError("error in parsing request in json")
 	JSONParsingErrorResp     = CustomError("error in parsing response in json")
 	OutOfRange               = CustomError("request value is out of range")
 	OrganizationNotFound     = CustomError("organization of given id not found")
@@ -42,6 +37,12 @@ const (
 	GradeNotFound            = CustomError("Grade not found")
 	AppreciationNotFound     = CustomError("appreciation not found")
 	RoleUnathorized          = CustomError("Role unauthorized")
+	PageParamNotFound        = CustomError("Page parameter not found")
+	RepeatedUser             = CustomError("Repeated user")
+	BadRequest               = CustomError("Bad request")
+	InternalServer           = CustomError("Internal Server")
+	FailedToCreateDriver     = CustomError("failure to create driver obj")
+	MigrationFailure         = CustomError("migrate failure")
 )
 
 // ErrKeyNotSet - Returns error object specific to the key value passed in
@@ -49,13 +50,14 @@ func ErrKeyNotSet(key string) (err error) {
 	return fmt.Errorf("key not set: %s", key)
 }
 
+// GetHTTPStatusCode returns status code according to customerror and default returns InternalServer error
 func GetHTTPStatusCode(err error) int {
 	switch err {
 	case InternalServerError, JSONParsingErrorResp, InvalidIntranetData:
 		return http.StatusInternalServerError
-	case OrganizationNotFound, InvalidCoreValueData, InvalidParentValue, InvalidOrgId, GradeNotFound, AppreciationNotFound:
+	case OrganizationNotFound, InvalidCoreValueData, InvalidParentValue, InvalidOrgId, GradeNotFound, AppreciationNotFound, PageParamNotFound:
 		return http.StatusNotFound
-	case BadRequest, InvalidId, JSONParsingErrorReq, TextFieldBlank, DescFieldBlank, UniqueCoreValue, IntranetValidationFailed:
+	case BadRequest, InvalidId, JSONParsingErrorReq, TextFieldBlank, DescFieldBlank, UniqueCoreValue, IntranetValidationFailed, RepeatedUser:
 		return http.StatusBadRequest
 	case InvalidContactEmail, InvalidDomainName:
 		return http.StatusConflict

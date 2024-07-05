@@ -1,5 +1,7 @@
 package dto
 
+import "github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
+
 type Appreciation struct {
 	ID           int64  `json:"id"`
 	CoreValueID  int    `json:"core_value_id" `
@@ -36,32 +38,19 @@ type ResponseAppreciation struct {
 	UpdatedAt           int64  `json:"updated_at"`
 }
 
-func (appr *Appreciation)CreateAppreciation() (errorObj ErrorObject, valid bool) {
-	fieldErrors := make(map[string]string)
+func (appr *Appreciation)CreateAppreciation() (err error) {
 
 	if appr.CoreValueID <= 0 {
-		fieldErrors["core_value_id"] = "enter valid core value id"
+		return apperrors.InvalidId
 	}
 
 	if appr.Description == "" {
-		fieldErrors["description"] = "enter description"
+		return apperrors.DescFieldBlank
 	}
 
 	if appr.Receiver <= 0 {
-		fieldErrors["receiver"] = "enter valid receiver id"
+		return apperrors.InvalidId
 	}
-
-	if len(fieldErrors) == 0 {
-		valid = true
-		return
-	}
-
-	errorObj = ErrorObject{
-			Code:          "invalid_data",
-			Message: "Please provide valid appreciation data",
-			Fields:        fieldErrors,
-		}
-
 
 	return
 }

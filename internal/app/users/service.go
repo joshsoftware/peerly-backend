@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strings"
 
 	"net/http"
 	"time"
@@ -27,6 +28,8 @@ type Service interface {
 	GetIntranetUserData(ctx context.Context, req dto.GetIntranetUserDataReq) (data dto.IntranetUserData, err error)
 	LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.LoginUserResp, error)
 	RegisterUser(ctx context.Context, u dto.IntranetUserData) (user dto.GetUserResp, err error)
+	GetUserListIntranet(ctx context.Context, reqData dto.GetUserListReq) (data []dto.IntranetUserData, err error)
+	GetUserList(ctx context.Context, reqData dto.UserListReq) (users []dto.GetUserListResp, err error)
 }
 
 func NewService(userRepo repository.UserStorer) Service {
@@ -58,10 +61,13 @@ func (us *service) ValidatePeerly(ctx context.Context, authToken string) (data d
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
+		logger.WithField("err", err.Error()).Error("Error in readall parsing")
 		err = apperrors.JSONParsingErrorResp
+		return
 	}
 	err = json.Unmarshal(body, &data)
 	if err != nil {
+		logger.WithField("err", err.Error()).Error("Error in unmarshal parsing")
 		err = apperrors.JSONParsingErrorResp
 		return
 	}
@@ -116,18 +122,27 @@ func (us *service) GetIntranetUserData(ctx context.Context, req dto.GetIntranetU
 func (us *service) LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.LoginUserResp, error) {
 	var resp dto.LoginUserResp
 	resp.NewUserCreated = false
-	user, err := us.userRepo.GetUserByEmail(ctx, u.Email)
-	if err == apperrors.InternalServerError {
+	// user, err := us.userRepo.GetUserByEmail(ctx, u.Email)
+	// if err == apperrors.InternalServerError {
+	// 	return resp, err
+	// }
+
+	// if err == apperrors.UserNotFound {
+
+	// 	user, err = us.RegisterUser(ctx, u)
+	// 	if err != nil {
+	// 		return resp, err
+	// 	}
+
+	// 	resp.NewUserCreated = true
+	// }
+
+	user, err := us.RegisterUser(ctx, u)
+	if err != nil && err != apperrors.RepeatedUser {
 		return resp, err
 	}
 
-	if err == apperrors.UserNotFound {
-
-		user, err = us.RegisterUser(ctx, u)
-		if err != nil {
-			return resp, err
-		}
-
+	if err == nil {
 		resp.NewUserCreated = true
 	}
 
@@ -135,11 +150,11 @@ func (us *service) LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.L
 	syncNeeded, dataToBeUpdated := syncData(u, user)
 	if syncNeeded {
 
-		gradeId, err := us.userRepo.GetGradeByName(ctx, dataToBeUpdated.Grade)
+		grade, err := us.userRepo.GetGradeByName(ctx, dataToBeUpdated.Grade)
 		if err != nil {
 			return resp, err
 		}
-		dataToBeUpdated.GradeId = gradeId
+		dataToBeUpdated.GradeId = grade.Id
 
 		err = us.userRepo.SyncData(ctx, dataToBeUpdated)
 		if err != nil {
@@ -184,18 +199,26 @@ func (us *service) LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.L
 }
 
 func (us *service) RegisterUser(ctx context.Context, u dto.IntranetUserData) (user dto.GetUserResp, err error) {
+
+	user, err = us.userRepo.GetUserByEmail(ctx, u.Email)
+	if err == apperrors.InternalServerError || err == nil {
+		err = apperrors.RepeatedUser
+		return
+	}
+
 	//get grade id
-	gradeId, err := us.userRepo.GetGradeByName(ctx, u.EmpolyeeDetail.Grade)
+	grade, err := us.userRepo.GetGradeByName(ctx, u.EmpolyeeDetail.Grade)
 	if err != nil {
 		return
 	}
 
-	//reward_quota_balance from organization config
-	reward_quota_balance, err := us.userRepo.GetRewardOuotaDefault(ctx)
+	//reward_multiplier from organization config
+	reward_multiplier, err := us.userRepo.GetRewardMultiplier(ctx)
 	if err != nil {
 		err = apperrors.InternalServerError
 		return
 	}
+	reward_quota_balance := grade.Points * reward_multiplier
 
 	//get role by name
 	roleId, err := us.userRepo.GetRoleByName(ctx, constants.UserRole)
@@ -206,7 +229,7 @@ func (us *service) RegisterUser(ctx context.Context, u dto.IntranetUserData) (us
 
 	var userData dto.RegisterUser
 	userData.User = u
-	userData.GradeId = gradeId
+	userData.GradeId = grade.Id
 	userData.RewardQuotaBalance = reward_quota_balance
 	userData.RoleId = roleId
 
@@ -216,6 +239,62 @@ func (us *service) RegisterUser(ctx context.Context, u dto.IntranetUserData) (us
 		err = apperrors.InternalServerError
 		return
 	}
+
+	return
+}
+
+func (us *service) GetUserListIntranet(ctx context.Context, reqData dto.GetUserListReq) (data []dto.IntranetUserData, err error) {
+	client := &http.Client{}
+	url := fmt.Sprintf("https://pg-stage-intranet.joshsoftware.com/api/peerly/v1/users?page=%d&per_page=%d", reqData.Page, constants.PerPage)
+	intranetReq, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		err = apperrors.InternalServerError
+		return
+	}
+
+	intranetReq.Header.Add(constants.AuthorizationHeader, reqData.AuthToken)
+	resp, err := client.Do(intranetReq)
+	if err != nil {
+		logger.WithField("err", err.Error()).Error("Error in intranet get user api. Status returned:  ", resp.StatusCode)
+		err = apperrors.InternalServerError
+		return
+	}
+	if resp.StatusCode != http.StatusOK {
+		logger.WithField("err", "err").Error("Status returned ", resp.StatusCode)
+		err = apperrors.InternalServerError
+		return
+	}
+	defer resp.Body.Close()
+
+	var respData dto.GetUserListRespData
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		logger.WithField("err", err.Error()).Error("Error in io.readall")
+		err = apperrors.JSONParsingErrorResp
+	}
+
+	err = json.Unmarshal(body, &respData)
+	if err != nil {
+		logger.WithField("err", err.Error()).Error("Error in unmarshalling data")
+		err = apperrors.JSONParsingErrorResp
+		return
+	}
+
+	data = respData.Data
+	return
+}
+
+func (us *service) GetUserList(ctx context.Context, reqData dto.UserListReq) (users []dto.GetUserListResp, err error) {
+
+	var names []string
+	for _, data := range reqData.Name {
+		names = append(names, strings.ToLower(data))
+	}
+
+	reqData.Name = names
+
+	users, err = us.userRepo.GetUserList(ctx, reqData)
 
 	return
 }
