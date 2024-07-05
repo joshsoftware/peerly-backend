@@ -20,7 +20,7 @@ func JwtAuthMiddleware(next http.Handler, roles []string) http.Handler {
 		if authToken == "" {
 			logger.Error("Empty auth token")
 			err := apperrors.InvalidAuthToken
-			dto.ErrorRepsonse(rw, apperrors.GetHTTPStatusCode(err), err.Error(), nil)
+			dto.ErrorRepsonse(rw, err)
 			return
 		}
 
@@ -32,14 +32,14 @@ func JwtAuthMiddleware(next http.Handler, roles []string) http.Handler {
 		if err != nil {
 			logger.WithField("err", err.Error()).Error("Error in parse with claims function")
 			err = apperrors.InvalidAuthToken
-			dto.ErrorRepsonse(rw, apperrors.GetHTTPStatusCode(err), err.Error(), nil)
+			dto.ErrorRepsonse(rw, err)
 			return
 		}
 
 		if !tkn.Valid {
 			logger.Error("Invalid token")
 			err = apperrors.InvalidAuthToken
-			dto.ErrorRepsonse(rw, apperrors.GetHTTPStatusCode(err), err.Error(), nil)
+			dto.ErrorRepsonse(rw, err)
 			return
 		}
 
@@ -48,7 +48,7 @@ func JwtAuthMiddleware(next http.Handler, roles []string) http.Handler {
 
 		if !slices.Contains(roles, Role) {
 			err := apperrors.RoleUnathorized
-			dto.ErrorRepsonse(rw, apperrors.GetHTTPStatusCode(err), err.Error(), nil)
+			dto.ErrorRepsonse(rw, err)
 			return
 		}
 
