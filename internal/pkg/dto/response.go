@@ -8,6 +8,7 @@ import (
 	logger "github.com/sirupsen/logrus"
 )
 
+// Response is common response struct used in SuccessRepsonse and ErrorRepsonse
 type Response struct {
 	Success bool        `json:"success"`
 	Message string      `json:"message"`
@@ -15,6 +16,7 @@ type Response struct {
 	Data    interface{} `json:"data"`
 }
 
+// SuccessRepsonse return success response
 func SuccessRepsonse(rw http.ResponseWriter, status int, message string, data interface{}) {
 
 	var resp Response
@@ -35,6 +37,7 @@ func SuccessRepsonse(rw http.ResponseWriter, status int, message string, data in
 	rw.Write(respBytes)
 }
 
+// ErrorRepsonse return error response
 func ErrorRepsonse(rw http.ResponseWriter, err error) {
 
 	var resp Response

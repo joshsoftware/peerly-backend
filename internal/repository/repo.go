@@ -11,6 +11,7 @@ type RepositoryTransaction interface {
 	HandleTransaction(ctx context.Context, tx Transaction, incomingErr error) error
 }
 
+// Transaction interface holds transaction methods
 type Transaction interface {
 	Commit() error
 	Rollback() error
