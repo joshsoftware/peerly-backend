@@ -17,7 +17,7 @@ func listCoreValuesHandler(coreValueSvc corevalues.Service) http.HandlerFunc {
 		coreValues, err := coreValueSvc.ListCoreValues(req.Context())
 		if err != nil {
 
-			dto.ErrorRepsonse(rw, apperrors.GetHTTPStatusCode(err), err.Error(), nil)
+			dto.ErrorRepsonse(rw, err)
 			return
 		}
 
@@ -31,7 +31,7 @@ func getCoreValueHandler(coreValueSvc corevalues.Service) http.HandlerFunc {
 
 		coreValue, err := coreValueSvc.GetCoreValue(req.Context(), vars["id"])
 		if err != nil {
-			dto.ErrorRepsonse(rw, apperrors.GetHTTPStatusCode(err), err.Error(), nil)
+			dto.ErrorRepsonse(rw, err)
 			return
 		}
 
@@ -47,14 +47,14 @@ func createCoreValueHandler(coreValueSvc corevalues.Service) http.HandlerFunc {
 		if err != nil {
 			logger.WithField("err", err.Error()).Error("Error while decoding request data")
 			err = apperrors.JSONParsingErrorReq
-			dto.ErrorRepsonse(rw, apperrors.GetHTTPStatusCode(err), err.Error(), nil)
+			dto.ErrorRepsonse(rw, err)
 			return
 		}
 
 		resp, err := coreValueSvc.CreateCoreValue(req.Context(), userId, coreValue)
 		if err != nil {
 
-			dto.ErrorRepsonse(rw, apperrors.GetHTTPStatusCode(err), err.Error(), nil)
+			dto.ErrorRepsonse(rw, err)
 			return
 		}
 
@@ -71,13 +71,13 @@ func updateCoreValueHandler(coreValueSvc corevalues.Service) http.HandlerFunc {
 		if err != nil {
 			logger.WithField("err", err.Error()).Error("Error while decoding request data")
 			err = apperrors.JSONParsingErrorReq
-			dto.ErrorRepsonse(rw, apperrors.GetHTTPStatusCode(err), err.Error(), nil)
+			dto.ErrorRepsonse(rw, err)
 			return
 		}
 
 		resp, err := coreValueSvc.UpdateCoreValue(req.Context(), vars["id"], updateReq)
 		if err != nil {
-			dto.ErrorRepsonse(rw, apperrors.GetHTTPStatusCode(err), err.Error(), nil)
+			dto.ErrorRepsonse(rw, err)
 			return
 		}
 
