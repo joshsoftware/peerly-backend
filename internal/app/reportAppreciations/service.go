@@ -2,6 +2,7 @@ package reportappreciations
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
@@ -27,6 +28,7 @@ func NewService(reportAppreciationRepo repository.ReportAppreciationStorer) Serv
 func (rs *service) ReportAppreciation(ctx context.Context, reqData dto.ReportAppreciationReq) (resp dto.ReportAppricaitionResp, err error) {
 
 	reporterId := ctx.Value(constants.UserId)
+	fmt.Printf("reporterId: %T", reporterId)
 	data, ok := reporterId.(int64)
 	if !ok {
 		logger.Error("Error in typecasting reporter id")
