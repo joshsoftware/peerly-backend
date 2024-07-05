@@ -14,11 +14,8 @@ func (e CustomError) Error() string {
 	return string(e)
 }
 
+// Custome errors with errormessage
 const (
-	BadRequest               = CustomError("Bad request")
-	InternalServer           = CustomError("Failed to write organization db")
-	FailedToCreateDriver     = CustomError("failure to create driver obj")
-	MigrationFailure         = CustomError("migrate failure")
 	InvalidId                = CustomError("Invalid id")
 	InternalServerError      = CustomError("Internal server error")
 	JSONParsingErrorReq      = CustomError("error in parsing request in json")
@@ -38,6 +35,10 @@ const (
 	UserNotFound             = CustomError("User not found")
 	InvalidIntranetData      = CustomError("Invalid data recieved from intranet")
 	GradeNotFound            = CustomError("Grade not found")
+	BadRequest               = CustomError("Bad request")
+	InternalServer           = CustomError("Internal Server")
+	FailedToCreateDriver     = CustomError("failure to create driver obj")
+	MigrationFailure         = CustomError("migrate failure")
 )
 
 // ErrKeyNotSet - Returns error object specific to the key value passed in
@@ -45,6 +46,7 @@ func ErrKeyNotSet(key string) (err error) {
 	return fmt.Errorf("key not set: %s", key)
 }
 
+// GetHTTPStatusCode returns status code according to customerror and default returns InternalServer error
 func GetHTTPStatusCode(err error) int {
 	switch err {
 	case InternalServerError, JSONParsingErrorResp, InvalidIntranetData:
