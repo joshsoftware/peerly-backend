@@ -13,7 +13,6 @@ type Response struct {
 	Message string      `json:"message"`
 	Status  int         `json:"status_code"`
 	Data    interface{} `json:"data"`
-	Error   interface{} `json:"error"`
 }
 
 func SuccessRepsonse(rw http.ResponseWriter, status int, message string, data interface{}) {
@@ -36,13 +35,12 @@ func SuccessRepsonse(rw http.ResponseWriter, status int, message string, data in
 	rw.Write(respBytes)
 }
 
-func ErrorRepsonse(rw http.ResponseWriter, err error, errorBody interface{}) {
+func ErrorRepsonse(rw http.ResponseWriter, err error) {
 
 	var resp Response
 	resp.Success = false
 	resp.Status = apperrors.GetHTTPStatusCode(err)
 	resp.Message = err.Error()
-	resp.Error = errorBody
 
 	respBytes, err := json.Marshal(resp)
 	if err != nil {
