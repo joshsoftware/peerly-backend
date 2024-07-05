@@ -20,6 +20,7 @@ import (
 	// For database migrations
 	"github.com/golang-migrate/migrate"
 	"github.com/golang-migrate/migrate/database/postgres"
+	// golang-migrate reads migrations from sources and applies them in correct order to a database.
 	_ "github.com/golang-migrate/migrate/source/file"
 )
 
@@ -27,6 +28,7 @@ const (
 	dbDriver = "postgres"
 )
 
+// InitializeDatabase initialize database and return database instance
 func InitializeDatabase() (db *sqlx.DB, err error) {
 	uri := config.ReadEnvString(constants.DBURI)
 

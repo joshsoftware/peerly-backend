@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/joshsoftware/peerly-backend/internal/app"
 )
+
 // NewRouter initializes and returns a new router with the specified dependencies.
 func NewRouter(deps app.Dependencies) *mux.Router {
 

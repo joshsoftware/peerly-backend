@@ -3,7 +3,6 @@ package apperrors
 import (
 	"fmt"
 	"net/http"
-
 )
 
 // CustomError represents a custom error type as a string.
@@ -15,6 +14,7 @@ func (e CustomError) Error() string {
 	return string(e)
 }
 
+// Custome errors with errormessage
 const (
 	BadRequest           = CustomError("Bad request")
 	InternalServer       = CustomError("Internal server error")
@@ -27,6 +27,7 @@ func ErrKeyNotSet(key string) (err error) {
 	return fmt.Errorf("key not set: %s", key)
 }
 
+// GetHTTPStatusCode returns status code according to customerror and default returns InternalServer error
 func GetHTTPStatusCode(err error) int {
 	switch err {
 	case InternalServer, FailedToCreateDriver, MigrationFailure:
