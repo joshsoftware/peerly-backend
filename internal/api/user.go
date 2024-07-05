@@ -120,7 +120,7 @@ func getUserHandler(userSvc user.Service) http.HandlerFunc {
 		page := req.URL.Query().Get("page")
 		if page == "" {
 			err := apperrors.PageParamNotFound
-			dto.ErrorRepsonse(rw, apperrors.GetHTTPStatusCode(err), err.Error(), nil)
+			dto.ErrorRepsonse(rw, err)
 			return
 		}
 		pageInt, _ := strconv.Atoi(page)
@@ -139,7 +139,7 @@ func getUserHandler(userSvc user.Service) http.HandlerFunc {
 		}
 		resp, err := userSvc.GetUserList(req.Context(), userListReq)
 		if err != nil {
-			dto.ErrorRepsonse(rw, apperrors.GetHTTPStatusCode(err), err.Error(), nil)
+			dto.ErrorRepsonse(rw, err)
 			return
 		}
 		dto.SuccessRepsonse(rw, http.StatusOK, "Intranet users listed", resp)
