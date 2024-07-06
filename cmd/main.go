@@ -6,6 +6,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"net/http"
 
 	"os"
 	"strconv"
@@ -14,6 +15,7 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/app"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/config"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
+	"github.com/rs/cors"
 	logger "github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 	"github.com/urfave/negroni"
@@ -63,6 +65,13 @@ func main() {
 				return repository.RollbackMigrations(c.Args().Get(0))
 			},
 		},
+		{
+			Name:  "seed",
+			Usage: "seed data in database",
+			Action: func(c *cli.Context) error {
+				return repository.SeedData()
+			},
+		},
 	}
 
 	if err := cliApp.Run(os.Args); err != nil {
@@ -81,6 +90,14 @@ func startApp() (err error) {
 		return
 	}
 
+	//cors
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowCredentials: true,
+		AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions},
+		AllowedHeaders:   []string{"*"},
+	})
+
 	//initialize service dependencies
 	services := app.NewService(dbInstance)
 
@@ -89,6 +106,7 @@ func startApp() (err error) {
 
 	// init web server
 	server := negroni.Classic()
+	server.Use(c)
 	server.UseHandler(router)
 
 	port := config.AppPort()

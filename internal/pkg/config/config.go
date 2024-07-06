@@ -23,7 +23,6 @@ func Load() {
 	if err != nil {
 		panic(fmt.Sprintf("Error loading .env file: %v", err))
 	}
-
 	viper.ReadInConfig()
 	viper.AutomaticEnv()
 
@@ -85,7 +84,10 @@ func ReadEnvBool(key string) bool {
 
 func checkIfSet(key string) {
 	if !viper.IsSet(key) {
-		// err := errors.New(fmt.Sprintf("Key %s is not set", key))
 		panic(apperrors.ErrKeyNotSet(key))
 	}
+}
+
+func IntranetClientCode() string {
+	return ReadEnvString("INTRANET_CLIENT_CODE")
 }
