@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
+	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
 	logger "github.com/sirupsen/logrus"
@@ -18,7 +19,7 @@ type service struct {
 type Service interface {
 	CreateAppreciation(ctx context.Context, apprecication dto.Appreciation) (dto.Appreciation, error)
 	GetAppreciationById(ctx context.Context, appreciationId int) (dto.ResponseAppreciation, error)
-	GetAppreciation(ctx context.Context, filter dto.AppreciationFilter) ([]dto.ResponseAppreciation, error)
+	GetAppreciation(ctx context.Context, filter dto.AppreciationFilter) (dto.GetAppreciationResponse, error)
 	ValidateAppreciation(ctx context.Context, isValid bool, apprId int) (bool, error)
 }
 
@@ -35,7 +36,23 @@ func (apprSvc *service) CreateAppreciation(ctx context.Context, apprecication dt
 	apprecication.Quarter = GetQuarter()
 
 	//add sender
-	apprecication.Sender = ctx.Value("userId").(int64)
+	data := ctx.Value(constants.UserId)
+	sender, ok := data.(int64)
+	if !ok {
+		logger.Error("err in parsing userid from token")
+		return dto.Appreciation{},apperrors.InternalServer
+	}
+
+	usrChk,err := apprSvc.appreciationRepo.IsUserPresent(ctx,nil,sender)
+	if err != nil {
+		return dto.Appreciation{},err
+	}
+
+	if usrChk {
+		return dto.Appreciation{},apperrors.SelfAppreciationError
+	}
+
+	apprecication.Sender = sender
 
 	//initializing database transaction
 	tx, err := apprSvc.appreciationRepo.BeginTx(ctx)
@@ -88,27 +105,28 @@ func (apprSvc *service) CreateAppreciation(ctx context.Context, apprecication dt
 
 func (apprSvc *service) GetAppreciationById(ctx context.Context, appreciationId int) (dto.ResponseAppreciation, error) {
 
+	
 	resAppr, err := apprSvc.appreciationRepo.GetAppreciationById(ctx, nil, appreciationId)
 	if err != nil {
 		return dto.ResponseAppreciation{}, err
 	}
 
-	return mapAppreciationInfoToResponse(resAppr), nil
+	return mapRepoGetAppreciationInfoToDTOGetAppreciationInfo(resAppr), nil
 }
 
-func (apprSvc *service) GetAppreciation(ctx context.Context, filter dto.AppreciationFilter) ([]dto.ResponseAppreciation, error) {
-	infos, err := apprSvc.appreciationRepo.GetAppreciation(ctx, nil, filter)
+func (apprSvc *service) GetAppreciation(ctx context.Context, filter dto.AppreciationFilter) (dto.GetAppreciationResponse, error) {
+	infos,pagination, err := apprSvc.appreciationRepo.GetAppreciation(ctx, nil, filter)
 	if err != nil {
-		return []dto.ResponseAppreciation{}, err
+		return dto.GetAppreciationResponse{}, err
 	}
 
-	var responses []dto.ResponseAppreciation
+	responses := make([]dto.ResponseAppreciation,0)
 	for _, info := range infos {
-		response := mapAppreciationInfoToResponse(info)
+		response := mapRepoGetAppreciationInfoToDTOGetAppreciationInfo(info)
 		responses = append(responses, response)
 	}
-
-	return responses, nil
+	paginationResp := DtoPagination(pagination)
+	return dto.GetAppreciationResponse{responses,paginationResp}, nil
 }
 
 func (apprSvc *service) ValidateAppreciation(ctx context.Context, isValid bool, apprId int) (bool, error) {

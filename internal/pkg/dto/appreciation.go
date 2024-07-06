@@ -17,13 +17,14 @@ type Appreciation struct {
 type AppreciationFilter struct {
 	Name      string `json:"sender_name"`
 	SortOrder string `json:"sort_order"`
+	Page      int64  `json:"page"`
+	Limit     int64  `json:"limit"`
 }
 
 type ResponseAppreciation struct {
 	ID                  int    `json:"id"`
 	CoreValueName       string `json:"core_value_name"`
 	Description         string `json:"description"`
-	IsValid             bool   `json:"is_valid"`
 	TotalRewards        int    `json:"total_rewards"`
 	Quarter             string `json:"quarter"`
 	SenderFirstName     string `json:"sender_first_name"`
@@ -38,7 +39,22 @@ type ResponseAppreciation struct {
 	UpdatedAt           int64  `json:"updated_at"`
 }
 
-func (appr *Appreciation)CreateAppreciation() (err error) {
+// Pagination Object
+type Pagination struct {
+    Next          *int64 `json:"next"`
+    Previous      *int64 `json:"previous"`
+    RecordPerPage int64  `json:"record_per_page"`
+    CurrentPage   int64  `json:"current_page"`
+    TotalPage     int64  `json:"total_page"`
+    TotalRecords  int64  `json:"total_records"`
+}
+
+type GetAppreciationResponse struct {
+	Appreciations []ResponseAppreciation `json:"appreciations"`
+	Pagination
+}
+
+func (appr *Appreciation) CreateAppreciation() (err error) {
 
 	if appr.CoreValueID <= 0 {
 		return apperrors.InvalidId

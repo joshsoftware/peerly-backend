@@ -35,7 +35,7 @@ func createAppreciationHandler(appreciationSvc appreciation.Service) http.Handle
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
-		dto.SuccessRepsonse(rw, http.StatusCreated,"Appreciation created successfully" ,resp)
+		dto.SuccessRepsonse(rw, http.StatusCreated, "Appreciation created successfully", resp)
 	})
 }
 
@@ -48,13 +48,13 @@ func getAppreciationByIdHandler(appreciationSvc appreciation.Service) http.Handl
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
-		fmt.Println("appr: ",apprId)
+		fmt.Println("appr: ", apprId)
 		resp, err := appreciationSvc.GetAppreciationById(req.Context(), apprId)
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
-		dto.SuccessRepsonse(rw, http.StatusOK,"Appreciation data got successfully" , resp)
+		dto.SuccessRepsonse(rw, http.StatusOK, "Appreciation data got successfully", resp)
 	})
 }
 
@@ -67,14 +67,23 @@ func getAppreciationsHandler(appreciationSvc appreciation.Service) http.HandlerF
 		// Extract query parameters or body fields
 		filter.Name = req.URL.Query().Get("name")
 		filter.SortOrder = req.URL.Query().Get("sort_order")
-
+		
+		// Get pagination parameters
+		page,limit, err := getPaginationParams(req)
+		if err != nil {
+			dto.ErrorRepsonse(rw, apperrors.BadRequest)
+			return
+		}
+		
+		filter.Limit = limit
+		filter.Page = page
 		// Call your appreciationService to fetch appreciations based on filter
 		appreciations, err := appreciationSvc.GetAppreciation(req.Context(), filter)
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
-		dto.SuccessRepsonse(rw, http.StatusOK,"Appreciations data got successfully " ,appreciations)
+		dto.SuccessRepsonse(rw, http.StatusOK, "Appreciations data got successfully ", appreciations)
 	})
 }
 
@@ -86,16 +95,16 @@ func validateAppreciationHandler(appreciationSvc appreciation.Service) http.Hand
 			dto.ErrorRepsonse(rw, apperrors.BadRequest)
 			return
 		}
-		
-		res,err := appreciationSvc.ValidateAppreciation(req.Context(),false,apprId)
+
+		res, err := appreciationSvc.ValidateAppreciation(req.Context(), false, apprId)
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)
-			return 
+			return
 		}
 		if !res {
 			dto.ErrorRepsonse(rw, apperrors.InternalServer)
 			return
-		} 
-		dto.SuccessRepsonse(rw,http.StatusOK,"Appreciation invalidate successfully",nil)
+		}
+		dto.SuccessRepsonse(rw, http.StatusOK, "Appreciation invalidate successfully", nil)
 	})
 }

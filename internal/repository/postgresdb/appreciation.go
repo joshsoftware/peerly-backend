@@ -24,13 +24,13 @@ func NewAppreciationRepo(db *sqlx.DB) repository.AppreciationStorer {
 	}
 }
 
-func (appr *appreciationsStore) CreateAppreciation(ctx context.Context,tx repository.Transaction, appreciation dto.Appreciation) (repository.Appreciation, error) {
+func (appr *appreciationsStore) CreateAppreciation(ctx context.Context, tx repository.Transaction, appreciation dto.Appreciation) (repository.Appreciation, error) {
 
 	insertQuery, args, err := sq.
 		Insert("appreciations").Columns(constants.CreateAppreciationColumns...).
 		Values(appreciation.CoreValueID, appreciation.Description, appreciation.Quarter, appreciation.Sender, appreciation.Receiver).
 		PlaceholderFormat(sq.Dollar).
-		Suffix("RETURNING \"id\",\"core_value_id\", \"description\",\"total_rewards\",\"quarter\",\"sender\",\"receiver\",\"created_at\",\"updated_at\"").
+		Suffix("RETURNING \"id\",\"core_value_id\", \"description\",\"total_reward_points\",\"quarter\",\"sender\",\"receiver\",\"created_at\",\"updated_at\"").
 		ToSql()
 
 	if err != nil {
@@ -48,7 +48,7 @@ func (appr *appreciationsStore) CreateAppreciation(ctx context.Context,tx reposi
 	return resAppr, nil
 }
 
-func (appr *appreciationsStore) GetAppreciationById(ctx context.Context,tx repository.Transaction, apprId int) (repository.AppreciationInfo, error) {
+func (appr *appreciationsStore) GetAppreciationById(ctx context.Context, tx repository.Transaction, apprId int) (repository.AppreciationInfo, error) {
 
 	// Build the SQL query
 	query, args, err := sq.Select(
@@ -56,7 +56,7 @@ func (appr *appreciationsStore) GetAppreciationById(ctx context.Context,tx repos
 		"cv.name AS core_value_name",
 		"a.description",
 		"a.is_valid",
-		"a.total_rewards",
+		"a.total_reward_points",
 		"a.quarter",
 		"u_sender.first_name AS sender_first_name",
 		"u_sender.last_name AS sender_last_name",
@@ -118,14 +118,48 @@ func (appr *appreciationsStore) GetAppreciationById(ctx context.Context,tx repos
 	return resAppr, nil
 }
 
-func (appr *appreciationsStore) GetAppreciation(ctx context.Context,tx repository.Transaction, filter dto.AppreciationFilter) ([]repository.AppreciationInfo, error) {
+func (appr *appreciationsStore) GetAppreciation(ctx context.Context, tx repository.Transaction, filter dto.AppreciationFilter) ([]repository.AppreciationInfo, repository.Pagination, error) {
+
+	// query builder for counting total records
+	countQueryBuilder := sq.Select("COUNT(*)").
+		From("appreciations a").
+		LeftJoin("users u_sender ON a.sender = u_sender.id").
+		LeftJoin("users u_receiver ON a.receiver = u_receiver.id").
+		LeftJoin("core_values cv ON a.core_value_id = cv.id").
+		PlaceholderFormat(sq.Dollar).
+		Where(sq.Eq{"a.is_valid": true})
+
+	if filter.Name != "" {
+		countQueryBuilder = countQueryBuilder.Where(
+			"(CONCAT(u_sender.first_name, ' ', u_sender.last_name) LIKE ? OR "+
+				"CONCAT(u_receiver.first_name, ' ', u_receiver.last_name) LIKE ?)",
+			fmt.Sprintf("%%%s%%", filter.Name), fmt.Sprintf("%%%s%%", filter.Name),
+		)
+	}
+
+	countSql, countArgs, err := countQueryBuilder.ToSql()
+	if err != nil {
+		logger.Error("failed to build count query: ", err.Error())
+		return []repository.AppreciationInfo{}, repository.Pagination{}, apperrors.InternalServerError
+	}
+
+	queryExecutor := appr.InitiateQueryExecutor(tx)
+	var totalRecords int64
+	err = queryExecutor.QueryRowx(countSql, countArgs...).Scan(&totalRecords)
+	if err != nil {
+		logger.Error("failed to execute count query: ", err.Error())
+		return []repository.AppreciationInfo{}, repository.Pagination{}, apperrors.InternalServerError
+	}
+
+	pagination := GetPaginationMetaData(filter.Page,filter.Limit,totalRecords)
+	fmt.Println("pagination: ", pagination)
 	// Initialize the Squirrel query builder
 	queryBuilder := sq.Select(
 		"a.id",
 		"cv.name AS core_value_name",
 		"a.description",
 		"a.is_valid",
-		"a.total_rewards",
+		"a.total_reward_points",
 		"a.quarter",
 		"u_sender.first_name AS sender_first_name",
 		"u_sender.last_name AS sender_last_name",
@@ -156,94 +190,97 @@ func (appr *appreciationsStore) GetAppreciation(ctx context.Context,tx repositor
 		queryBuilder = queryBuilder.OrderBy(fmt.Sprintf("a.created_at %s", filter.SortOrder))
 	}
 
+	offset := (filter.Page - 1) * filter.Limit
+
+	// Add pagination
+	queryBuilder = queryBuilder.Limit(uint64(filter.Limit)).Offset(uint64(offset))
 	sql, args, err := queryBuilder.ToSql()
 	if err != nil {
 		logger.Error("failed to build query: ", err.Error())
-		return nil, apperrors.InternalServerError
+		return nil, repository.Pagination{}, apperrors.InternalServerError
 	}
 
-	queryExecutor := appr.InitiateQueryExecutor(tx)
-	rows, err := queryExecutor.Query(sql, args...)
+	queryExecutor = appr.InitiateQueryExecutor(tx)
+	res := make([]repository.AppreciationInfo, 0)
+	err = sqlx.Select(queryExecutor,&res,sql,args...)
+	// rows, err := queryExecutor.Query(sql, args...)
 	if err != nil {
 		logger.Error("failed to execute query: ", err.Error())
-		return nil, apperrors.InternalServerError
+		return nil, repository.Pagination{}, apperrors.InternalServerError
 	}
-	defer rows.Close()
+	// defer rows.Close()
 
-	var res []repository.AppreciationInfo
+	
 
-	for rows.Next() {
-		var resAppr repository.AppreciationInfo
-		err = rows.Scan(
-			&resAppr.ID,
-			&resAppr.CoreValueName,
-			&resAppr.Description,
-			&resAppr.IsValid,
-			&resAppr.TotalRewards,
-			&resAppr.Quarter,
-			&resAppr.SenderFirstName,
-			&resAppr.SenderLastName,
-			&resAppr.SenderImageURL,
-			&resAppr.SenderDesignation,
-			&resAppr.ReceiverFirstName,
-			&resAppr.ReceiverLastName,
-			&resAppr.ReceiverImageURL,
-			&resAppr.ReceiverDesignation,
-			&resAppr.CreatedAt,
-			&resAppr.UpdatedAt,
-		)
-		if err != nil {
-			logger.Error("failed to scan row: ", err.Error())
-			return []repository.AppreciationInfo{}, apperrors.InternalServerError
-		}
-		res = append(res, resAppr)
-	}
+	// for rows.Next() {
+	// 	fmt.Println("Hello")
+	// 	var resAppr repository.AppreciationInfo
+	// 	err = rows.Scan(
+	// 		&resAppr.ID,
+	// 		&resAppr.CoreValueName,
+	// 		&resAppr.Description,
+	// 		&resAppr.IsValid,
+	// 		&resAppr.TotalRewards,
+	// 		&resAppr.Quarter,
+	// 		&resAppr.SenderFirstName,
+	// 		&resAppr.SenderLastName,
+	// 		&resAppr.SenderImageURL,
+	// 		&resAppr.SenderDesignation,
+	// 		&resAppr.ReceiverFirstName,
+	// 		&resAppr.ReceiverLastName,
+	// 		&resAppr.ReceiverImageURL,
+	// 		&resAppr.ReceiverDesignation,
+	// 		&resAppr.CreatedAt,
+	// 		&resAppr.UpdatedAt,
+	// 	)
+	// 	if err != nil {
+	// 		logger.Error("failed to scan row: ", err.Error())
+	// 		return []repository.AppreciationInfo{}, repository.Pagination{}, apperrors.InternalServerError
+	// 	}
+	// 	res = append(res, resAppr)
+	// }
 
-	if len(res) == 0 {
-		return []repository.AppreciationInfo{}, apperrors.AppreciationNotFound
-	}
-
-	return res, nil
+	return res, pagination, nil
 }
 
-func (appr *appreciationsStore) ValidateAppreciation(ctx context.Context,tx repository.Transaction, isValid bool, apprId int) (bool, error) {
-    query, args, err := sq.Update("appreciations").
-        Set("is_valid", isValid).
+func (appr *appreciationsStore) ValidateAppreciation(ctx context.Context, tx repository.Transaction, isValid bool, apprId int) (bool, error) {
+	query, args, err := sq.Update("appreciations").
+		Set("is_valid", isValid).
 		Where(sq.And{
 			sq.Eq{"id": apprId},
 			sq.Eq{"is_valid": true},
 		}).
-        PlaceholderFormat(sq.Dollar).
-        ToSql()
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
 
-    if err != nil {
-        logger.Error("Error building SQL: ", err.Error())
-        return false, apperrors.InternalServer
-    }
+	if err != nil {
+		logger.Error("Error building SQL: ", err.Error())
+		return false, apperrors.InternalServer
+	}
 
 	queryExecutor := appr.InitiateQueryExecutor(tx)
 
-    result, err := queryExecutor.Exec(query, args...)
-    if err != nil {
-        logger.Error("Error executing SQL: ", err.Error())
-        return false, apperrors.InternalServer
-    }
+	result, err := queryExecutor.Exec(query, args...)
+	if err != nil {
+		logger.Error("Error executing SQL: ", err.Error())
+		return false, apperrors.InternalServer
+	}
 
-    rowsAffected, err := result.RowsAffected()
-    if err != nil {
-        logger.Error("Error getting rows affected: ", err.Error())
-        return false, apperrors.InternalServer
-    }
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		logger.Error("Error getting rows affected: ", err.Error())
+		return false, apperrors.InternalServer
+	}
 
-    if rowsAffected == 0 {
-        logger.Warn("No rows affected")
-        return false, apperrors.AppreciationNotFound
-    }
+	if rowsAffected == 0 {
+		logger.Warn("No rows affected")
+		return false, apperrors.AppreciationNotFound
+	}
 
-    return true, nil
+	return true, nil
 }
 
-func (appr *appreciationsStore) IsUserPresent(ctx context.Context,tx repository.Transaction, userID int64) (bool, error) {
+func (appr *appreciationsStore) IsUserPresent(ctx context.Context, tx repository.Transaction, userID int64) (bool, error) {
 	// Initialize the Squirrel query builder
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
