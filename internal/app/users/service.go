@@ -29,7 +29,7 @@ type Service interface {
 	LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.LoginUserResp, error)
 	RegisterUser(ctx context.Context, u dto.IntranetUserData) (user dto.GetUserResp, err error)
 	GetUserListIntranet(ctx context.Context, reqData dto.GetUserListReq) (data []dto.IntranetUserData, err error)
-	GetUserList(ctx context.Context, reqData dto.UserListReq) (resp dto.UserListWithTotalCount, err error)
+	GetUserList(ctx context.Context, reqData dto.UserListReq) (resp dto.UserListWithMetadata, err error)
 }
 
 func NewService(userRepo repository.UserStorer) Service {
@@ -285,7 +285,7 @@ func (us *service) GetUserListIntranet(ctx context.Context, reqData dto.GetUserL
 	return
 }
 
-func (us *service) GetUserList(ctx context.Context, reqData dto.UserListReq) (resp dto.UserListWithTotalCount, err error) {
+func (us *service) GetUserList(ctx context.Context, reqData dto.UserListReq) (resp dto.UserListWithMetadata, err error) {
 
 	var names []string
 	for _, data := range reqData.Name {
@@ -305,7 +305,9 @@ func (us *service) GetUserList(ctx context.Context, reqData dto.UserListReq) (re
 	}
 
 	resp.UserList = users
-	resp.TotalCount = totalCount
+	resp.MetaData.TotalCount = totalCount
+	resp.MetaData.CurrentPage = reqData.Page
+	resp.MetaData.PageCount = reqData.PerPage
 
 	return
 

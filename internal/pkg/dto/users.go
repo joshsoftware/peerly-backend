@@ -108,9 +108,15 @@ type GetUserListResp struct {
 	ProfileImg  string `json:"profile_image_url" db:"profile_image_url"`
 }
 
-type UserListWithTotalCount struct {
-	UserList   []GetUserListResp `json:"user_list"`
-	TotalCount int64             `json:"total_count"`
+type UserListMetadata struct {
+	TotalCount  int64 `json:"total_count"`
+	CurrentPage int64 `json:"current_page"`
+	PageCount   int64 `json:"page_count"`
+}
+
+type UserListWithMetadata struct {
+	UserList []GetUserListResp `json:"user_list"`
+	MetaData UserListMetadata  `json:"metadata"`
 }
 
 type GetUserListRespData struct {
@@ -118,7 +124,7 @@ type GetUserListRespData struct {
 }
 
 type UserListReq struct {
-	Page    int
-	PerPage int
+	Page    int64
+	PerPage int64
 	Name    []string
 }
