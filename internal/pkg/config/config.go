@@ -88,3 +88,7 @@ func checkIfSet(key string) {
 		panic(apperrors.ErrKeyNotSet(key))
 	}
 }
+
+func IntranetClientCode() string {
+	return ReadEnvString("INTRANET_CLIENT_CODE")
+}

@@ -35,6 +35,9 @@ const (
 	UserNotFound             = CustomError("User not found")
 	InvalidIntranetData      = CustomError("Invalid data recieved from intranet")
 	GradeNotFound            = CustomError("Grade not found")
+	RoleUnathorized          = CustomError("Role unauthorized")
+	PageParamNotFound        = CustomError("Page parameter not found")
+	RepeatedUser             = CustomError("Repeated user")
 	BadRequest               = CustomError("Bad request")
 	InternalServer           = CustomError("Internal Server")
 	FailedToCreateDriver     = CustomError("failure to create driver obj")
@@ -51,12 +54,15 @@ func GetHTTPStatusCode(err error) int {
 	switch err {
 	case InternalServerError, JSONParsingErrorResp, InvalidIntranetData:
 		return http.StatusInternalServerError
-	case OrganizationNotFound, InvalidCoreValueData, InvalidParentValue, InvalidOrgId, GradeNotFound:
+	case OrganizationNotFound, InvalidCoreValueData, InvalidParentValue, InvalidOrgId, GradeNotFound, PageParamNotFound:
 		return http.StatusNotFound
-	case InvalidId, JSONParsingErrorReq, TextFieldBlank, DescFieldBlank, UniqueCoreValue, InvalidAuthToken, IntranetValidationFailed:
+	case InvalidId, JSONParsingErrorReq, TextFieldBlank, DescFieldBlank, UniqueCoreValue, IntranetValidationFailed, RepeatedUser:
 		return http.StatusBadRequest
 	case InvalidContactEmail, InvalidDomainName:
 		return http.StatusConflict
+	case InvalidAuthToken, RoleUnathorized:
+		return http.StatusUnauthorized
+
 	default:
 		return http.StatusInternalServerError
 	}
