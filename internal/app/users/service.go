@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strings"
 
 	"net/http"
 	"time"
@@ -28,6 +29,7 @@ type Service interface {
 	LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.LoginUserResp, error)
 	RegisterUser(ctx context.Context, u dto.IntranetUserData) (user dto.GetUserResp, err error)
 	GetUserListIntranet(ctx context.Context, reqData dto.GetUserListReq) (data []dto.IntranetUserData, err error)
+	GetUserList(ctx context.Context, reqData dto.UserListReq) (users []dto.GetUserListResp, err error)
 }
 
 func NewService(userRepo repository.UserStorer) Service {
@@ -280,5 +282,19 @@ func (us *service) GetUserListIntranet(ctx context.Context, reqData dto.GetUserL
 	}
 
 	data = respData.Data
+	return
+}
+
+func (us *service) GetUserList(ctx context.Context, reqData dto.UserListReq) (users []dto.GetUserListResp, err error) {
+
+	var names []string
+	for _, data := range reqData.Name {
+		names = append(names, strings.ToLower(data))
+	}
+
+	reqData.Name = names
+
+	users, err = us.userRepo.GetUserList(ctx, reqData)
+
 	return
 }

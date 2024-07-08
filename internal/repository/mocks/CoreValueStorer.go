@@ -53,7 +53,6 @@ func (_m *CoreValueStorer) CreateCoreValue(ctx context.Context, userId int64, co
 	return r0, r1
 }
 
-
 // GetCoreValue provides a mock function with given fields: ctx, coreValueID
 func (_m *CoreValueStorer) GetCoreValue(ctx context.Context, coreValueID int64) (dto.GetCoreValueResp, error) {
 	ret := _m.Called(ctx, coreValueID)
