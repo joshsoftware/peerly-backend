@@ -33,16 +33,14 @@ func (_m *Service) GetIntranetUserData(ctx context.Context, req dto.GetIntranetU
 }
 
 // GetUserList provides a mock function with given fields: ctx, reqData
-func (_m *Service) GetUserList(ctx context.Context, reqData dto.UserListReq) ([]dto.GetUserListResp, error) {
+func (_m *Service) GetUserList(ctx context.Context, reqData dto.UserListReq) (dto.UserListWithTotalCount, error) {
 	ret := _m.Called(ctx, reqData)
 
-	var r0 []dto.GetUserListResp
-	if rf, ok := ret.Get(0).(func(context.Context, dto.UserListReq) []dto.GetUserListResp); ok {
+	var r0 dto.UserListWithTotalCount
+	if rf, ok := ret.Get(0).(func(context.Context, dto.UserListReq) dto.UserListWithTotalCount); ok {
 		r0 = rf(ctx, reqData)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]dto.GetUserListResp)
-		}
+		r0 = ret.Get(0).(dto.UserListWithTotalCount)
 	}
 
 	var r1 error

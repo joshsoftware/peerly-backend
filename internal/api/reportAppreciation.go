@@ -17,7 +17,7 @@ func reportAppreciationHandler(reportAppreciationSvc reportappreciations.Service
 		vars := mux.Vars(req)
 		if vars["id"] == "" {
 			err := apperrors.InvalidId
-			dto.ErrorRepsonse(rw, apperrors.GetHTTPStatusCode(err), err.Error(), nil)
+			dto.ErrorRepsonse(rw, err)
 			return
 		}
 
@@ -32,14 +32,14 @@ func reportAppreciationHandler(reportAppreciationSvc reportappreciations.Service
 		err = json.NewDecoder(req.Body).Decode(&reqData)
 		if err != nil {
 			logger.WithField("err", err.Error()).Error("Error while decoding request data")
-			dto.ErrorRepsonse(rw, apperrors.GetHTTPStatusCode(err), err.Error(), nil)
+			dto.ErrorRepsonse(rw, err)
 			return
 		}
 		reqData.AppreciationId = appreciationId
 
 		resp, err := reportAppreciationSvc.ReportAppreciation(req.Context(), reqData)
 		if err != nil {
-			dto.ErrorRepsonse(rw, apperrors.GetHTTPStatusCode(err), err.Error(), nil)
+			dto.ErrorRepsonse(rw, err)
 			return
 		}
 

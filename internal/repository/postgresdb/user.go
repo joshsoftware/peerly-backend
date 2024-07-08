@@ -145,6 +145,37 @@ func (us *userStore) SyncData(ctx context.Context, updateData dto.UpdateUserData
 
 }
 
+func (us *userStore) GetTotalUserCount(ctx context.Context, reqData dto.UserListReq) (totalCount int64, err error) {
+
+	getUserCountQuery := "Select count(*) from users "
+
+	if len(reqData.Name) >= 0 {
+		getUserCountQuery += "where"
+	}
+	for i, name := range reqData.Name {
+		if i == 0 {
+			str := fmt.Sprint(" lower(first_name) like '%" + name + "%' or lower(last_name) like '%" + name + "%'")
+			getUserCountQuery += str
+		} else {
+			str := fmt.Sprint(" or lower(first_name) like '%" + name + "%' or lower(last_name) like '%" + name + "%'")
+			getUserCountQuery += str
+		}
+	}
+
+	var resp []int64
+
+	err = us.DB.Select(&resp, getUserCountQuery)
+	if err != nil {
+		logger.WithField("err", err.Error()).Error("Error in getUserCountQuery")
+		err = apperrors.InternalServerError
+		return
+	}
+
+	totalCount = resp[0]
+
+	return
+}
+
 func (us *userStore) GetUserList(ctx context.Context, reqData dto.UserListReq) (resp []dto.GetUserListResp, err error) {
 	getUserListQuery := "Select users.employee_id, users.email, users.first_name, users.last_name, grades.name, users.designation, users.profile_image_url from users join grades on grades.id = users.grade_id "
 
@@ -161,7 +192,7 @@ func (us *userStore) GetUserList(ctx context.Context, reqData dto.UserListReq) (
 		}
 	}
 
-	str := fmt.Sprint(" limit " + strconv.Itoa(reqData.PerPage) + " offset " + strconv.Itoa(reqData.PerPage*(reqData.Page-1)+1))
+	str := fmt.Sprint(" limit " + strconv.Itoa(reqData.PerPage) + " offset " + strconv.Itoa(reqData.PerPage*(reqData.Page-1)))
 	getUserListQuery += str
 
 	err = us.DB.Select(&resp, getUserListQuery)

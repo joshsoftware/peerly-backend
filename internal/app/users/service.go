@@ -29,7 +29,7 @@ type Service interface {
 	LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.LoginUserResp, error)
 	RegisterUser(ctx context.Context, u dto.IntranetUserData) (user dto.GetUserResp, err error)
 	GetUserListIntranet(ctx context.Context, reqData dto.GetUserListReq) (data []dto.IntranetUserData, err error)
-	GetUserList(ctx context.Context, reqData dto.UserListReq) (users []dto.GetUserListResp, err error)
+	GetUserList(ctx context.Context, reqData dto.UserListReq) (resp dto.UserListWithTotalCount, err error)
 }
 
 func NewService(userRepo repository.UserStorer) Service {
@@ -285,7 +285,7 @@ func (us *service) GetUserListIntranet(ctx context.Context, reqData dto.GetUserL
 	return
 }
 
-func (us *service) GetUserList(ctx context.Context, reqData dto.UserListReq) (users []dto.GetUserListResp, err error) {
+func (us *service) GetUserList(ctx context.Context, reqData dto.UserListReq) (resp dto.UserListWithTotalCount, err error) {
 
 	var names []string
 	for _, data := range reqData.Name {
@@ -294,7 +294,19 @@ func (us *service) GetUserList(ctx context.Context, reqData dto.UserListReq) (us
 
 	reqData.Name = names
 
-	users, err = us.userRepo.GetUserList(ctx, reqData)
+	totalCount, err := us.userRepo.GetTotalUserCount(ctx, reqData)
+	if err != nil {
+		return
+	}
+
+	users, err := us.userRepo.GetUserList(ctx, reqData)
+	if err != nil {
+		return
+	}
+
+	resp.UserList = users
+	resp.TotalCount = totalCount
 
 	return
+
 }
