@@ -17,6 +17,7 @@ type UserStorer interface {
 	GetRewardMultiplier(ctx context.Context) (value int, err error)
 	SyncData(ctx context.Context, updateData dto.UpdateUserData) (err error)
 	GetUserList(ctx context.Context, reqData dto.UserListReq) (resp []dto.GetUserListResp, err error)
+	GetTotalUserCount(ctx context.Context, reqData dto.UserListReq) (totalCount int64, err error)
 }
 
 // User - basic struct representing a User
