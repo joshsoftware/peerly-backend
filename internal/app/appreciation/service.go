@@ -2,7 +2,6 @@ package appreciation
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
@@ -42,21 +41,19 @@ func (apprSvc *service) CreateAppreciation(ctx context.Context, apprecication dt
 		logger.Error("err in parsing userid from token")
 		return dto.Appreciation{},apperrors.InternalServer
 	}
-
 	usrChk,err := apprSvc.appreciationRepo.IsUserPresent(ctx,nil,sender)
 	if err != nil {
 		return dto.Appreciation{},err
 	}
 
-	if usrChk {
-		return dto.Appreciation{},apperrors.SelfAppreciationError
+	if !usrChk  {
+		return dto.Appreciation{},apperrors.UserNotFound
 	}
 
 	apprecication.Sender = sender
 
 	//initializing database transaction
 	tx, err := apprSvc.appreciationRepo.BeginTx(ctx)
-	fmt.Println("ERr", err, tx)
 	
 	if err != nil {
 		return dto.Appreciation{}, err
@@ -95,6 +92,11 @@ func (apprSvc *service) CreateAppreciation(ctx context.Context, apprecication dt
 		return dto.Appreciation{}, apperrors.UserNotFound
 	}
 
+	// check self appreciation
+	if apprecication.Receiver == sender {
+		return dto.Appreciation{},apperrors.SelfAppreciationError
+	}
+
 	appr, err := apprSvc.appreciationRepo.CreateAppreciation(ctx, tx, apprecication)
 	if err != nil {
 		return dto.Appreciation{}, err
@@ -126,7 +128,7 @@ func (apprSvc *service) GetAppreciation(ctx context.Context, filter dto.Apprecia
 		responses = append(responses, response)
 	}
 	paginationResp := DtoPagination(pagination)
-	return dto.GetAppreciationResponse{responses,paginationResp}, nil
+	return dto.GetAppreciationResponse{Appreciations:responses,Pagination: paginationResp}, nil
 }
 
 func (apprSvc *service) ValidateAppreciation(ctx context.Context, isValid bool, apprId int) (bool, error) {

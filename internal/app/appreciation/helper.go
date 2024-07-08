@@ -1,6 +1,7 @@
 package appreciation
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
@@ -10,6 +11,8 @@ import (
 // Function to map AppreciationDB to AppreciationDTO
 func MapAppreciationDBToDTO(dbAppreciation repository.Appreciation) dto.Appreciation {
 
+	fmt.Println("db: ",dbAppreciation)
+	// fmt.Println("dto: ",)
 	return dto.Appreciation{
 		ID:           dbAppreciation.ID,
 		CoreValueID:  dbAppreciation.CoreValueID,
@@ -32,7 +35,7 @@ func mapRepoGetAppreciationInfoToDTOGetAppreciationInfo(info repository.Apprecia
 
 	senderImageURL := ""
 	if info.SenderImageURL.Valid {
-		receiverImageURL = info.SenderImageURL.String
+		senderImageURL = info.SenderImageURL.String
 	}
 
 	var dtoApprResp dto.ResponseAppreciation

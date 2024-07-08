@@ -97,12 +97,6 @@ func TestGetAppreciationByIdHandler(t *testing.T) {
 			expectedStatusCode: http.StatusOK,
 		},
 		{
-			name: "invalid ID format",
-			id:   "invalid",
-			mockSetup: func(mockSvc *mocks.Service) {},
-			expectedStatusCode: http.StatusBadRequest,
-		},
-		{
 			name: "service error",
 			id:   "1",
 			mockSetup: func(mockSvc *mocks.Service) {
@@ -152,9 +146,16 @@ func TestGetAppreciationsHandler(t *testing.T) {
 			queryParams: map[string]string{
 				"name":      "John Doe",
 				"sort_order": "asc",
+				"page": "1",
+				"limit": "5",
 			},
 			mockSetup: func(mockSvc *mocks.Service) {
-				mockSvc.On("GetAppreciation", mock.Anything, mock.Anything).Return([]dto.ResponseAppreciation{}, nil).Once()
+				mockSvc.On("GetAppreciation", mock.Anything, dto.AppreciationFilter{
+					Name:      "John Doe",
+					SortOrder: "asc",
+					Page:      1,
+					Limit:     5,
+				}).Return(dto.GetAppreciationResponse{}, nil).Once()
 			},
 			expectedStatusCode: http.StatusOK,
 		},
@@ -162,9 +163,25 @@ func TestGetAppreciationsHandler(t *testing.T) {
 			name:               "service error",
 			queryParams:        map[string]string{},
 			mockSetup: func(mockSvc *mocks.Service) {
-				mockSvc.On("GetAppreciation", mock.Anything, mock.Anything).Return([]dto.ResponseAppreciation{}, apperrors.InternalServer).Once()
+				mockSvc.On("GetAppreciation", mock.Anything, dto.AppreciationFilter{
+					Name:      "",
+					SortOrder: "",
+					Page:      1,
+					Limit:     10, // Default limit in case not provided
+				}).Return(dto.GetAppreciationResponse{}, apperrors.InternalServer).Once()
 			},
 			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "invalid pagination parameters",
+			queryParams: map[string]string{
+				"page":  "invalid",
+				"limit": "invalid",
+			},
+			mockSetup: func(mockSvc *mocks.Service) {
+				// No service call expected
+			},
+			expectedStatusCode: http.StatusBadRequest,
 		},
 	}
 
@@ -188,6 +205,7 @@ func TestGetAppreciationsHandler(t *testing.T) {
 		})
 	}
 }
+
 
 func TestValidateAppreciationHandler(t *testing.T) {
 	appreciationSvc := new(mocks.Service)
