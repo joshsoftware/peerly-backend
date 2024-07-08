@@ -42,14 +42,13 @@ func (apprSvc *service) CreateAppreciation(ctx context.Context, apprecication dt
 		logger.Error("err in parsing userid from token")
 		return dto.Appreciation{},apperrors.InternalServer
 	}
-
 	usrChk,err := apprSvc.appreciationRepo.IsUserPresent(ctx,nil,sender)
 	if err != nil {
 		return dto.Appreciation{},err
 	}
 
-	if usrChk {
-		return dto.Appreciation{},apperrors.SelfAppreciationError
+	if !usrChk  {
+		return dto.Appreciation{},apperrors.UserNotFound
 	}
 
 	apprecication.Sender = sender
@@ -93,6 +92,11 @@ func (apprSvc *service) CreateAppreciation(ctx context.Context, apprecication dt
 	}
 	if !chk {
 		return dto.Appreciation{}, apperrors.UserNotFound
+	}
+
+	// check self appreciation
+	if apprecication.Receiver == sender {
+		return dto.Appreciation{},apperrors.SelfAppreciationError
 	}
 
 	appr, err := apprSvc.appreciationRepo.CreateAppreciation(ctx, tx, apprecication)

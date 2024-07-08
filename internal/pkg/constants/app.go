@@ -7,3 +7,5 @@ var AppreciationColumns = []string{
 var CreateAppreciationColumns = []string{
 	"core_value_id", "description","quarter","sender","receiver",
 }
+
+var CreateRewardColumns = []string{"appreciation_id", "point", "sender"}
