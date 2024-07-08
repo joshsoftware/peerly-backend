@@ -17,7 +17,7 @@ type Dependencies struct {
 	ReportAppreciationService reportappreciations.Service
 }
 
-// NewServices initializes and returns a Dependencies instance with the given database connection.
+// NewService initializes and returns a Dependencies instance with the given database connection.
 func NewService(db *sqlx.DB) Dependencies {
 	// Initialize repository dependencies using the provided database connection.
 	coreValueRepo := repository.NewCoreValueRepo(db)

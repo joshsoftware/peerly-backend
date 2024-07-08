@@ -4,17 +4,19 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	logger "github.com/sirupsen/logrus"
 )
 
+// Response is common response struct used in SuccessRepsonse and ErrorRepsonse
 type Response struct {
 	Success bool        `json:"success"`
 	Message string      `json:"message"`
 	Status  int         `json:"status_code"`
 	Data    interface{} `json:"data"`
-	Error   interface{} `json:"error"`
 }
 
+// SuccessRepsonse return success response
 func SuccessRepsonse(rw http.ResponseWriter, status int, message string, data interface{}) {
 
 	var resp Response
@@ -35,13 +37,13 @@ func SuccessRepsonse(rw http.ResponseWriter, status int, message string, data in
 	rw.Write(respBytes)
 }
 
-func ErrorRepsonse(rw http.ResponseWriter, status int, message string, errorBody interface{}) {
+// ErrorRepsonse return error response
+func ErrorRepsonse(rw http.ResponseWriter, err error) {
 
 	var resp Response
 	resp.Success = false
-	resp.Status = status
-	resp.Message = message
-	resp.Error = errorBody
+	resp.Status = apperrors.GetHTTPStatusCode(err)
+	resp.Message = err.Error()
 
 	respBytes, err := json.Marshal(resp)
 	if err != nil {
@@ -51,6 +53,6 @@ func ErrorRepsonse(rw http.ResponseWriter, status int, message string, errorBody
 	}
 
 	rw.Header().Add("Content-Type", "application/json")
-	rw.WriteHeader(status)
+	rw.WriteHeader(resp.Status)
 	rw.Write(respBytes)
 }

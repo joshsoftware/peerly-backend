@@ -108,6 +108,11 @@ type GetUserListResp struct {
 	ProfileImg  string `json:"profile_image_url" db:"profile_image_url"`
 }
 
+type UserListWithTotalCount struct {
+	UserList   []GetUserListResp `json:"user_list"`
+	TotalCount int64             `json:"total_count"`
+}
+
 type GetUserListRespData struct {
 	Data []IntranetUserData `json:"data"`
 }
