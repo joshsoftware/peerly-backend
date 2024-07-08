@@ -111,9 +111,11 @@ type GetUserListResp struct {
 type GetUserListRespData struct {
 	Data []IntranetUserData `json:"data"`
 }
-
 type UserListReq struct {
 	Page    int
 	PerPage int
 	Name    []string
+}
+
+type GetUserByIdResp struct {
 }

@@ -178,3 +178,8 @@ func (us *userStore) GetUserList(ctx context.Context, reqData dto.UserListReq) (
 
 	return
 }
+
+func (us *userStore) GetUserById(ctx context.Context, userId int64) (user dto.GetUserByIdResp, err error) {
+
+	return
+}
