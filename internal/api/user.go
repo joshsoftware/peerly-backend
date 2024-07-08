@@ -134,8 +134,8 @@ func getUserHandler(userSvc user.Service) http.HandlerFunc {
 		names := strings.Split(req.URL.Query().Get("name"), " ")
 		userListReq := dto.UserListReq{
 			Name:    names,
-			Page:    pageInt,
-			PerPage: perPageInt,
+			Page:    int64(pageInt),
+			PerPage: int64(perPageInt),
 		}
 		resp, err := userSvc.GetUserList(req.Context(), userListReq)
 		if err != nil {

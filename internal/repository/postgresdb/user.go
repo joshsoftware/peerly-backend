@@ -192,7 +192,7 @@ func (us *userStore) GetUserList(ctx context.Context, reqData dto.UserListReq) (
 		}
 	}
 
-	str := fmt.Sprint(" limit " + strconv.Itoa(reqData.PerPage) + " offset " + strconv.Itoa(reqData.PerPage*(reqData.Page-1)))
+	str := fmt.Sprint(" limit " + strconv.Itoa(int(reqData.PerPage)) + " offset " + strconv.Itoa(int(reqData.PerPage*(reqData.Page-1))))
 	getUserListQuery += str
 
 	err = us.DB.Select(&resp, getUserListQuery)
