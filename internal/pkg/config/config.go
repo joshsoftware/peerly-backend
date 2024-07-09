@@ -91,3 +91,12 @@ func checkIfSet(key string) {
 func IntranetClientCode() string {
 	return ReadEnvString("INTRANET_CLIENT_CODE")
 }
+
+// JWTKey - returns the JSON Web Token key
+func IntranetAuthToken() string {
+	return (ReadEnvString(constants.IntanetAuthToken))
+}
+
+func PeerlyBaseUrl() string {
+	return (ReadEnvString(constants.PeerlyBaseUrl))
+}

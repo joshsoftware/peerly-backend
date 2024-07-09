@@ -15,6 +15,7 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/app"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/config"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
+	script "github.com/joshsoftware/peerly-backend/scripts"
 	"github.com/rs/cors"
 	logger "github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
@@ -70,6 +71,13 @@ func main() {
 			Usage: "seed data in database",
 			Action: func(c *cli.Context) error {
 				return repository.SeedData()
+			},
+		},
+		{
+			Name:  "loadUsers",
+			Usage: "load peerly users from intranet",
+			Action: func(c *cli.Context) error {
+				return script.LoadUserScript()
 			},
 		},
 	}

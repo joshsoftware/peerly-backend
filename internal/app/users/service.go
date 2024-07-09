@@ -40,7 +40,7 @@ func NewService(userRepo repository.UserStorer) Service {
 
 func (us *service) ValidatePeerly(ctx context.Context, authToken string) (data dto.ValidateResp, err error) {
 	client := &http.Client{}
-	validationReq, err := http.NewRequest("POST", "https://pg-stage-intranet.joshsoftware.com/api/peerly/v1/sessions/login", nil)
+	validationReq, err := http.NewRequest(constants.POST, "https://pg-stage-intranet.joshsoftware.com/api/peerly/v1/sessions/login", nil)
 	if err != nil {
 		err = apperrors.InternalServerError
 		return
