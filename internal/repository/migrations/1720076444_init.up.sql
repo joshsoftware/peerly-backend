@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS resolutions (
     moderated_at BIGINT 
 );
 
-CREATE TABLE organization_config (
+CREATE TABLE IF NOT EXISTS organization_config (
     id BIGSERIAL PRIMARY KEY,
     reward_multiplier INT,
     reward_quota_renewal_frequency INT, -- Assuming month is only a unit for this integer value

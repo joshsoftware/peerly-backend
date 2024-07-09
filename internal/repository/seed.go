@@ -16,9 +16,9 @@ func SeedData() (err error) {
 
 	seedQueries := []string{
 		//roles
-		`INSERT INTO roles (id, name) VALUES (1, 'Super Admin')`,
-		`INSERT INTO roles (id, name) VALUES (2, 'Admin')`,
-		`INSERT INTO roles (id, name) VALUES (3, 'User')`,
+		`INSERT INTO roles (id, name) VALUES (1, 'super admin')`,
+		`INSERT INTO roles (id, name) VALUES (2, 'admin')`,
+		`INSERT INTO roles (id, name) VALUES (3, 'user')`,
 
 		//grades
 		`INSERT INTO grades (id,name, points) VALUES (1, 'J1',1000)`,
