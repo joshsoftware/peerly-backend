@@ -100,3 +100,7 @@ func IntranetAuthToken() string {
 func PeerlyBaseUrl() string {
 	return (ReadEnvString(constants.PeerlyBaseUrl))
 }
+
+func IntranetBaseUrl() string {
+	return (ReadEnvString(constants.IntranetBaseUrl))
+}

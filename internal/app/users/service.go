@@ -40,7 +40,7 @@ func NewService(userRepo repository.UserStorer) Service {
 
 func (us *service) ValidatePeerly(ctx context.Context, authToken string) (data dto.ValidateResp, err error) {
 	client := &http.Client{}
-	validationReq, err := http.NewRequest(constants.POST, "https://pg-stage-intranet.joshsoftware.com/api/peerly/v1/sessions/login", nil)
+	validationReq, err := http.NewRequest(constants.POST, fmt.Sprintf(config.IntranetBaseUrl()+"/api/peerly/v1/sessions/login"), nil)
 	if err != nil {
 		err = apperrors.InternalServerError
 		return
@@ -78,7 +78,7 @@ func (us *service) ValidatePeerly(ctx context.Context, authToken string) (data d
 func (us *service) GetIntranetUserData(ctx context.Context, req dto.GetIntranetUserDataReq) (data dto.IntranetUserData, err error) {
 
 	client := &http.Client{}
-	url := fmt.Sprintf("https://pg-stage-intranet.joshsoftware.com/api/peerly/v1/users/%d", req.UserId)
+	url := fmt.Sprintf("%s/api/peerly/v1/users/%d", config.IntranetBaseUrl(), req.UserId)
 	intranetReq, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		err = apperrors.InternalServerError

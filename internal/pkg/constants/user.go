@@ -12,3 +12,4 @@ var UserId UserIdCtxKey = "userId"
 var Role RoleCtxKey = "role"
 
 var IntranetAuth = "Intranet-Auth"
+var IntranetBaseUrl = "INTRANET_BASE_URL"

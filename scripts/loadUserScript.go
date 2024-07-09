@@ -42,8 +42,7 @@ const (
 
 func LoadUserScript() error {
 
-	fmt.Printf("in LoadUserScript 45")
-	// config.Load()
+	// fmt.Printf("in LoadUserScript 45")
 
 	scriptErr := apperrors.InternalServerError
 
@@ -83,8 +82,6 @@ func LoadUserScript() error {
 	}
 
 	data := respData.Data
-
-	// fmt.Println(data)
 
 	for i := 0; i < len(data); i++ {
 		client := &http.Client{}
