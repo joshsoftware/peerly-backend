@@ -35,6 +35,7 @@ const (
 	UserNotFound             = CustomError("User not found")
 	InvalidIntranetData      = CustomError("Invalid data recieved from intranet")
 	GradeNotFound            = CustomError("Grade not found")
+	AppreciationNotFound     = CustomError("appreciation not found")
 	RoleUnathorized          = CustomError("Role unauthorized")
 	PageParamNotFound        = CustomError("Page parameter not found")
 	RepeatedUser             = CustomError("Repeated user")
@@ -42,6 +43,7 @@ const (
 	InternalServer           = CustomError("Internal Server")
 	FailedToCreateDriver     = CustomError("failure to create driver obj")
 	MigrationFailure         = CustomError("migrate failure")
+	SelfAppreciationError    = CustomError("user cannot give appreciation to ourself")
 )
 
 // ErrKeyNotSet - Returns error object specific to the key value passed in
@@ -54,9 +56,9 @@ func GetHTTPStatusCode(err error) int {
 	switch err {
 	case InternalServerError, JSONParsingErrorResp, InvalidIntranetData:
 		return http.StatusInternalServerError
-	case OrganizationNotFound, InvalidCoreValueData, InvalidParentValue, InvalidOrgId, GradeNotFound, PageParamNotFound:
+	case OrganizationNotFound, InvalidCoreValueData, InvalidParentValue, InvalidOrgId, GradeNotFound, AppreciationNotFound, PageParamNotFound:
 		return http.StatusNotFound
-	case InvalidId, JSONParsingErrorReq, TextFieldBlank, DescFieldBlank, UniqueCoreValue, IntranetValidationFailed, RepeatedUser:
+	case BadRequest, InvalidId, JSONParsingErrorReq, TextFieldBlank, DescFieldBlank, UniqueCoreValue, IntranetValidationFailed, RepeatedUser, SelfAppreciationError:
 		return http.StatusBadRequest
 	case InvalidContactEmail, InvalidDomainName:
 		return http.StatusConflict

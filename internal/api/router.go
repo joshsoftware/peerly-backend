@@ -42,6 +42,16 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 	router.Handle("/users", getIntranetUserListHandler(deps.UserService)).Methods(http.MethodGet)
 
 	router.Handle("/users/all", middleware.JwtAuthMiddleware(getUserHandler(deps.UserService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
+
+	//appreciations
+
+	router.Handle("/appreciation/{id:[0-9]+}", middleware.JwtAuthMiddleware(getAppreciationByIdHandler(deps.AppreciationService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
+
+	router.Handle("/appreciations", middleware.JwtAuthMiddleware(getAppreciationsHandler(deps.AppreciationService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
+
+	router.Handle("/appreciation/{id:[0-9]+}", middleware.JwtAuthMiddleware(validateAppreciationHandler(deps.AppreciationService), []string{constants.UserRole})).Methods(http.MethodDelete).Headers(versionHeader, v1)
+
+	router.Handle("/appreciation", middleware.JwtAuthMiddleware(createAppreciationHandler(deps.AppreciationService), []string{constants.UserRole})).Methods(http.MethodPost).Headers(versionHeader, v1)
 	// No version requirement for /ping
 	router.HandleFunc("/ping", pingHandler).Methods(http.MethodGet)
 

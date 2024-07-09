@@ -35,7 +35,7 @@ type IntranetGetUserDataResp struct {
 }
 
 type GetUserResp struct {
-	Id                 int    `json:"id" db:"id"`
+	Id                 int64  `json:"id" db:"id"`
 	EmployeeId         string `json:"employee_id" db:"employee_id"`
 	FirstName          string `json:"first_name" db:"first_name"`
 	LastName           string `json:"last_name" db:"last_name"`
@@ -71,7 +71,7 @@ type GetIntranetUserDataReq struct {
 }
 
 type Claims struct {
-	Id   int
+	Id   int64
 	Role string
 	jwt.StandardClaims
 }
