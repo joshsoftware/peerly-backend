@@ -30,6 +30,7 @@ type Service interface {
 	RegisterUser(ctx context.Context, u dto.IntranetUserData) (user dto.GetUserResp, err error)
 	GetUserListIntranet(ctx context.Context, reqData dto.GetUserListReq) (data []dto.IntranetUserData, err error)
 	GetUserList(ctx context.Context, reqData dto.UserListReq) (resp dto.UserListWithTotalCount, err error)
+	GetUserById(ctx context.Context) (user dto.GetUserByIdResp, err error)
 }
 
 func NewService(userRepo repository.UserStorer) Service {
@@ -309,4 +310,29 @@ func (us *service) GetUserList(ctx context.Context, reqData dto.UserListReq) (re
 
 	return
 
+}
+
+func (us *service) GetUserById(ctx context.Context) (user dto.GetUserByIdResp, err error) {
+
+	id := ctx.Value(constants.UserId)
+	fmt.Printf("userId: %T", id)
+	userId, ok := id.(int64)
+	if !ok {
+		logger.Error("Error in typecasting user id")
+		err = apperrors.InternalServerError
+		return
+	}
+
+	var currentTimestamp int64 = time.Now().Unix()
+	reqData := dto.GetUserByIdReq{
+		UserId:      userId,
+		CurrentDate: currentTimestamp,
+	}
+
+	user, err = us.userRepo.GetUserById(ctx, reqData)
+	if err != nil {
+		return
+	}
+
+	return
 }
