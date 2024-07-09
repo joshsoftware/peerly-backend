@@ -21,8 +21,11 @@ migrate:
 	go run cmd/main.go migrate
 
 resetdb:
-	go run cmd/main.go rollback `/bin/ls -1 migrations/*down.sql | wc -l`
+	go run cmd/main.go rollback `/bin/ls -1 ./internal/repository/migrations/*down.sql | wc -l`
 	go run cmd/main.go migrate
+
+seed:
+	go run cmd/main.go seed
 
 todo:
 	grep -Rin --include="*go" "TODO" * 
