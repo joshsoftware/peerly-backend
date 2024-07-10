@@ -54,17 +54,22 @@ func (rwrd *rewardStore) IsUserRewardForAppreciationPresent(ctx context.Context,
 	// Initialize the Squirrel query builder
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
+	fmt.Println("appr id: ", apprId)
+	fmt.Println("sender: ", senderId)
 	// Build the SQL query
 	query, args, err := psql.Select("COUNT(*)").
-		From("rewards").
-		Where(sq.Eq{"appreciation_id": apprId},
-			sq.Eq{"sender": senderId}).
-		ToSql()
-
+    From("rewards").
+    Where(sq.And{
+        sq.Eq{"appreciation_id": apprId},
+        sq.Eq{"sender": senderId},
+    }).
+    ToSql()
 	if err != nil {
 		logger.Error("err ", err.Error())
 		return false, apperrors.InternalServer
 	}
+
+	fmt.Println("query: ", query)
 
 	queryExecutor := rwrd.InitiateQueryExecutor(tx)
 
@@ -75,28 +80,28 @@ func (rwrd *rewardStore) IsUserRewardForAppreciationPresent(ctx context.Context,
 		logger.Error("failed to execute query: ", err.Error())
 		return false, apperrors.InternalServer
 	}
-
+	fmt.Println("count: ", count)
 	// Check if user and appreciation id is present
 	return count > 0, nil
 }
 
-func (rwrd *rewardStore) DeduceRewardQuotaOfUser(ctx context.Context, tx repository.Transaction, userId int64) (bool, error) {
+func (rwrd *rewardStore) DeduceRewardQuotaOfUser(ctx context.Context, tx repository.Transaction, userId int64, points int) (bool, error) {
 	queryExecutor := rwrd.InitiateQueryExecutor(tx)
 	// Build the SQL query to update the reward_quota_balance
 	updateQuery, args, err := sq.
 		Update("users").
-		Set("reward_quota_balance", sq.Expr("reward_quota_balance - 1")).
+		Set("reward_quota_balance", sq.Expr("reward_quota_balance - ? * (SELECT points FROM grades WHERE id = users.grade_id)", points)).
 		Where(sq.Eq{"id": userId}).
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
 
 	if err != nil {
-		logger.Error("err: building SQL Query ",err.Error())
+		logger.Error("err: building SQL Query ", err.Error())
 		return false, err
 	}
 
 	// Execute the query within the transaction context
-	result, err := queryExecutor.Exec( updateQuery, args...)
+	result, err := queryExecutor.Exec(updateQuery, args...)
 	if err != nil {
 		logger.Error("err: error executing SQL query:", err.Error())
 		return false, err
@@ -113,36 +118,35 @@ func (rwrd *rewardStore) DeduceRewardQuotaOfUser(ctx context.Context, tx reposit
 	return rowsAffected > 0, nil
 }
 
-func (rwrd *rewardStore) UserHasRewardQuota(ctx context.Context,tx repository.Transaction,userID int64,points int64)(bool,error){
+func (rwrd *rewardStore) UserHasRewardQuota(ctx context.Context, tx repository.Transaction, userID int64, points int64) (bool, error) {
 	// Initialize the Squirrel query builder
-	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+	// psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
-	query, args, err := psql.Select("COUNT(*)").
-    From("users").
-    Where(sq.And{
-        sq.Eq{"id": userID},
-        sq.GtOrEq{"reward_quota_balance": points},
-    }).
-    ToSql()
+	// Build the SQL query
+	query := `
+		SELECT COUNT(*)
+		FROM users u
+		JOIN grades g ON u.grade_id = g.id
+		WHERE u.id = $1
+		AND u.reward_quota_balance >= $2 * g.points
+	`
 
+	// Arguments for the query
+	args := []interface{}{userID, points}
 
-	fmt.Println("id: ",userID,"points: ",points)
-	fmt.Println("query: ",query)
-	if err != nil {
-		logger.Error("err ", err.Error())
-		return false, apperrors.InternalServer
-	}
+	fmt.Println("id: ", userID, "points: ", points)
+	fmt.Println("query: ", query)
 
 	queryExecutor := rwrd.InitiateQueryExecutor(tx)
 
 	var count int
 	// Execute the query
-	err = queryExecutor.QueryRowx(query, args...).Scan(&count)
+	err := queryExecutor.QueryRowx(query, args...).Scan(&count)
 	if err != nil {
 		logger.Error("failed to execute query: ", err.Error())
 		return false, apperrors.InternalServer
 	}
-	fmt.Println("count: ",count)
+	fmt.Println("count: ", count)
 	// Check if user is present
 	return count > 0, nil
 }

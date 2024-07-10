@@ -12,7 +12,7 @@ type RewardStorer interface {
 	GiveReward(ctx context.Context, tx Transaction, reward dto.Reward) (Reward, error)
 	IsUserRewardForAppreciationPresent(ctx context.Context,tx Transaction,apprId int64,senderId int64)(bool,error)
 	UserHasRewardQuota(ctx context.Context,tx Transaction,userID int64,points int64)(bool,error)
-	DeduceRewardQuotaOfUser(ctx context.Context, tx Transaction, userId int64) (bool, error)
+	DeduceRewardQuotaOfUser(ctx context.Context, tx Transaction, userId int64, points int) (bool, error) 
 	
 }
 

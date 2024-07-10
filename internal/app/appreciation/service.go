@@ -2,7 +2,6 @@ package appreciation
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
@@ -21,6 +20,7 @@ type Service interface {
 	GetAppreciationById(ctx context.Context, appreciationId int) (dto.ResponseAppreciation, error)
 	GetAppreciation(ctx context.Context, filter dto.AppreciationFilter) (dto.GetAppreciationResponse, error)
 	ValidateAppreciation(ctx context.Context, isValid bool, apprId int) (bool, error)
+	UpdateAppreciation(ctx context.Context) (bool, error)
 }
 
 func NewService(appreciationRepo repository.AppreciationStorer, coreValuesRepo repository.CoreValueStorer) Service {
@@ -55,7 +55,6 @@ func (apprSvc *service) CreateAppreciation(ctx context.Context, apprecication dt
 
 	//initializing database transaction
 	tx, err := apprSvc.appreciationRepo.BeginTx(ctx)
-	fmt.Println("ERr", err, tx)
 	
 	if err != nil {
 		return dto.Appreciation{}, err
@@ -130,9 +129,52 @@ func (apprSvc *service) GetAppreciation(ctx context.Context, filter dto.Apprecia
 		responses = append(responses, response)
 	}
 	paginationResp := DtoPagination(pagination)
-	return dto.GetAppreciationResponse{responses,paginationResp}, nil
+	return dto.GetAppreciationResponse{Appreciations:responses,Pagination: paginationResp}, nil
 }
 
 func (apprSvc *service) ValidateAppreciation(ctx context.Context, isValid bool, apprId int) (bool, error) {
 	return apprSvc.appreciationRepo.ValidateAppreciation(ctx, nil, isValid, apprId)
+}
+
+func (apprSvc *service) UpdateAppreciation(ctx context.Context) (bool, error) {
+
+	//initializing database transaction
+	tx, err := apprSvc.appreciationRepo.BeginTx(ctx)
+
+	if err != nil {
+		return false, err
+	}
+
+	defer func() {
+		rvr := recover()
+		defer func() {
+			if rvr != nil {
+				logger.Info(ctx, "Transaction aborted because of panic: %v, Propagating panic further", rvr)
+				panic(rvr)
+			}
+		}()
+
+		txErr := apprSvc.appreciationRepo.HandleTransaction(ctx, tx, err == nil && rvr == nil)
+		if txErr != nil {
+			err = txErr
+			logger.Info(ctx, "error in creating transaction, err: %s", txErr.Error())
+			return
+		}
+	}()
+
+	_, err = apprSvc.appreciationRepo.UpdateAppreciationTotalRewardsOfYesterday(ctx, tx)
+
+	if err != nil {
+		logger.Error("err: ", err.Error())
+		return false, err
+	}
+
+	_,err = apprSvc.appreciationRepo.UpdateUserBadgesBasedOnTotalRewards(ctx,tx)
+
+	if err != nil {
+		logger.Error("err: ", err.Error())
+		return false, err
+	}
+
+	return true,nil
 }

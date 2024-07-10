@@ -1,5 +1,0 @@
-{
-    "yaml.schemas": {
-        "openapi:v3": "file:///home/josh-admin/Josh/project/peerly-backend/internal/app/appreciation/swagger.yml"
-    }
-}

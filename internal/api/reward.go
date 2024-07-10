@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -15,6 +16,7 @@ import (
 
 func giveRewardHandler(rewardSvc reward.Service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		fmt.Println("check ")
 		vars := mux.Vars(req)
 		apprId, err := strconv.Atoi(vars["id"])
 		if err != nil {

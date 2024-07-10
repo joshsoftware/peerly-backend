@@ -37,9 +37,17 @@ func (rwrdSvc *service) GiveReward(ctx context.Context, rewardReq dto.Reward) (d
 	}
 	rewardReq.SenderId = sender
 
-	_, err := rwrdSvc.appreciationRepo.GetAppreciationById(ctx, nil, int(rewardReq.AppreciationId))
+	appr, err := rwrdSvc.appreciationRepo.GetAppreciationById(ctx, nil, int(rewardReq.AppreciationId))
 	if err != nil {
 		return dto.Reward{}, err
+	}
+
+	if appr.SenderId == sender {
+		return dto.Reward{},apperrors.SelfAppreciationRewardError
+	}
+
+	if appr.ReceiverId == sender{
+		return dto.Reward{},apperrors.SelfRewardError
 	}
 
 	userChk, err := rwrdSvc.rewardRepo.UserHasRewardQuota(ctx, nil, rewardReq.SenderId,rewardReq.Point)
@@ -89,7 +97,7 @@ func (rwrdSvc *service) GiveReward(ctx context.Context, rewardReq dto.Reward) (d
 
 	//deduce user rewardquota
 
-	deduceChk, err := rwrdSvc.rewardRepo.DeduceRewardQuotaOfUser(ctx, tx, rewardReq.SenderId)
+	deduceChk, err := rwrdSvc.rewardRepo.DeduceRewardQuotaOfUser(ctx, tx, rewardReq.SenderId,int(rewardReq.Point))
 	if err != nil {
 		return dto.Reward{}, err
 	}

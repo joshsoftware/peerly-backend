@@ -15,6 +15,8 @@ type AppreciationStorer interface {
 	GetAppreciation(ctx context.Context, tx Transaction, filter dto.AppreciationFilter) ([]AppreciationInfo, Pagination, error)
 	ValidateAppreciation(ctx context.Context, tx Transaction, isValid bool, apprId int) (bool, error)
 	IsUserPresent(ctx context.Context, tx Transaction, userID int64) (bool, error)
+	UpdateAppreciationTotalRewardsOfYesterday(ctx context.Context, tx Transaction) (bool, error)
+	UpdateUserBadgesBasedOnTotalRewards(ctx context.Context, tx Transaction) (bool, error)
 }
 
 type Appreciation struct {
@@ -37,10 +39,12 @@ type AppreciationInfo struct {
 	IsValid             bool           `db:"is_valid"`
 	TotalRewards        int            `db:"total_reward_points"`
 	Quarter             string         `db:"quarter"`
+	SenderId            int64          `db:"sender_id"`
 	SenderFirstName     string         `db:"sender_first_name"`
 	SenderLastName      string         `db:"sender_last_name"`
 	SenderImageURL      sql.NullString `db:"sender_image_url"`
 	SenderDesignation   string         `db:"sender_designation"`
+	ReceiverId          int64          `db:"receiver_id"`
 	ReceiverFirstName   string         `db:"receiver_first_name"`
 	ReceiverLastName    string         `db:"receiver_last_name"`
 	ReceiverImageURL    sql.NullString `db:"receiver_image_url"`

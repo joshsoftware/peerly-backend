@@ -48,6 +48,8 @@ const (
 	RewardAlreadyPresent       = CustomError("reward already present")
 	RewardQuotaIsNotSufficient = CustomError("reward quota is not sufficient")
 	InvalidRewardPoint         = CustomError("invalid reward point")
+	SelfRewardError				= CustomError("user cannot give reward to ourself")
+	SelfAppreciationRewardError = CustomError("user cannot give reward to his posted appreciaiton ")
 )
 
 // ErrKeyNotSet - Returns error object specific to the key value passed in
