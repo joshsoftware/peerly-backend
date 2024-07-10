@@ -148,20 +148,6 @@ func getUserHandler(userSvc user.Service) http.HandlerFunc {
 
 func getUserByIdHandler(userSvc user.Service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
-		// vars := mux.Vars(req)
-		// id := vars["id"]
-		// if id == "" {
-		// 	err := apperrors.InvalidId
-		// 	dto.ErrorRepsonse(rw, err)
-		// 	return
-		// }
-		// userId, err := strconv.ParseInt(id, 10, 64)
-		// if err != nil {
-		// 	logger.WithField("err", err.Error()).Error("Error in user id string to int conversion")
-		// 	err = apperrors.InternalServerError
-		// 	dto.ErrorRepsonse(rw, err)
-		// 	return
-		// }
 
 		resp, err := userSvc.GetUserById(req.Context())
 		if err != nil {
