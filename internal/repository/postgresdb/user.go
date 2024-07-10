@@ -233,7 +233,7 @@ func (us *userStore) GetUserById(ctx context.Context, reqData dto.GetUserByIdReq
 
 	var userList []dto.GetUserByIdDbResp
 
-	err = us.DB.Select(&userList, getUserById, reqData.CurrentDate, reqData.UserId)
+	err = us.DB.Select(&userList, getUserById, reqData.QuaterTimeStamp, reqData.UserId)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			logger.WithField("err", err.Error()).Error("No fields returned")
@@ -245,7 +245,7 @@ func (us *userStore) GetUserById(ctx context.Context, reqData dto.GetUserByIdReq
 		return
 	}
 
-	if (userList[0].BadgeCreatedAt.Valid && userList[0].BadgeCreatedAt.Int64 >= reqData.CurrentDate) || !userList[0].BadgeCreatedAt.Valid {
+	if (userList[0].BadgeCreatedAt.Valid && userList[0].BadgeCreatedAt.Int64 >= reqData.QuaterTimeStamp) || !userList[0].BadgeCreatedAt.Valid {
 		user.UserId = userList[0].UserId
 		user.FirstName = userList[0].FirstName
 		user.LastName = userList[0].LastName

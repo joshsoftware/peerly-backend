@@ -323,10 +323,11 @@ func (us *service) GetUserById(ctx context.Context) (user dto.GetUserByIdResp, e
 		return
 	}
 
-	var currentTimestamp int64 = time.Now().Unix()
+	quaterTimeStamp := GetQuarterStartUnixTime()
+
 	reqData := dto.GetUserByIdReq{
-		UserId:      userId,
-		CurrentDate: currentTimestamp,
+		UserId:          userId,
+		QuaterTimeStamp: quaterTimeStamp,
 	}
 
 	user, err = us.userRepo.GetUserById(ctx, reqData)
@@ -335,4 +336,11 @@ func (us *service) GetUserById(ctx context.Context) (user dto.GetUserByIdResp, e
 	}
 
 	return
+}
+
+func GetQuarterStartUnixTime() int64 {
+	// Example function to get the Unix timestamp of the start of the quarter
+	now := time.Now()
+	quarterStart := time.Date(now.Year(), (now.Month()-1)/3*3+1, 1, 0, 0, 0, 0, time.UTC)
+	return quarterStart.Unix() * 1000 // convert to milliseconds
 }

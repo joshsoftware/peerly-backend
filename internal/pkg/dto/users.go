@@ -124,8 +124,8 @@ type UserListReq struct {
 	Name    []string
 }
 type GetUserByIdReq struct {
-	UserId      int64 `json:"user_id" db:"id"`
-	CurrentDate int64
+	UserId          int64 `json:"user_id" db:"id"`
+	QuaterTimeStamp int64
 }
 
 type GetUserByIdDbResp struct {
