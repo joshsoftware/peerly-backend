@@ -149,16 +149,16 @@ func (us *userStore) GetTotalUserCount(ctx context.Context, reqData dto.UserList
 
 	getUserCountQuery := "Select count(*) from users "
 
-	if len(reqData.Name) >= 0 {
-		getUserCountQuery += "where"
-	}
 	for i, name := range reqData.Name {
-		if i == 0 {
-			str := fmt.Sprint(" lower(first_name) like '%" + name + "%' or lower(last_name) like '%" + name + "%'")
-			getUserCountQuery += str
-		} else {
-			str := fmt.Sprint(" or lower(first_name) like '%" + name + "%' or lower(last_name) like '%" + name + "%'")
-			getUserCountQuery += str
+		if name != "" {
+			if i == 0 {
+				getUserCountQuery += "where"
+				str := fmt.Sprint(" lower(first_name) like '%" + name + "%' or lower(last_name) like '%" + name + "%'")
+				getUserCountQuery += str
+			} else {
+				str := fmt.Sprint(" or lower(first_name) like '%" + name + "%' or lower(last_name) like '%" + name + "%'")
+				getUserCountQuery += str
+			}
 		}
 	}
 
@@ -195,7 +195,9 @@ func (us *userStore) GetUserList(ctx context.Context, reqData dto.UserListReq) (
 	str := fmt.Sprint(" limit " + strconv.Itoa(int(reqData.PerPage)) + " offset " + strconv.Itoa(int(reqData.PerPage*(reqData.Page-1))))
 	getUserListQuery += str
 
-	err = us.DB.Select(&resp, getUserListQuery)
+	var dbResp []dto.GetUserListRespDB
+
+	err = us.DB.Select(&dbResp, getUserListQuery)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			logger.WithField("err", err.Error()).Error("No fields returned")
@@ -205,6 +207,18 @@ func (us *userStore) GetUserList(ctx context.Context, reqData dto.UserListReq) (
 		logger.WithField("err", err.Error()).Error("Error in fetching users from database")
 		err = apperrors.InternalServerError
 		return
+	}
+
+	for _, user := range dbResp {
+		var respUser dto.GetUserListResp
+		respUser.EmployeeId = user.EmployeeId
+		respUser.Email = user.Email
+		respUser.FirstName = user.FirstName
+		respUser.LastName = user.LastName
+		respUser.Grade = user.Grade
+		respUser.Designation = user.Designation
+		respUser.ProfileImg = user.ProfileImg.String
+		resp = append(resp, respUser)
 	}
 
 	return
