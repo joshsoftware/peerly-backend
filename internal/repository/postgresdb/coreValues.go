@@ -26,8 +26,8 @@ const (
 	createCoreValueQuery = `INSERT INTO core_values (name,
 		description, parent_core_value_id) VALUES ($1, $2, $3) RETURNING id, name, description, parent_core_value_id`
 	//edit dele
-	deleteSubCoreValueQuery = `UPDATE core_values SET soft_delete = true, soft_delete_by = $1, updated_at = $2 WHERE org_id = $3 and parent_id = $4`
-	deleteCoreValueQuery    = `UPDATE core_values SET soft_delete = true, soft_delete_by = $1, updated_at = $2 WHERE org_id = $3 and id = $4`
+	// deleteSubCoreValueQuery = `UPDATE core_values SET soft_delete = true, soft_delete_by = $1, updated_at = $2 WHERE org_id = $3 and parent_id = $4`
+	// deleteCoreValueQuery    = `UPDATE core_values SET soft_delete = true, soft_delete_by = $1, updated_at = $2 WHERE org_id = $3 and id = $4`
 	//edit dele
 	updateCoreValueQuery = `UPDATE core_values SET (name, description) =
 		($1, $2) where id = $3 RETURNING id, name, description, parent_core_value_id`
@@ -37,11 +37,21 @@ const (
 )
 
 func (cs *coreValueStore) ListCoreValues(ctx context.Context) (coreValues []dto.ListCoreValuesResp, err error) {
+	var DbResp []dto.ListCoreValuesRespDb
 	err = cs.DB.SelectContext(
 		ctx,
-		&coreValues,
+		&DbResp,
 		listCoreValuesQuery,
 	)
+
+	for i := 0; i < len(DbResp); i++ {
+		var coreValue dto.ListCoreValuesResp
+		coreValue.ID = DbResp[i].ID
+		coreValue.Name = DbResp[i].Name
+		coreValue.Description = DbResp[i].Description
+		coreValue.ParentCoreValueID = DbResp[i].ParentCoreValueID.Int64
+		coreValues = append(coreValues, coreValue)
+	}
 
 	if err != nil {
 		logger.WithFields(logger.Fields{
