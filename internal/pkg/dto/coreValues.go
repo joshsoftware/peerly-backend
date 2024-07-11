@@ -1,5 +1,7 @@
 package dto
 
+import "database/sql"
+
 type UpdateQueryRequest struct {
 	Name        string `json:"name" db:"name"`
 	Description string `json:"description" db:"description"`
@@ -12,11 +14,18 @@ type UpdateCoreValuesResp struct {
 	ParentCoreValueID *int64 `json:"parent_core_value_id" db:"parent_core_value_id"`
 }
 
+type ListCoreValuesRespDb struct {
+	ID                int64         `json:"id" db:"id"`
+	Name              string        `json:"name" db:"name"`
+	Description       string        `json:"description" db:"description"`
+	ParentCoreValueID sql.NullInt64 `json:"parent_id" db:"parent_core_value_id"`
+}
+
 type ListCoreValuesResp struct {
 	ID                int64  `json:"id" db:"id"`
 	Name              string `json:"name" db:"name"`
 	Description       string `json:"description" db:"description"`
-	ParentCoreValueID *int64 `json:"parent_core_value_id" db:"parent_core_value_id"`
+	ParentCoreValueID int64  `json:"parent_id" db:"parent_core_value_id"`
 }
 
 type GetCoreValueResp struct {

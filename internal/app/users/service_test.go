@@ -6,6 +6,7 @@ import (
 
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/config"
+	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
 	"github.com/joshsoftware/peerly-backend/internal/repository/mocks"
@@ -325,18 +326,28 @@ func TestGetUserList(t *testing.T) {
 			context: context.Background(),
 			reqData: dto.UserListReq{},
 			setup: func(userMock *mocks.UserStorer) {
+				userMock.On("GetTotalUserCount", mock.Anything, mock.Anything).Return(int64(280), nil).Once()
 				userMock.On("GetUserList", mock.Anything, mock.Anything).Return([]dto.GetUserListResp{}, nil).Once()
 
 			},
 			isErrorExpected: false,
 		},
 		{
-			name:    "Faliure for get user list",
+			name:    "Faliure for get user count",
 			context: context.Background(),
 			reqData: dto.UserListReq{},
 			setup: func(userMock *mocks.UserStorer) {
+				userMock.On("GetTotalUserCount", mock.Anything, mock.Anything).Return(int64(0), apperrors.InternalServerError).Once()
+			},
+			isErrorExpected: true,
+		},
+		{
+			name:    "Faliure for get user count",
+			context: context.Background(),
+			reqData: dto.UserListReq{},
+			setup: func(userMock *mocks.UserStorer) {
+				userMock.On("GetTotalUserCount", mock.Anything, mock.Anything).Return(int64(280), nil).Once()
 				userMock.On("GetUserList", mock.Anything, mock.Anything).Return([]dto.GetUserListResp{}, apperrors.InternalServerError).Once()
-
 			},
 			isErrorExpected: true,
 		},
@@ -348,6 +359,66 @@ func TestGetUserList(t *testing.T) {
 
 			// test service
 			_, err := service.GetUserList(test.context, test.reqData)
+
+			if (err != nil) != test.isErrorExpected {
+				t.Errorf("Test Failed, expected error to be %v, but got err %v", test.isErrorExpected, err != nil)
+			}
+		})
+	}
+
+}
+
+func TestGetUserById(t *testing.T) {
+	userRepo := mocks.NewUserStorer(t)
+	service := NewService(userRepo)
+
+	tests := []struct {
+		name            string
+		context         context.Context
+		userId          int64
+		setup           func(userMock *mocks.UserStorer)
+		isErrorExpected bool
+	}{
+		{
+			name:    "Success for get user list",
+			context: context.Background(),
+			userId:  2,
+			setup: func(userMock *mocks.UserStorer) {
+				userMock.On("GetUserById", mock.Anything, mock.Anything).Return(dto.GetUserByIdResp{}, nil).Once()
+
+			},
+			isErrorExpected: false,
+		},
+		{
+			name:    "GetUserById db function failed",
+			context: context.Background(),
+			userId:  0,
+			setup: func(userMock *mocks.UserStorer) {
+				userMock.On("GetUserById", mock.Anything, mock.Anything).Return(dto.GetUserByIdResp{}, apperrors.InternalServerError).Once()
+
+			},
+			isErrorExpected: true,
+		},
+		{
+			name:    "Invalid Id",
+			context: context.Background(),
+			userId:  0,
+			setup: func(userMock *mocks.UserStorer) {
+				userMock.On("GetUserById", mock.Anything, mock.Anything).Return(dto.GetUserByIdResp{}, apperrors.InvalidId).Once()
+
+			},
+			isErrorExpected: true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ctx := context.Background()
+			ctx = context.WithValue(ctx, constants.UserId, int64(test.userId))
+			test.setup(userRepo)
+
+			// test service
+			_, err := service.GetUserById(ctx)
 
 			if (err != nil) != test.isErrorExpected {
 				t.Errorf("Test Failed, expected error to be %v, but got err %v", test.isErrorExpected, err != nil)

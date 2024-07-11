@@ -106,6 +106,13 @@ func registerUser(userSvc user.Service) http.HandlerFunc {
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
+
+		err = validation.GetIntranetUserDataValidation(user)
+		if err != nil {
+			dto.ErrorRepsonse(rw, err)
+			return
+		}
+
 		resp, err := userSvc.RegisterUser(req.Context(), user)
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)
@@ -115,7 +122,7 @@ func registerUser(userSvc user.Service) http.HandlerFunc {
 	}
 }
 
-func getUserHandler(userSvc user.Service) http.HandlerFunc {
+func getUsersHandler(userSvc user.Service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		page := req.URL.Query().Get("page")
 		if page == "" {
@@ -143,5 +150,19 @@ func getUserHandler(userSvc user.Service) http.HandlerFunc {
 			return
 		}
 		dto.SuccessRepsonse(rw, http.StatusOK, "Intranet users listed", resp)
+	}
+}
+
+func getUserByIdHandler(userSvc user.Service) http.HandlerFunc {
+	return func(rw http.ResponseWriter, req *http.Request) {
+
+		resp, err := userSvc.GetUserById(req.Context())
+		if err != nil {
+			dto.ErrorRepsonse(rw, err)
+			return
+		}
+
+		dto.SuccessRepsonse(rw, 200, "User fetched successfully", resp)
+
 	}
 }
