@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -16,7 +15,6 @@ import (
 
 func giveRewardHandler(rewardSvc reward.Service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		fmt.Println("check ")
 		vars := mux.Vars(req)
 		apprId, err := strconv.Atoi(vars["id"])
 		if err != nil {
@@ -27,11 +25,11 @@ func giveRewardHandler(rewardSvc reward.Service) http.HandlerFunc {
 		var reward dto.Reward
 		err = json.NewDecoder(req.Body).Decode(&reward)
 		if err != nil {
-			logger.WithField("err", err.Error()).Error("Error while decoding request data")
-			err = apperrors.JSONParsingErrorReq
-			dto.ErrorRepsonse(rw, err)
+			logger.Error("Error decoding request data:", err.Error())
+			dto.ErrorRepsonse(rw, apperrors.JSONParsingErrorReq)
 			return
 		}
+		
 
 		if reward.Point <1 || reward.Point >5 {
 			dto.ErrorRepsonse(rw,apperrors.InvalidRewardPoint)
