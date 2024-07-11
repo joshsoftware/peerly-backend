@@ -325,18 +325,28 @@ func TestGetUserList(t *testing.T) {
 			context: context.Background(),
 			reqData: dto.UserListReq{},
 			setup: func(userMock *mocks.UserStorer) {
+				userMock.On("GetTotalUserCount", mock.Anything, mock.Anything).Return(int64(280), nil).Once()
 				userMock.On("GetUserList", mock.Anything, mock.Anything).Return([]dto.GetUserListResp{}, nil).Once()
 
 			},
 			isErrorExpected: false,
 		},
 		{
-			name:    "Faliure for get user list",
+			name:    "Faliure for get user count",
 			context: context.Background(),
 			reqData: dto.UserListReq{},
 			setup: func(userMock *mocks.UserStorer) {
+				userMock.On("GetTotalUserCount", mock.Anything, mock.Anything).Return(int64(0), apperrors.InternalServerError).Once()
+			},
+			isErrorExpected: true,
+		},
+		{
+			name:    "Faliure for get user count",
+			context: context.Background(),
+			reqData: dto.UserListReq{},
+			setup: func(userMock *mocks.UserStorer) {
+				userMock.On("GetTotalUserCount", mock.Anything, mock.Anything).Return(int64(280), nil).Once()
 				userMock.On("GetUserList", mock.Anything, mock.Anything).Return([]dto.GetUserListResp{}, apperrors.InternalServerError).Once()
-
 			},
 			isErrorExpected: true,
 		},

@@ -1,8 +1,6 @@
 package dto
 
 import (
-	"database/sql"
-
 	"github.com/dgrijalva/jwt-go"
 )
 
@@ -100,23 +98,21 @@ type GetUserListReq struct {
 	Page      int
 }
 
-type GetUserListRespDB struct {
-	EmployeeId  string         `json:"employee_id" db:"employee_id"`
-	Email       string         `json:"email" db:"email"`
-	FirstName   string         `json:"first_name" db:"first_name"`
-	LastName    string         `json:"last_name" db:"last_name"`
-	Grade       string         `json:"grade" db:"name"`
-	Designation string         `json:"designation" db:"designation"`
-	ProfileImg  sql.NullString `json:"profile_image_url" db:"profile_image_url"`
-}
+//	type GetUserListRespDB struct {
+//		Id          int64          `json:"id" db:"id"`
+//		EmployeeId  string         `json:"employee_id" db:"employee_id"`
+//		Email       string         `json:"email" db:"email"`
+//		FirstName   string         `json:"first_name" db:"first_name"`
+//		LastName    string         `json:"last_name" db:"last_name"`
+//		Grade       string         `json:"grade" db:"name"`
+//		Designation string         `json:"designation" db:"designation"`
+//		ProfileImg  sql.NullString `json:"profile_image_url" db:"profile_image_url"`
+//	}
 type GetUserListResp struct {
-	EmployeeId  string `json:"employee_id" db:"employee_id"`
-	Email       string `json:"email" db:"email"`
-	FirstName   string `json:"first_name" db:"first_name"`
-	LastName    string `json:"last_name" db:"last_name"`
-	Grade       string `json:"grade" db:"name"`
-	Designation string `json:"designation" db:"designation"`
-	ProfileImg  string `json:"profile_image_url" db:"profile_image_url"`
+	Id        int64  `json:"id" db:"id"`
+	Email     string `json:"email" db:"email"`
+	FirstName string `json:"first_name" db:"first_name"`
+	LastName  string `json:"last_name" db:"last_name"`
 }
 
 type UserListMetadata struct {

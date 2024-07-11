@@ -122,7 +122,7 @@ func registerUser(userSvc user.Service) http.HandlerFunc {
 	}
 }
 
-func getUserHandler(userSvc user.Service) http.HandlerFunc {
+func getUsersHandler(userSvc user.Service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		page := req.URL.Query().Get("page")
 		if page == "" {

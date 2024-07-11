@@ -177,7 +177,10 @@ func (us *userStore) GetTotalUserCount(ctx context.Context, reqData dto.UserList
 }
 
 func (us *userStore) GetUserList(ctx context.Context, reqData dto.UserListReq) (resp []dto.GetUserListResp, err error) {
-	getUserListQuery := "Select users.employee_id, users.email, users.first_name, users.last_name, grades.name, users.designation, users.profile_image_url from users join grades on grades.id = users.grade_id "
+
+	// getUserListQuery := "Select users.employee_id, users.email, users.first_name, users.last_name, grades.name, users.designation, users.profile_image_url from users join grades on grades.id = users.grade_id "
+
+	getUserListQuery := "Select users.id, users.email, users.first_name, users.last_name from users "
 
 	if len(reqData.Name) >= 0 {
 		getUserListQuery += "where"
@@ -195,9 +198,7 @@ func (us *userStore) GetUserList(ctx context.Context, reqData dto.UserListReq) (
 	str := fmt.Sprint(" limit " + strconv.Itoa(int(reqData.PerPage)) + " offset " + strconv.Itoa(int(reqData.PerPage*(reqData.Page-1))))
 	getUserListQuery += str
 
-	var dbResp []dto.GetUserListRespDB
-
-	err = us.DB.Select(&dbResp, getUserListQuery)
+	err = us.DB.Select(&resp, getUserListQuery)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			logger.WithField("err", err.Error()).Error("No fields returned")
@@ -209,17 +210,17 @@ func (us *userStore) GetUserList(ctx context.Context, reqData dto.UserListReq) (
 		return
 	}
 
-	for _, user := range dbResp {
-		var respUser dto.GetUserListResp
-		respUser.EmployeeId = user.EmployeeId
-		respUser.Email = user.Email
-		respUser.FirstName = user.FirstName
-		respUser.LastName = user.LastName
-		respUser.Grade = user.Grade
-		respUser.Designation = user.Designation
-		respUser.ProfileImg = user.ProfileImg.String
-		resp = append(resp, respUser)
-	}
+	// for _, user := range dbResp {
+	// 	var respUser dto.GetUserListResp
+	// 	respUser.EmployeeId = user.EmployeeId
+	// 	respUser.Email = user.Email
+	// 	respUser.FirstName = user.FirstName
+	// 	respUser.LastName = user.LastName
+	// 	respUser.Grade = user.Grade
+	// 	respUser.Designation = user.Designation
+	// 	respUser.ProfileImg = user.ProfileImg.String
+	// 	resp = append(resp, respUser)
+	// }
 
 	return
 }
