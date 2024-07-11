@@ -128,7 +128,7 @@ func (apprSvc *service) GetAppreciation(ctx context.Context, filter dto.Apprecia
 		responses = append(responses, response)
 	}
 	paginationResp := DtoPagination(pagination)
-	return dto.GetAppreciationResponse{Appreciations:responses,Pagination: paginationResp}, nil
+	return dto.GetAppreciationResponse{Appreciations:responses,MetaData: paginationResp}, nil
 }
 
 func (apprSvc *service) ValidateAppreciation(ctx context.Context, isValid bool, apprId int) (bool, error) {
