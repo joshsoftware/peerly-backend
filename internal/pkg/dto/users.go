@@ -1,6 +1,8 @@
 package dto
 
 import (
+	"database/sql"
+
 	"github.com/dgrijalva/jwt-go"
 )
 
@@ -129,9 +131,42 @@ type UserListWithMetadata struct {
 type GetUserListRespData struct {
 	Data []IntranetUserData `json:"data"`
 }
-
 type UserListReq struct {
 	Page    int64
 	PerPage int64
 	Name    []string
+}
+type GetUserByIdReq struct {
+	UserId          int64 `json:"user_id" db:"id"`
+	QuaterTimeStamp int64
+}
+
+type GetUserByIdDbResp struct {
+	UserId             int64          `json:"user_id" db:"id"`
+	FirstName          string         `json:"first_name" db:"first_name"`
+	LastName           string         `json:"last_name" db:"last_name"`
+	Email              string         `json:"email" db:"email"`
+	ProfileImgUrl      string         `json:"profile_image_url" db:"profile_image_url"`
+	Designation        string         `json:"designation" db:"designation"`
+	RewardQuotaBalance int64          `json:"reward_quota_balance" db:"reward_quota_balance"`
+	GradeId            int64          `json:"grade_id" db:"grade_id"`
+	EmployeeId         int64          `json:"employee_id" db:"employee_id"`
+	TotalPoints        int64          `json:"total_points" db:"total_points"`
+	Badge              sql.NullString `json:"badge" db:"name"`
+	BadgeCreatedAt     sql.NullInt64  `json:"badge_created_at" db:"badge_created_at"`
+}
+
+type GetUserByIdResp struct {
+	UserId             int64  `json:"user_id" db:"id"`
+	FirstName          string `json:"first_name" db:"first_name"`
+	LastName           string `json:"last_name" db:"last_name"`
+	Email              string `json:"email" db:"email"`
+	ProfileImgUrl      string `json:"profile_image_url" db:"profile_image_url"`
+	Designation        string `json:"designation" db:"designation"`
+	RewardQuotaBalance int64  `json:"reward_quota_balance" db:"reward_quota_balance"`
+	GradeId            int64  `json:"grade_id" db:"grade_id"`
+	EmployeeId         int64  `json:"employee_id" db:"employee_id"`
+	TotalPoints        int64  `json:"total_points" db:"total_points"`
+	Badge              string `json:"badge" db:"name"`
+	BadgeCreatedAt     int64  `json:"badge_created_at" db:"badge_created_at"`
 }

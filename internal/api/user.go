@@ -152,3 +152,17 @@ func getUsersHandler(userSvc user.Service) http.HandlerFunc {
 		dto.SuccessRepsonse(rw, http.StatusOK, "Intranet users listed", resp)
 	}
 }
+
+func getUserByIdHandler(userSvc user.Service) http.HandlerFunc {
+	return func(rw http.ResponseWriter, req *http.Request) {
+
+		resp, err := userSvc.GetUserById(req.Context())
+		if err != nil {
+			dto.ErrorRepsonse(rw, err)
+			return
+		}
+
+		dto.SuccessRepsonse(rw, 200, "User fetched successfully", resp)
+
+	}
+}

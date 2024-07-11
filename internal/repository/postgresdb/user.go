@@ -224,3 +224,56 @@ func (us *userStore) GetUserList(ctx context.Context, reqData dto.UserListReq) (
 
 	return
 }
+
+func (us *userStore) GetUserById(ctx context.Context, reqData dto.GetUserByIdReq) (user dto.GetUserByIdResp, err error) {
+
+	getUserById := `select users.id, users.first_name, users.last_name, users.email, users.profile_image_url, users.designation, users.reward_quota_balance, users.grade_id, users.employee_id, 
+		(
+		select count(*) 
+		from appreciations
+		where
+		receiver = users.id
+		and
+		appreciations.created_at >= $1
+		) as total_points, 
+	badges.name, user_badges.created_at as badge_created_at 
+	from users
+	left join user_badges 
+	on user_badges.user_id = users.id
+	left join badges
+	on user_badges.badge_id = badges.id
+	where users.id = $2
+	group by users.id, badges.name, user_badges.id
+	order by user_badges.created_at desc`
+
+	var userList []dto.GetUserByIdDbResp
+
+	err = us.DB.Select(&userList, getUserById, reqData.QuaterTimeStamp, reqData.UserId)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			logger.WithField("err", err.Error()).Error("No fields returned")
+			err = apperrors.InvalidId
+			return
+		}
+		logger.WithField("err", err.Error()).Error("Error in fetching users from database")
+		err = apperrors.InternalServerError
+		return
+	}
+
+	if (userList[0].BadgeCreatedAt.Valid && userList[0].BadgeCreatedAt.Int64 >= reqData.QuaterTimeStamp) || !userList[0].BadgeCreatedAt.Valid {
+		user.UserId = userList[0].UserId
+		user.FirstName = userList[0].FirstName
+		user.LastName = userList[0].LastName
+		user.Email = userList[0].Email
+		user.ProfileImgUrl = userList[0].ProfileImgUrl
+		user.Designation = userList[0].Designation
+		user.RewardQuotaBalance = userList[0].RewardQuotaBalance
+		user.GradeId = userList[0].GradeId
+		user.EmployeeId = userList[0].EmployeeId
+		user.TotalPoints = userList[0].TotalPoints
+		user.Badge = userList[0].Badge.String
+		user.BadgeCreatedAt = userList[0].BadgeCreatedAt.Int64
+	}
+
+	return
+}

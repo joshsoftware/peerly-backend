@@ -177,6 +177,27 @@ func (_m *UserStorer) GetUserByEmail(ctx context.Context, email string) (dto.Get
 	return r0, r1
 }
 
+// GetUserById provides a mock function with given fields: ctx, reqData
+func (_m *UserStorer) GetUserById(ctx context.Context, reqData dto.GetUserByIdReq) (dto.GetUserByIdResp, error) {
+	ret := _m.Called(ctx, reqData)
+
+	var r0 dto.GetUserByIdResp
+	if rf, ok := ret.Get(0).(func(context.Context, dto.GetUserByIdReq) dto.GetUserByIdResp); ok {
+		r0 = rf(ctx, reqData)
+	} else {
+		r0 = ret.Get(0).(dto.GetUserByIdResp)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, dto.GetUserByIdReq) error); ok {
+		r1 = rf(ctx, reqData)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetUserList provides a mock function with given fields: ctx, reqData
 func (_m *UserStorer) GetUserList(ctx context.Context, reqData dto.UserListReq) ([]dto.GetUserListResp, error) {
 	ret := _m.Called(ctx, reqData)
