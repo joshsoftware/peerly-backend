@@ -52,9 +52,9 @@ func ErrKeyNotSet(key string) (err error) {
 // GetHTTPStatusCode returns status code according to customerror and default returns InternalServer error
 func GetHTTPStatusCode(err error) int {
 	switch err {
-	case InternalServerError, JSONParsingErrorResp, InvalidIntranetData:
+	case InternalServerError, JSONParsingErrorResp:
 		return http.StatusInternalServerError
-	case OrganizationNotFound, InvalidCoreValueData, InvalidParentValue, InvalidOrgId, GradeNotFound, PageParamNotFound:
+	case OrganizationNotFound, InvalidCoreValueData, InvalidParentValue, InvalidOrgId, GradeNotFound, PageParamNotFound, InvalidIntranetData:
 		return http.StatusNotFound
 	case InvalidId, JSONParsingErrorReq, TextFieldBlank, DescFieldBlank, UniqueCoreValue, IntranetValidationFailed, RepeatedUser:
 		return http.StatusBadRequest

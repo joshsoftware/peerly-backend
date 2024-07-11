@@ -105,6 +105,13 @@ func registerUser(userSvc user.Service) http.HandlerFunc {
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
+
+		err = validation.GetIntranetUserDataValidation(user)
+		if err != nil {
+			dto.ErrorRepsonse(rw, err)
+			return
+		}
+
 		resp, err := userSvc.RegisterUser(req.Context(), user)
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)
