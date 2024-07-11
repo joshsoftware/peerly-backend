@@ -207,6 +207,62 @@ func (_m *AppreciationStorer) IsUserPresent(ctx context.Context, tx repository.T
 	return r0, r1
 }
 
+// UpdateAppreciationTotalRewardsOfYesterday provides a mock function with given fields: ctx, tx
+func (_m *AppreciationStorer) UpdateAppreciationTotalRewardsOfYesterday(ctx context.Context, tx repository.Transaction) (bool, error) {
+	ret := _m.Called(ctx, tx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateAppreciationTotalRewardsOfYesterday")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, repository.Transaction) (bool, error)); ok {
+		return rf(ctx, tx)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, repository.Transaction) bool); ok {
+		r0 = rf(ctx, tx)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, repository.Transaction) error); ok {
+		r1 = rf(ctx, tx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpdateUserBadgesBasedOnTotalRewards provides a mock function with given fields: ctx, tx
+func (_m *AppreciationStorer) UpdateUserBadgesBasedOnTotalRewards(ctx context.Context, tx repository.Transaction) (bool, error) {
+	ret := _m.Called(ctx, tx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateUserBadgesBasedOnTotalRewards")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, repository.Transaction) (bool, error)); ok {
+		return rf(ctx, tx)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, repository.Transaction) bool); ok {
+		r0 = rf(ctx, tx)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, repository.Transaction) error); ok {
+		r1 = rf(ctx, tx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ValidateAppreciation provides a mock function with given fields: ctx, tx, isValid, apprId
 func (_m *AppreciationStorer) ValidateAppreciation(ctx context.Context, tx repository.Transaction, isValid bool, apprId int) (bool, error) {
 	ret := _m.Called(ctx, tx, isValid, apprId)

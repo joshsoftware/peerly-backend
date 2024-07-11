@@ -132,7 +132,7 @@ func TestGetAppreciationById(t *testing.T) {
 
 	tests := []struct {
 		name            string
-		context         context.Context
+		context         context.Context	
 		appreciationId  int
 		setup           func(apprMock *mocks.AppreciationStorer)
 		isErrorExpected bool
