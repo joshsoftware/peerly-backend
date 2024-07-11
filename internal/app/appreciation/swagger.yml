@@ -21,7 +21,6 @@ paths:
         - Appreciation
       summary: get appreciation by id
       description: Display Appreciation
-      operationId: appreciation
       parameters:
         - name: id
           in: path
@@ -56,8 +55,10 @@ paths:
                 example-1:
                   summary: Invalid input data
                   value:
+                   success: false
                    message: "Invalid input data"
                    status: 400
+                   data: null
         '404':
           description: Appreciation not found
           content:
@@ -68,8 +69,10 @@ paths:
                 example-1:
                   summary: Appreciation not found
                   value:
+                   success: false
                    message: "appreciation not found"
                    status: 404
+                   data: null
         '500':
           description: Internal server error
           content:
@@ -80,14 +83,15 @@ paths:
                 example-1:
                   summary: Internal server error
                   value:
+                   success: false
                    message: "Internal server error"
                    status: 500
+                   data: null
     delete:
       tags: 
         - Appreciation
       summary: Delete appreciation
       description: Delete Appreciation
-      operationId: appreciation
       parameters:
         - name: id
           in: path
@@ -118,8 +122,10 @@ paths:
                 example-1:
                   summary: Invalid input data
                   value:
+                   success: false
                    message: "Invalid input data"
                    status: 400
+                   data: null
         '404':
           description: Appreciation not found
           content:
@@ -130,8 +136,10 @@ paths:
                 example-1:
                   summary: Appreciation not found
                   value:
+                   success: false
                    message: "appreciation not found"
                    status: 404
+                   data: null
         '500':
           description: Internal server error
           content:
@@ -142,8 +150,10 @@ paths:
                 example-1:
                   summary: Internal server error
                   value:
+                   success: false
                    message: "Internal server error"
-                   status: 500   
+                   status: 500  
+                   data: null
   /appreciation:
     post:
       tags: 
@@ -174,11 +184,33 @@ paths:
                 $ref: '#/components/schemas/CreateAppreciationResp' 
 
         '400':
-          description: Invalid input data
+          description: Appreciation data is not valid
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/InvalidDataErrorResponse'
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                example-1:
+                  summary: Invalid Corevalue Id
+                  value:
+                   success: false
+                   message: "invalid corevalue id"
+                   status: 400
+                   data: null
+                example-2:
+                  summary: Invalid Receiver Id
+                  value:
+                    success: false
+                    message: "invalid receiver id"
+                    status: 400
+                    data: null
+                example-3:
+                  summary: Blank Description
+                  value:
+                    success: false
+                    message: "Description cannot be blank"
+                    status: 400
+                    data: null
 
 
         '404':
@@ -191,13 +223,17 @@ paths:
                 example-1:
                   summary: User Not Found
                   value:
+                   success: false
                    message: "User Not Found"
                    status: 404
+                   data: null
                 example-2:
                   summary: Invalid corevalue data
                   value:
+                    success: false
                     message: "Invalid corevalue data"
                     status: 404
+                    data: null
         '500':
           description: Internal server error
           content:
@@ -208,8 +244,10 @@ paths:
                 example-1:
                   summary: Internal server error
                   value:
+                   success: false
                    message: "Internal server error"
                    status: 500
+                   data: null
   /appreciations:
     get:
       tags: 
@@ -242,8 +280,10 @@ paths:
                 example-1:
                   summary: Internal server error
                   value:
+                   success: false
                    message: "Internal server error"
-                   status: 500x`x
+                   status: 500
+                   data: null
 
       
 components:
@@ -255,32 +295,27 @@ components:
     SuccessResponse:
       type: object
       properties:
-        data:
-          type: object
-
-    ErrorObject:
-      type: object
-      properties:
-        code:
-          type: string
-        messageObject:
-          $ref: '#/components/schemas/MessageObject'
-        fields:
-          type: object
-          additionalProperties:
-            type: string
-
-    MessageObject:
-      type: object
-      properties:
+        success: 
+          type: boolean
+          example: true
         message:
           type: string
+        status_code:
+          type: string
+        data:
+          type: object
 
     ErrorResponse:
       type: object
       properties:
-        error:
-          $ref: '#/components/schemas/ErrorObject'
+        success: 
+          type: boolean
+        message:
+          type: string
+        status_code:
+          type: string
+        data:
+          type: object
 
     Appreciation:
       type: object
@@ -345,6 +380,12 @@ components:
     AppreciationSuccessResponse:
       type: object
       properties:
+        success:
+          example: true
+        message:
+          example: "Appreciation data got successfully"
+        status_code:
+          example: 200
         data:
           $ref: '#/components/schemas/Appreciation'
     CreateAppreciation:
@@ -388,29 +429,5 @@ components:
           updated_at:
             type: integer
             example: 1719388759956
-    InvalidDataErrorResponse:
-      type: object
-      properties:
-        error:
-          type: object
-          properties:
-            code:
-              type: string
-              example: invalid_data
-            message:
-              type: string
-              example: Please provide valid appreciation data
-            fields:
-              type: object
-              properties:
-                core_value_id:
-                  type: string
-                  example: enter valid core value id
-                description:
-                  type: string
-                  example: enter description
-                receiver:
-                  type: string
-                  example: enter valid receiver id
 
 

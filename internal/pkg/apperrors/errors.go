@@ -44,6 +44,8 @@ const (
 	FailedToCreateDriver     = CustomError("failure to create driver obj")
 	MigrationFailure         = CustomError("migrate failure")
 	SelfAppreciationError    = CustomError("user cannot give appreciation to ourself")
+	InvalidCoreValueID       = CustomError("invalid corevalue id")
+	InvalidReceiverID            = CustomError("invalid receiver id")
 )
 
 // ErrKeyNotSet - Returns error object specific to the key value passed in
@@ -58,7 +60,7 @@ func GetHTTPStatusCode(err error) int {
 		return http.StatusInternalServerError
 	case OrganizationNotFound, InvalidCoreValueData, InvalidParentValue, InvalidOrgId, GradeNotFound, AppreciationNotFound, PageParamNotFound:
 		return http.StatusNotFound
-	case BadRequest, InvalidId, JSONParsingErrorReq, TextFieldBlank, DescFieldBlank, UniqueCoreValue, IntranetValidationFailed, RepeatedUser, SelfAppreciationError:
+	case BadRequest, InvalidId, JSONParsingErrorReq, TextFieldBlank, DescFieldBlank, UniqueCoreValue, IntranetValidationFailed, RepeatedUser, SelfAppreciationError, InvalidCoreValueID, InvalidReceiverID:
 		return http.StatusBadRequest
 	case InvalidContactEmail, InvalidDomainName:
 		return http.StatusConflict

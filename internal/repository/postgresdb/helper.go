@@ -8,13 +8,11 @@ import (
 
 func GetPaginationMetaData(page int64, limit int64, totalRecords int64) repository.Pagination {
 	// Calculate pagination details
-
-	var totalPages int64
-	if limit == 0 {
-		totalPages = 1
-	} else {
-		totalPages = (totalRecords / limit) + ((totalRecords % limit) & 1)
-	}
+	fmt.Println("totalRecords: ",totalRecords)
+	fmt.Println("limit: ",limit)
+	fmt.Println("page: ",page)
+	totalPages := (totalRecords + limit - 1) / limit
+	fmt.Println("rem: ",((totalRecords % limit) &1 ))
 	fmt.Println("totalpages: ", totalPages)
 	fmt.Println("total records: ", totalRecords)
 	var pagination repository.Pagination

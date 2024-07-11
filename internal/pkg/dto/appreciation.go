@@ -41,23 +41,23 @@ type ResponseAppreciation struct {
 
 // Pagination Object
 type Pagination struct {
-    Next          *int64 `json:"next"`
-    Previous      *int64 `json:"previous"`
-    RecordPerPage int64  `json:"record_per_page"`
-    CurrentPage   int64  `json:"current_page"`
-    TotalPage     int64  `json:"total_page"`
-    TotalRecords  int64  `json:"total_records"`
+	// Next          *int64 `json:"next"`
+	// Previous      *int64 `json:"previous"`
+	// RecordPerPage int64  `json:"record_per_page"`
+	CurrentPage  int64 `json:"current_page"`
+	TotalPage    int64 `json:"page_count"`
+	TotalRecords int64 `json:"total_count"`
 }
 
 type GetAppreciationResponse struct {
 	Appreciations []ResponseAppreciation `json:"appreciations"`
-	Pagination
+	MetaData      Pagination             `json:"metadata"`
 }
 
 func (appr *Appreciation) CreateAppreciation() (err error) {
 
 	if appr.CoreValueID <= 0 {
-		return apperrors.InvalidId
+		return apperrors.InvalidCoreValueID
 	}
 
 	if appr.Description == "" {
@@ -65,7 +65,7 @@ func (appr *Appreciation) CreateAppreciation() (err error) {
 	}
 
 	if appr.Receiver <= 0 {
-		return apperrors.InvalidId
+		return apperrors.InvalidReceiverID
 	}
 
 	return

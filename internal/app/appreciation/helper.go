@@ -75,9 +75,9 @@ func GetQuarter() int {
 func DtoPagination (pagination repository.Pagination)dto.Pagination {
 	var pagenationResp dto.Pagination
 	pagenationResp.CurrentPage = pagination.CurrentPage
-	pagenationResp.Next = pagination.Next
-	pagenationResp.Previous = pagination.Previous
-	pagenationResp.RecordPerPage = pagination.RecordPerPage
+	// pagenationResp.Next = pagination.Next
+	// pagenationResp.Previous = pagination.Previous
+	// pagenationResp.RecordPerPage = pagination.RecordPerPage
 	pagenationResp.TotalPage =pagination.TotalPage
 	pagenationResp.TotalRecords = pagination.TotalRecords
 	return pagenationResp
