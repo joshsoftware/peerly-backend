@@ -14,6 +14,7 @@ type RepositoryTransaction interface {
 	InitiateQueryExecutor(tx Transaction) (executor sqlx.Ext)
 }
 
+// Transaction interface holds transaction methods
 type Transaction interface {
 	Commit() error
 	Rollback() error

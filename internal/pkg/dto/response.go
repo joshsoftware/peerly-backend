@@ -4,29 +4,28 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	logger "github.com/sirupsen/logrus"
 )
 
-type SuccessResponse struct {
-	Data interface{} `json:"data"`
+// Response is common response struct used in SuccessRepsonse and ErrorRepsonse
+type Response struct {
+	Success bool        `json:"success"`
+	Message string      `json:"message"`
+	Status  int         `json:"status_code"`
+	Data    interface{} `json:"data"`
 }
 
-type ErrorResponse struct {
-	Error interface{} `json:"error"`
-}
+// SuccessRepsonse return success response
+func SuccessRepsonse(rw http.ResponseWriter, status int, message string, data interface{}) {
 
-type MessageObject struct {
-	Message string `json:"message"`
-}
+	var resp Response
+	resp.Success = true
+	resp.Status = status
+	resp.Message = message
+	resp.Data = data
 
-type ErrorObject struct {
-	Code string `json:"code"`
-	MessageObject
-	Fields map[string]string `json:"fields"`
-}
-
-func Repsonse(rw http.ResponseWriter, status int, responseBody interface{}) {
-	respBytes, err := json.Marshal(responseBody)
+	respBytes, err := json.Marshal(resp)
 	if err != nil {
 		logger.WithField("err", err.Error()).Error("Error while marshaling core values data")
 		rw.WriteHeader(http.StatusInternalServerError)
@@ -35,5 +34,25 @@ func Repsonse(rw http.ResponseWriter, status int, responseBody interface{}) {
 
 	rw.Header().Add("Content-Type", "application/json")
 	rw.WriteHeader(status)
+	rw.Write(respBytes)
+}
+
+// ErrorRepsonse return error response
+func ErrorRepsonse(rw http.ResponseWriter, err error) {
+
+	var resp Response
+	resp.Success = false
+	resp.Status = apperrors.GetHTTPStatusCode(err)
+	resp.Message = err.Error()
+
+	respBytes, err := json.Marshal(resp)
+	if err != nil {
+		logger.WithField("err", err.Error()).Error("Error while marshaling core values data")
+		rw.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	rw.Header().Add("Content-Type", "application/json")
+	rw.WriteHeader(resp.Status)
 	rw.Write(respBytes)
 }

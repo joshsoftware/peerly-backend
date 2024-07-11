@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/joho/godotenv"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
+	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/spf13/viper"
 )
 
@@ -14,18 +16,19 @@ var (
 )
 
 // Load - loads all the environment variables and/or params in application.yml
-func Load(configFile string) {
-	viper.SetDefault("APP_NAME", "app")
-	viper.SetDefault("APP_PORT", "8002")
+func Load() {
 
-	viper.SetConfigName(configFile)
-	viper.SetConfigType("yml")
-	viper.AddConfigPath("./")
-	viper.AddConfigPath("./..")
-	viper.AddConfigPath("./../..")
-	viper.AddConfigPath("./../../..")
+	// Load environment variables from .env file
+	err := godotenv.Load()
+	if err != nil {
+		panic(fmt.Sprintf("Error loading .env file: %v", err))
+	}
+
 	viper.ReadInConfig()
 	viper.AutomaticEnv()
+
+	viper.SetDefault(constants.AppName, "app")
+	viper.SetDefault(constants.AppPort, "8002")
 
 	// Check for the presence of JWT_KEY and JWT_EXPIRY_DURATION_HOURS
 	JWTKey()
@@ -35,7 +38,7 @@ func Load(configFile string) {
 // AppName - returns the app name
 func AppName() string {
 	if appName == "" {
-		appName = ReadEnvString("APP_NAME")
+		appName = ReadEnvString(constants.AppName)
 	}
 	return appName
 }
@@ -43,19 +46,19 @@ func AppName() string {
 // AppPort - returns application http port
 func AppPort() int {
 	if appPort == 0 {
-		appPort = ReadEnvInt("APP_PORT")
+		appPort = ReadEnvInt(constants.AppPort)
 	}
 	return appPort
 }
 
 // JWTKey - returns the JSON Web Token key
 func JWTKey() []byte {
-	return []byte(ReadEnvString("JWT_SECRET"))
+	return []byte(ReadEnvString(constants.JWTSecret))
 }
 
 // JWTExpiryDurationHours - returns duration for jwt expiry in int
 func JWTExpiryDurationHours() int {
-	return int(ReadEnvInt("JWT_EXPIRY_DURATION_HOURS"))
+	return int(ReadEnvInt(constants.JWTExpiryDurationHours))
 }
 
 // ReadEnvInt - reads an environment variable as an integer
@@ -82,7 +85,6 @@ func ReadEnvBool(key string) bool {
 
 func checkIfSet(key string) {
 	if !viper.IsSet(key) {
-		// err := errors.New(fmt.Sprintf("Key %s is not set", key))
 		panic(apperrors.ErrKeyNotSet(key))
 	}
 }
