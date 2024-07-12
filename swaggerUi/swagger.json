@@ -19,6 +19,11 @@
   "paths": {
     "/core_values/{coreValueId}": {
       "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "tags": [
           "Core Values"
         ],
@@ -77,6 +82,11 @@
         }
       },
       "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "tags": [
           "Core Values"
         ],
@@ -130,6 +140,11 @@
     },
     "/core_values": {
       "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "tags": [
           "Core Values"
         ],
@@ -181,6 +196,11 @@
         }
       },
       "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "tags": [
           "Core Values"
         ],
@@ -225,7 +245,7 @@
       "get": {
         "security": [
           {
-            "basicAuth": []
+            "bearerAuth": []
           }
         ],
         "tags": [
@@ -333,110 +353,15 @@
             }
           }
         }
-      },
-      "delete": {
-        "tags": [
-          "Appreciation"
-        ],
-        "summary": "Delete appreciation",
-        "description": "Delete Appreciation",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "ID of appreciation",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            },
-            "example": 28
-          },
-          {
-            "in": "header",
-            "name": "Accept-Version",
-            "required": true,
-            "description": "Defines the version of the API endpoint",
-            "schema": {
-              "enum": [
-                "application/vnd.peerly.v1"
-              ],
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful operation"
-          },
-          "400": {
-            "description": "Invalid input data",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
-                "examples": {
-                  "example-1": {
-                    "summary": "Invalid input data",
-                    "value": {
-                      "success": false,
-                      "message": "Invalid input data",
-                      "status": 400,
-                      "data": null
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Appreciation not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
-                "examples": {
-                  "example-1": {
-                    "summary": "Appreciation not found",
-                    "value": {
-                      "success": false,
-                      "message": "appreciation not found",
-                      "status": 404,
-                      "data": null
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
-                "examples": {
-                  "example-1": {
-                    "summary": "Internal server error",
-                    "value": {
-                      "success": false,
-                      "message": "Internal server error",
-                      "status": 500,
-                      "data": null
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
       }
     },
     "/appreciation": {
       "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "tags": [
           "Appreciation"
         ],
@@ -572,6 +497,11 @@
     },
     "/appreciations": {
       "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "tags": [
           "Appreciation"
         ],
@@ -625,13 +555,315 @@
           }
         }
       }
+    },
+    "/user/login": {
+      "get": {
+        "tags": [
+          "Login"
+        ],
+        "summary": "Login",
+        "description": "Login to peerly",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Accept-Version",
+            "required": true,
+            "description": "Defines the version of the API endpoint",
+            "schema": {
+              "enum": [
+                "application/vnd.peerly.v1"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Intranet-Auth",
+            "required": true,
+            "description": "Intranet Auth token",
+            "schema": {
+              "enum": [
+                "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjo5Mjl9.6zCALizV0v58UmaJIZ16i1ASULyks6uCj8ubcRrH3dU"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginSuccessResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "example-1": {
+                    "summary": "Internal server error",
+                    "value": {
+                      "success": false,
+                      "message": "Internal server error",
+                      "status": 500,
+                      "data": null
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/all": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Get user list"
+        ],
+        "summary": "Get user list",
+        "description": "Get user list",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "description": "name filter",
+            "schema": {
+              "type": "string"
+            },
+            "example": "Aditya Ya"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "page number",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "description": "page size",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 10
+          },
+          {
+            "in": "header",
+            "name": "Accept-Version",
+            "required": true,
+            "description": "Defines the version of the API endpoint",
+            "schema": {
+              "enum": [
+                "application/vnd.peerly.v1"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User list fetched",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUserListSuccessResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "example-1": {
+                    "summary": "Internal server error",
+                    "value": {
+                      "success": false,
+                      "message": "Internal server error",
+                      "status": 500,
+                      "data": null
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/report_appreciation/{id}": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Report Appreciation"
+        ],
+        "summary": "Report Appreciation",
+        "description": "Report Appreciation",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportAppreciation"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "appreciaiton id",
+            "schema": {
+              "type": "integer"
+            },
+            "required": true,
+            "example": 2
+          },
+          {
+            "in": "header",
+            "name": "Accept-Version",
+            "required": true,
+            "description": "Defines the version of the API endpoint",
+            "schema": {
+              "enum": [
+                "application/vnd.peerly.v1"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Appreciaiton reported",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportAppreciationResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "example-1": {
+                    "summary": "Internal server error",
+                    "value": {
+                      "success": false,
+                      "message": "Internal server error",
+                      "status": 500,
+                      "data": null
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user_profile": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Get user profile"
+        ],
+        "summary": "Get user profile",
+        "description": "Get user profile",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Accept-Version",
+            "required": true,
+            "description": "Defines the version of the API endpoint",
+            "schema": {
+              "enum": [
+                "application/vnd.peerly.v1"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User fetched",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUserProfileResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "example-1": {
+                    "summary": "Internal server error",
+                    "value": {
+                      "success": false,
+                      "message": "Internal server error",
+                      "status": 500,
+                      "data": null
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "securitySchemes": {
-      "basicAuth": {
+      "bearerAuth": {
         "type": "http",
-        "scheme": "basic"
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
       }
     },
     "schemas": {
@@ -723,8 +955,7 @@
           }
         }
       },
-
-    "SuccessResponse": {
+      "SuccessResponse": {
         "type": "object",
         "properties": {
           "success": {
@@ -916,6 +1147,243 @@
             "updated_at": {
               "type": "integer",
               "example": 1719388759956
+            }
+          }
+        }
+      },
+      "LoginSuccessResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "example": true
+          },
+          "message": {
+            "example": "User logged in successfully"
+          },
+          "status_code": {
+            "example": 200
+          },
+          "data": {
+            "$ref": "#/components/schemas/LoginResponse"
+          }
+        }
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "User": {
+            "$ref": "#/components/schemas/UserData"
+          },
+          "NewUserCreated": {
+            "$ref": "#/components/schemas/NewUserCreated"
+          },
+          "AuthToken": {
+            "$ref": "#/components/schemas/AuthToken"
+          }
+        }
+      },
+      "UserData": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 54
+          },
+          "employee_id": {
+            "type": "string",
+            "example": "26"
+          },
+          "first_name": {
+            "type": "string"
+          },
+          "last_name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "profile_image_url": {
+            "type": "string"
+          },
+          "role_id": {
+            "type": "integer"
+          },
+          "reward_quota_balance": {
+            "type": "integer"
+          },
+          "designation": {
+            "type": "string"
+          },
+          "grade_id": {
+            "type": "integer"
+          },
+          "grade": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "integer"
+          }
+        }
+      },
+      "NewUserCreated": {
+        "type": "boolean",
+        "example": false
+      },
+      "AuthToken": {
+        "type": "string"
+      },
+      "GetUserListSuccessResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "example": true
+          },
+          "message": {
+            "example": "Intranet Users Listedy"
+          },
+          "status_code": {
+            "example": 200
+          },
+          "data": {
+            "$ref": "#/components/schemas/GetUserListData"
+          }
+        }
+      },
+      "GetUserListData": {
+        "type": "object",
+        "properties": {
+          "user_list": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer"
+                },
+                "email": {
+                  "type": "string"
+                },
+                "first_name": {
+                  "type": "string"
+                },
+                "last_name": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "metadata": {
+            "type": "object",
+            "properties": {
+              "total_count": {
+                "type": "integer"
+              },
+              "current_page": {
+                "type": "integer"
+              },
+              "page_size": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      },
+      "ReportAppreciation": {
+        "type": "object",
+        "properties": {
+          "reporting_comment": {
+            "type": "string",
+            "example": "false appreciation"
+          }
+        }
+      },
+      "ReportAppreciationResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "example": true
+          },
+          "message": {
+            "example": "Intranet Users Listedy"
+          },
+          "status_code": {
+            "example": 200
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "appreciation_id": {
+                "type": "integer"
+              },
+              "reporting_comment": {
+                "type": "string"
+              },
+              "reported_by": {
+                "type": "integer"
+              },
+              "reported_at": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      },
+      "GetUserProfileResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "example": true
+          },
+          "message": {
+            "example": "User fetched successfully"
+          },
+          "status_code": {
+            "example": 200
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "user_id": {
+                "type": "integer",
+                "example": 54
+              },
+              "employee_id": {
+                "type": "string",
+                "example": "26"
+              },
+              "first_name": {
+                "type": "string"
+              },
+              "last_name": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string"
+              },
+              "profile_image_url": {
+                "type": "string"
+              },
+              "reward_quota_balance": {
+                "type": "integer"
+              },
+              "designation": {
+                "type": "string"
+              },
+              "grade_id": {
+                "type": "integer"
+              },
+              "total_points": {
+                "type": "integer"
+              },
+              "badge": {
+                "type": "string"
+              },
+              "badge_created_at": {
+                "type": "integer"
+              }
             }
           }
         }

@@ -24,7 +24,7 @@ const (
 	CannotReportOwnAppreciation = CustomError("You cannot report your own appreciations")
 	RepeatedReport              = CustomError("You cannot report an appreciation twice")
 	InvalidCoreValueID          = CustomError("invalid corevalue id")
-	InvalidReceiverID           = CustomError("invalid receiver id")
+	InvalidReceiverID           = CustomError("invalid receivesr id")
 	UserAlreadyPresent          = CustomError("user already present")
 	RewardAlreadyPresent        = CustomError("reward already present")
 	RewardQuotaIsNotSufficient  = CustomError("reward quota is not sufficient")
@@ -68,13 +68,11 @@ func GetHTTPStatusCode(err error) int {
 		return http.StatusInternalServerError
 	case OrganizationNotFound, InvalidOrgId, GradeNotFound, AppreciationNotFound, PageParamNotFound, InvalidIntranetData:
 		return http.StatusNotFound
-	case BadRequest, InvalidId, JSONParsingErrorReq, TextFieldBlank, InvalidCoreValueData, InvalidParentValue, DescFieldBlank, UniqueCoreValue, IntranetValidationFailed, RepeatedUser, SelfAppreciationError, CannotReportOwnAppreciation, RepeatedReport, InvalidCoreValueID, InvalidReceiverID, InvalidRewardPoint:
+	case BadRequest, InvalidId, JSONParsingErrorReq, TextFieldBlank, InvalidCoreValueData, InvalidParentValue, DescFieldBlank, UniqueCoreValue, RepeatedUser, SelfAppreciationError, CannotReportOwnAppreciation, RepeatedReport, InvalidCoreValueID, InvalidReceiverID, InvalidRewardPoint:
 		return http.StatusBadRequest
-	case InvalidAuthToken, IntranetValidationFailed:
-		return http.StatusUnauthorized
 	case InvalidContactEmail, InvalidDomainName, UserAlreadyPresent, RewardAlreadyPresent:
 		return http.StatusConflict
-	case InvalidAuthToken, RoleUnathorized:
+	case InvalidAuthToken, RoleUnathorized, IntranetValidationFailed:
 		return http.StatusUnauthorized
 	case RewardQuotaIsNotSufficient:
 		return http.StatusUnprocessableEntity

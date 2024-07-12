@@ -81,6 +81,6 @@ func updateCoreValueHandler(coreValueSvc corevalues.Service) http.HandlerFunc {
 			return
 		}
 
-		dto.SuccessRepsonse(rw, http.StatusOK, "Core value created", resp)
+		dto.SuccessRepsonse(rw, http.StatusOK, "Core value updated", resp)
 	})
 }
