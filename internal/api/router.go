@@ -65,5 +65,8 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 	// No version requirement for /ping
 	router.HandleFunc("/ping", pingHandler).Methods(http.MethodGet)
 
+	sh := http.StripPrefix("/swaggerui", http.FileServer(http.Dir("./swaggerUi")))
+	router.PathPrefix("/swaggerui").Handler(sh)
+
 	return router
 }

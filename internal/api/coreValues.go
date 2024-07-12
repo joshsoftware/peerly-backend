@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -41,17 +42,16 @@ func getCoreValueHandler(coreValueSvc corevalues.Service) http.HandlerFunc {
 
 func createCoreValueHandler(coreValueSvc corevalues.Service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		const userId int64 = 1
 		var coreValue dto.CreateCoreValueReq
 		err := json.NewDecoder(req.Body).Decode(&coreValue)
 		if err != nil {
-			logger.WithField("err", err.Error()).Error("Error while decoding request data")
+			logger.Error(fmt.Sprintf("error while decoding request data, err: %s", err.Error()))
 			err = apperrors.JSONParsingErrorReq
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
 
-		resp, err := coreValueSvc.CreateCoreValue(req.Context(), userId, coreValue)
+		resp, err := coreValueSvc.CreateCoreValue(req.Context(), coreValue)
 		if err != nil {
 
 			dto.ErrorRepsonse(rw, err)
@@ -69,7 +69,7 @@ func updateCoreValueHandler(coreValueSvc corevalues.Service) http.HandlerFunc {
 		var updateReq dto.UpdateQueryRequest
 		err := json.NewDecoder(req.Body).Decode(&updateReq)
 		if err != nil {
-			logger.WithField("err", err.Error()).Error("Error while decoding request data")
+			logger.Error(fmt.Sprintf("error while decoding request data, err: %s", err.Error()))
 			err = apperrors.JSONParsingErrorReq
 			dto.ErrorRepsonse(rw, err)
 			return
@@ -81,6 +81,6 @@ func updateCoreValueHandler(coreValueSvc corevalues.Service) http.HandlerFunc {
 			return
 		}
 
-		dto.SuccessRepsonse(rw, http.StatusOK, "Core value created", resp)
+		dto.SuccessRepsonse(rw, http.StatusOK, "Core value updated", resp)
 	})
 }
