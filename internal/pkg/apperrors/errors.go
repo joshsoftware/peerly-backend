@@ -16,33 +16,10 @@ func (e CustomError) Error() string {
 
 // Custome errors with errormessage
 const (
-	InvalidId                   = CustomError("Invalid id")
-	InternalServerError         = CustomError("Internal server error")
-	JSONParsingErrorReq         = CustomError("error in parsing request in json")
-	JSONParsingErrorResp        = CustomError("error in parsing response in json")
-	OutOfRange                  = CustomError("request value is out of range")
-	OrganizationNotFound        = CustomError("organization of given id not found")
-	InvalidContactEmail         = CustomError("Contact email is already present")
-	InvalidDomainName           = CustomError("Domain name is already present")
-	InvalidCoreValueData        = CustomError("Invalid corevalue data")
-	TextFieldBlank              = CustomError("Text field cannot be blank")
-	DescFieldBlank              = CustomError("Description cannot be blank")
-	InvalidParentValue          = CustomError("Invalid parent core value")
-	InvalidOrgId                = CustomError("Invalid organisation")
-	UniqueCoreValue             = CustomError("Choose a unique coreValue name")
-	InvalidAuthToken            = CustomError("Invalid Auth token")
-	IntranetValidationFailed    = CustomError("Intranet Validation Failed")
-	UserNotFound                = CustomError("User not found")
-	InvalidIntranetData         = CustomError("Invalid data recieved from intranet")
-	GradeNotFound               = CustomError("Grade not found")
 	AppreciationNotFound        = CustomError("appreciation not found")
 	RoleUnathorized             = CustomError("Role unauthorized")
 	PageParamNotFound           = CustomError("Page parameter not found")
 	RepeatedUser                = CustomError("Repeated user")
-	BadRequest                  = CustomError("Bad request")
-	InternalServer              = CustomError("Internal Server")
-	FailedToCreateDriver        = CustomError("failure to create driver obj")
-	MigrationFailure            = CustomError("migrate failure")
 	SelfAppreciationError       = CustomError("user cannot give appreciation to ourself")
 	CannotReportOwnAppreciation = CustomError("You cannot report your own appreciations")
 	RepeatedReport              = CustomError("You cannot report an appreciation twice")
@@ -54,6 +31,29 @@ const (
 	InvalidRewardPoint          = CustomError("invalid reward point")
 	SelfRewardError             = CustomError("user cannot give reward to ourself")
 	SelfAppreciationRewardError = CustomError("user cannot give reward to his posted appreciaiton ")
+	InvalidId                   = CustomError("invalid id")
+	InternalServerError         = CustomError("internal server error")
+	JSONParsingErrorReq         = CustomError("error in parsing request in json")
+	JSONParsingErrorResp        = CustomError("error in parsing response in json")
+	OutOfRange                  = CustomError("request value is out of range")
+	OrganizationNotFound        = CustomError("organization of given id not found")
+	InvalidContactEmail         = CustomError("contact email is already present")
+	InvalidDomainName           = CustomError("domain name is already present")
+	InvalidCoreValueData        = CustomError("invalid corevalue data")
+	TextFieldBlank              = CustomError("text field cannot be blank")
+	DescFieldBlank              = CustomError("description cannot be blank")
+	InvalidParentValue          = CustomError("invalid parent core value")
+	InvalidOrgId                = CustomError("invalid organisation")
+	UniqueCoreValue             = CustomError("choose a unique coreValue name")
+	InvalidAuthToken            = CustomError("invalid Auth token")
+	IntranetValidationFailed    = CustomError("intranet Validation Failed")
+	UserNotFound                = CustomError("user not found")
+	InvalidIntranetData         = CustomError("invalid data recieved from intranet")
+	GradeNotFound               = CustomError("grade not found")
+	BadRequest                  = CustomError("bad request")
+	InternalServer              = CustomError("internal Server")
+	FailedToCreateDriver        = CustomError("failure to create driver obj")
+	MigrationFailure            = CustomError("migrate failure")
 )
 
 // ErrKeyNotSet - Returns error object specific to the key value passed in
@@ -66,10 +66,12 @@ func GetHTTPStatusCode(err error) int {
 	switch err {
 	case InternalServerError, JSONParsingErrorResp:
 		return http.StatusInternalServerError
-	case OrganizationNotFound, InvalidCoreValueData, InvalidParentValue, InvalidOrgId, GradeNotFound, AppreciationNotFound, PageParamNotFound, InvalidIntranetData:
+	case OrganizationNotFound, InvalidOrgId, GradeNotFound, AppreciationNotFound, PageParamNotFound, InvalidIntranetData:
 		return http.StatusNotFound
-	case BadRequest, InvalidId, JSONParsingErrorReq, TextFieldBlank, DescFieldBlank, UniqueCoreValue, IntranetValidationFailed, RepeatedUser, SelfAppreciationError, CannotReportOwnAppreciation, RepeatedReport, InvalidCoreValueID, InvalidReceiverID, InvalidRewardPoint:
+	case BadRequest, InvalidId, JSONParsingErrorReq, TextFieldBlank, InvalidCoreValueData, InvalidParentValue, DescFieldBlank, UniqueCoreValue, IntranetValidationFailed, RepeatedUser, SelfAppreciationError, CannotReportOwnAppreciation, RepeatedReport, InvalidCoreValueID, InvalidReceiverID, InvalidRewardPoint:
 		return http.StatusBadRequest
+	case InvalidAuthToken, IntranetValidationFailed:
+		return http.StatusUnauthorized
 	case InvalidContactEmail, InvalidDomainName, UserAlreadyPresent, RewardAlreadyPresent:
 		return http.StatusConflict
 	case InvalidAuthToken, RoleUnathorized:
