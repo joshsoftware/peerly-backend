@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
@@ -25,45 +26,28 @@ const (
 	getCoreValueQuery    = `SELECT id, name, description, parent_core_value_id FROM core_values WHERE id = $1`
 	createCoreValueQuery = `INSERT INTO core_values (name,
 		description, parent_core_value_id) VALUES ($1, $2, $3) RETURNING id, name, description, parent_core_value_id`
-	//edit dele
-	// deleteSubCoreValueQuery = `UPDATE core_values SET soft_delete = true, soft_delete_by = $1, updated_at = $2 WHERE org_id = $3 and parent_id = $4`
-	// deleteCoreValueQuery    = `UPDATE core_values SET soft_delete = true, soft_delete_by = $1, updated_at = $2 WHERE org_id = $3 and id = $4`
-	//edit dele
 	updateCoreValueQuery = `UPDATE core_values SET (name, description) =
 		($1, $2) where id = $3 RETURNING id, name, description, parent_core_value_id`
 
-	// checkOrganisationQuery = `SELECT id from organizations WHERE id = $1`
 	checkUniqueCoreVal = `SELECT id from core_values WHERE name = $1`
 )
 
-func (cs *coreValueStore) ListCoreValues(ctx context.Context) (coreValues []dto.ListCoreValuesResp, err error) {
-	var DbResp []dto.ListCoreValuesRespDb
+func (cs *coreValueStore) ListCoreValues(ctx context.Context) (coreValues []repository.CoreValue, err error) {
 	err = cs.DB.SelectContext(
 		ctx,
-		&DbResp,
+		&coreValues,
 		listCoreValuesQuery,
 	)
 
-	for i := 0; i < len(DbResp); i++ {
-		var coreValue dto.ListCoreValuesResp
-		coreValue.ID = DbResp[i].ID
-		coreValue.Name = DbResp[i].Name
-		coreValue.Description = DbResp[i].Description
-		coreValue.ParentCoreValueID = DbResp[i].ParentCoreValueID.Int64
-		coreValues = append(coreValues, coreValue)
-	}
-
 	if err != nil {
-		logger.WithFields(logger.Fields{
-			"err": err.Error(),
-		}).Error("Error while getting core values")
+		logger.Error(fmt.Sprintf("error while getting core values, err: %s", err.Error()))
 		return
 	}
 
 	return
 }
 
-func (cs *coreValueStore) GetCoreValue(ctx context.Context, coreValueID int64) (coreValue dto.GetCoreValueResp, err error) {
+func (cs *coreValueStore) GetCoreValue(ctx context.Context, coreValueID int64) (coreValue repository.CoreValue, err error) {
 	err = cs.DB.GetContext(
 		ctx,
 		&coreValue,
@@ -71,10 +55,7 @@ func (cs *coreValueStore) GetCoreValue(ctx context.Context, coreValueID int64) (
 		coreValueID,
 	)
 	if err != nil {
-		logger.WithFields(logger.Fields{
-			"err":         err.Error(),
-			"coreValueId": coreValueID,
-		}).Error("Error while getting core value")
+		logger.Error(fmt.Sprintf("error while getting core value, corevalue_id: %d, err: %s", coreValueID, err.Error()))
 		err = apperrors.InvalidCoreValueData
 		return
 	}
@@ -82,7 +63,7 @@ func (cs *coreValueStore) GetCoreValue(ctx context.Context, coreValueID int64) (
 	return
 }
 
-func (cs *coreValueStore) CreateCoreValue(ctx context.Context, userId int64, coreValue dto.CreateCoreValueReq) (resp dto.CreateCoreValueResp, err error) {
+func (cs *coreValueStore) CreateCoreValue(ctx context.Context, coreValue dto.CreateCoreValueReq) (resp repository.CoreValue, err error) {
 
 	err = cs.DB.GetContext(
 		ctx,
@@ -93,50 +74,42 @@ func (cs *coreValueStore) CreateCoreValue(ctx context.Context, userId int64, cor
 		coreValue.ParentCoreValueID,
 	)
 	if err != nil {
-		logger.WithFields(logger.Fields{
-			"err":               err.Error(),
-			"core_value_params": coreValue,
-		}).Error("Error while creating core value")
+		logger.Error(fmt.Sprintf("error while creating core value, err: %s", err.Error()))
 		return
 	}
 
 	return
 }
 
-func (cs *coreValueStore) UpdateCoreValue(ctx context.Context, coreValueID int64, updateReq dto.UpdateQueryRequest) (resp dto.UpdateCoreValuesResp, err error) {
+func (cs *coreValueStore) UpdateCoreValue(ctx context.Context, updateReq dto.UpdateQueryRequest) (resp repository.CoreValue, err error) {
 	err = cs.DB.GetContext(
 		ctx,
 		&resp,
 		updateCoreValueQuery,
 		updateReq.Name,
 		updateReq.Description,
-		coreValueID,
+		updateReq.Id,
 	)
 	if err != nil {
-		logger.WithFields(logger.Fields{
-			"err":           err.Error(),
-			"core_value_id": coreValueID,
-		}).Error("Error while updating core value")
+		logger.Error(fmt.Sprintf("error while updating core value, corevalue_id: %d, err: %s", updateReq.Id, err.Error()))
 		return
 	}
 
 	return
 }
 
-func (cs *coreValueStore) CheckUniqueCoreVal(ctx context.Context, text string) (isUnique bool, err error) {
+func (cs *coreValueStore) CheckUniqueCoreVal(ctx context.Context, name string) (isUnique bool, err error) {
 	isUnique = false
 	resp := []int64{}
 	err = cs.DB.SelectContext(
 		ctx,
 		&resp,
 		checkUniqueCoreVal,
-		text,
+		name,
 	)
 
 	if err != nil {
-		logger.WithFields(logger.Fields{
-			"err": err.Error(),
-		}).Error("Error while checking unique core values")
+		logger.Error(fmt.Sprintf("error while checking unique core vlaues, err: %s", err.Error()))
 		err = apperrors.InternalServerError
 		return
 	}

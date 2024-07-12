@@ -2,9 +2,11 @@ package corevalues
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
+	"github.com/joshsoftware/peerly-backend/internal/pkg/utils"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
 	logger "github.com/sirupsen/logrus"
 )
@@ -14,10 +16,11 @@ type service struct {
 }
 
 type Service interface {
-	ListCoreValues(ctx context.Context) (resp []dto.ListCoreValuesResp, err error)
-	GetCoreValue(ctx context.Context, coreValueID string) (coreValue dto.GetCoreValueResp, err error)
-	CreateCoreValue(ctx context.Context, userId int64, coreValue dto.CreateCoreValueReq) (resp dto.CreateCoreValueResp, err error)
-	UpdateCoreValue(ctx context.Context, coreValueID string, coreValue dto.UpdateQueryRequest) (resp dto.UpdateCoreValuesResp, err error)
+	ListCoreValues(ctx context.Context) (resp []dto.CoreValue, err error)
+	GetCoreValue(ctx context.Context, coreValueID string) (coreValue dto.CoreValue, err error)
+	CreateCoreValue(ctx context.Context, coreValue dto.CreateCoreValueReq) (resp dto.CoreValue, err error)
+	UpdateCoreValue(ctx context.Context, coreValueID string, coreValue dto.UpdateQueryRequest) (resp dto.CoreValue, err error)
+	ValidateParentCoreValue(ctx context.Context, coreValueID int64) (ok bool)
 }
 
 func NewService(coreValuesRepo repository.CoreValueStorer) Service {
@@ -26,35 +29,42 @@ func NewService(coreValuesRepo repository.CoreValueStorer) Service {
 	}
 }
 
-func (cs *service) ListCoreValues(ctx context.Context) (resp []dto.ListCoreValuesResp, err error) {
+func (cs *service) ListCoreValues(ctx context.Context) (resp []dto.CoreValue, err error) {
 
-	resp, err = cs.coreValuesRepo.ListCoreValues(ctx)
+	dbResp, err := cs.coreValuesRepo.ListCoreValues(ctx)
 	if err != nil {
-		logger.WithField("err", err.Error()).Error("Error while fetching data")
 		err = apperrors.InternalServerError
+	}
+
+	fmt.Println(dbResp)
+
+	for i := 0; i < len(dbResp); i++ {
+		coreValue := MapCoreValueDbToService(dbResp[i])
+		resp = append(resp, coreValue)
 	}
 
 	return
 
 }
 
-func (cs *service) GetCoreValue(ctx context.Context, coreValueID string) (coreValue dto.GetCoreValueResp, err error) {
+func (cs *service) GetCoreValue(ctx context.Context, coreValueID string) (coreValue dto.CoreValue, err error) {
 
-	coreValId, err := VarsStringToInt(coreValueID, "coreValueId")
+	coreValId, err := utils.VarsStringToInt(coreValueID, "coreValueId")
 	if err != err {
 		return
 	}
 
-	coreValue, err = cs.coreValuesRepo.GetCoreValue(ctx, coreValId)
+	dbResp, err := cs.coreValuesRepo.GetCoreValue(ctx, coreValId)
 	if err != nil {
-		logger.WithField("err", err.Error()).Error("Error while fetching data")
 		return
 	}
+
+	coreValue = MapCoreValueDbToService(dbResp)
 
 	return
 }
 
-func (cs *service) CreateCoreValue(ctx context.Context, userId int64, coreValue dto.CreateCoreValueReq) (resp dto.CreateCoreValueResp, err error) {
+func (cs *service) CreateCoreValue(ctx context.Context, coreValue dto.CreateCoreValueReq) (resp dto.CoreValue, err error) {
 
 	isUnique, err := cs.coreValuesRepo.CheckUniqueCoreVal(ctx, coreValue.Name)
 	if err != nil {
@@ -65,24 +75,25 @@ func (cs *service) CreateCoreValue(ctx context.Context, userId int64, coreValue 
 		return
 	}
 
-	err = Validate(ctx, coreValue, cs.coreValuesRepo)
+	err = cs.Validate(ctx, coreValue)
 	if err != nil {
 		return
 	}
 
-	resp, err = cs.coreValuesRepo.CreateCoreValue(ctx, userId, coreValue)
+	dbResp, err := cs.coreValuesRepo.CreateCoreValue(ctx, coreValue)
 	if err != nil {
-		logger.WithField("err", err.Error()).Error("Error while creating core value")
 		err = apperrors.InternalServerError
 		return
 	}
 
+	resp = MapCoreValueDbToService(dbResp)
+
 	return
 }
 
-func (cs *service) UpdateCoreValue(ctx context.Context, coreValueID string, reqData dto.UpdateQueryRequest) (resp dto.UpdateCoreValuesResp, err error) {
+func (cs *service) UpdateCoreValue(ctx context.Context, coreValueID string, reqData dto.UpdateQueryRequest) (resp dto.CoreValue, err error) {
 
-	coreValId, err := VarsStringToInt(coreValueID, "coreValueId")
+	coreValId, err := utils.VarsStringToInt(coreValueID, "coreValueId")
 	if err != nil {
 		return
 	}
@@ -91,7 +102,6 @@ func (cs *service) UpdateCoreValue(ctx context.Context, coreValueID string, reqD
 	//get data
 	coreValue, err := cs.coreValuesRepo.GetCoreValue(ctx, coreValId)
 	if err != nil {
-		logger.WithField("err", err.Error()).Error("Error while fetching data")
 		return
 	}
 
@@ -112,13 +122,57 @@ func (cs *service) UpdateCoreValue(ctx context.Context, coreValueID string, reqD
 		return
 	}
 
-	resp, err = cs.coreValuesRepo.UpdateCoreValue(ctx, coreValId, reqData)
+	reqData.Id = coreValId
+
+	dbResp, err := cs.coreValuesRepo.UpdateCoreValue(ctx, reqData)
 	if err != nil {
-		logger.WithField("err", err.Error()).Error("Error while updating core value")
 		err = apperrors.InternalServerError
 
 		return
 	}
 
+	resp = MapCoreValueDbToService(dbResp)
+
+	return
+}
+
+func (cs *service) ValidateParentCoreValue(ctx context.Context, coreValueID int64) (ok bool) {
+	coreValue, err := cs.coreValuesRepo.GetCoreValue(ctx, coreValueID)
+	if err != nil {
+		logger.WithField("err", err.Error()).Error("Parent core value id not present")
+		return
+	}
+
+	if coreValue.ParentCoreValueID.Valid {
+		logger.Error("Invalid parent core value id")
+		return
+	}
+
+	return true
+}
+
+func (cs *service) Validate(ctx context.Context, coreValue dto.CreateCoreValueReq) (err error) {
+
+	if coreValue.Name == "" {
+		err = apperrors.TextFieldBlank
+	}
+	if coreValue.Description == "" {
+		err = apperrors.DescFieldBlank
+	}
+	if coreValue.ParentCoreValueID != nil {
+		svc := NewService(cs.coreValuesRepo)
+		if !svc.ValidateParentCoreValue(ctx, *coreValue.ParentCoreValueID) {
+			err = apperrors.InvalidParentValue
+		}
+	}
+
+	return
+}
+
+func MapCoreValueDbToService(dbStruct repository.CoreValue) (svcStruct dto.CoreValue) {
+	svcStruct.ID = dbStruct.ID
+	svcStruct.Name = dbStruct.Name
+	svcStruct.Description = dbStruct.Description
+	svcStruct.ParentCoreValueID = dbStruct.ParentCoreValueID.Int64
 	return
 }

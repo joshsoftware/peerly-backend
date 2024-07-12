@@ -16,27 +16,27 @@ func (e CustomError) Error() string {
 
 // Custome errors with errormessage
 const (
-	InvalidId                = CustomError("Invalid id")
-	InternalServerError      = CustomError("Internal server error")
+	InvalidId                = CustomError("invalid id")
+	InternalServerError      = CustomError("internal server error")
 	JSONParsingErrorReq      = CustomError("error in parsing request in json")
 	JSONParsingErrorResp     = CustomError("error in parsing response in json")
 	OutOfRange               = CustomError("request value is out of range")
 	OrganizationNotFound     = CustomError("organization of given id not found")
-	InvalidContactEmail      = CustomError("Contact email is already present")
-	InvalidDomainName        = CustomError("Domain name is already present")
-	InvalidCoreValueData     = CustomError("Invalid corevalue data")
-	TextFieldBlank           = CustomError("Text field cannot be blank")
-	DescFieldBlank           = CustomError("Description cannot be blank")
-	InvalidParentValue       = CustomError("Invalid parent core value")
-	InvalidOrgId             = CustomError("Invalid organisation")
-	UniqueCoreValue          = CustomError("Choose a unique coreValue name")
-	InvalidAuthToken         = CustomError("Invalid Auth token")
-	IntranetValidationFailed = CustomError("Intranet Validation Failed")
-	UserNotFound             = CustomError("User not found")
-	InvalidIntranetData      = CustomError("Invalid data recieved from intranet")
-	GradeNotFound            = CustomError("Grade not found")
-	BadRequest               = CustomError("Bad request")
-	InternalServer           = CustomError("Internal Server")
+	InvalidContactEmail      = CustomError("contact email is already present")
+	InvalidDomainName        = CustomError("domain name is already present")
+	InvalidCoreValueData     = CustomError("invalid corevalue data")
+	TextFieldBlank           = CustomError("text field cannot be blank")
+	DescFieldBlank           = CustomError("description cannot be blank")
+	InvalidParentValue       = CustomError("invalid parent core value")
+	InvalidOrgId             = CustomError("invalid organisation")
+	UniqueCoreValue          = CustomError("choose a unique coreValue name")
+	InvalidAuthToken         = CustomError("invalid Auth token")
+	IntranetValidationFailed = CustomError("intranet Validation Failed")
+	UserNotFound             = CustomError("user not found")
+	InvalidIntranetData      = CustomError("invalid data recieved from intranet")
+	GradeNotFound            = CustomError("grade not found")
+	BadRequest               = CustomError("bad request")
+	InternalServer           = CustomError("internal Server")
 	FailedToCreateDriver     = CustomError("failure to create driver obj")
 	MigrationFailure         = CustomError("migrate failure")
 )
@@ -51,10 +51,12 @@ func GetHTTPStatusCode(err error) int {
 	switch err {
 	case InternalServerError, JSONParsingErrorResp, InvalidIntranetData:
 		return http.StatusInternalServerError
-	case OrganizationNotFound, InvalidCoreValueData, InvalidParentValue, InvalidOrgId, GradeNotFound:
+	case OrganizationNotFound, InvalidOrgId, GradeNotFound:
 		return http.StatusNotFound
-	case InvalidId, JSONParsingErrorReq, TextFieldBlank, DescFieldBlank, UniqueCoreValue, InvalidAuthToken, IntranetValidationFailed:
+	case InvalidId, JSONParsingErrorReq, TextFieldBlank, InvalidCoreValueData, InvalidParentValue, DescFieldBlank, UniqueCoreValue:
 		return http.StatusBadRequest
+	case InvalidAuthToken, IntranetValidationFailed:
+		return http.StatusUnauthorized
 	case InvalidContactEmail, InvalidDomainName:
 		return http.StatusConflict
 	default:
