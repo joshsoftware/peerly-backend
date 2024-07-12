@@ -12,8 +12,8 @@
   ],
   "tags": [
     {
-      "name": "Core Values",
-      "description": "Core Value cruds"
+      "name": "Peerly",
+      "description": "Peer to peer appreciaiton system"
     }
   ],
   "paths": {
@@ -24,9 +24,7 @@
             "bearerAuth": []
           }
         ],
-        "tags": [
-          "Core Values"
-        ],
+        "tags": ["Core Values"],
         "summary": "Update an existing core value",
         "description": "Update an existing core value by Id",
         "operationId": "updateCoreValue",
@@ -48,9 +46,7 @@
             "required": true,
             "description": "Defines the media type and version of the API endpoint",
             "schema": {
-              "enum": [
-                "application/vnd.peerly.v1"
-              ],
+              "enum": ["application/vnd.peerly.v1"],
               "type": "string"
             }
           }
@@ -68,16 +64,86 @@
         },
         "responses": {
           "200": {
-            "description": "Successful operation"
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateCoreValuesResp"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Invalid input data"
+            "description": "Invalid data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "example-1": {
+                    "summary": "Invalid core value id",
+                    "value": {
+                      "success": false,
+                      "message": "Invalid core value id",
+                      "status": 400,
+                      "data": null
+                    }
+                  },
+                  "example-2": {
+                    "summary": "Choose unique core value name",
+                    "value": {
+                      "success": false,
+                      "message": "Choose a unique core value name",
+                      "status": 400,
+                      "data": null
+                    }
+                  }
+                }
+              }
+            }
           },
-          "404": {
-            "description": "Core value id not found"
+          "401": {
+            "description": "Unathorized access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "example-1": {
+                    "summary": "Invalid auth token",
+                    "value": {
+                      "success": false,
+                      "message": "Invalid auth token",
+                      "status": 401,
+                      "data": null
+                    }
+                  }
+                }
+              }
+            }
           },
           "500": {
-            "description": "Internal server error"
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "example-1": {
+                    "summary": "Internal server error",
+                    "value": {
+                      "success": false,
+                      "message": "Internal server error",
+                      "status": 500,
+                      "data": null
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       },
@@ -87,9 +153,7 @@
             "bearerAuth": []
           }
         ],
-        "tags": [
-          "Core Values"
-        ],
+        "tags": ["Core Values"],
         "summary": "Finds corevalue by id",
         "description": "get a corevalue corevalue id",
         "operationId": "get a corevalue by id",
@@ -111,9 +175,7 @@
             "required": true,
             "description": "Defines the media type and version of the API endpoint",
             "schema": {
-              "enum": [
-                "application/vnd.peerly.v1"
-              ],
+              "enum": ["application/vnd.peerly.v1"],
               "type": "string"
             }
           }
@@ -132,8 +194,68 @@
               }
             }
           },
-          "404": {
-            "description": "Invalid core value id"
+          "400": {
+            "description": "Invalid data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "example-1": {
+                    "summary": "Invalid core value id",
+                    "value": {
+                      "success": false,
+                      "message": "Invalid core value id",
+                      "status": 400,
+                      "data": null
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unathorized access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "example-1": {
+                    "summary": "Invalid auth token",
+                    "value": {
+                      "success": false,
+                      "message": "Invalid auth token",
+                      "status": 401,
+                      "data": null
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "example-1": {
+                    "summary": "Internal server error",
+                    "value": {
+                      "success": false,
+                      "message": "Internal server error",
+                      "status": 500,
+                      "data": null
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -145,9 +267,7 @@
             "bearerAuth": []
           }
         ],
-        "tags": [
-          "Core Values"
-        ],
+        "tags": ["Core Values"],
         "summary": "Add a new core value",
         "description": "Add a new core value",
         "operationId": "addCoreValue",
@@ -158,9 +278,7 @@
             "required": true,
             "description": "Defines the media type and version of the API endpoint",
             "schema": {
-              "enum": [
-                "application/vnd.peerly.v1"
-              ],
+              "enum": ["application/vnd.peerly.v1"],
               "type": "string"
             }
           }
@@ -188,10 +306,94 @@
             }
           },
           "400": {
-            "description": "Invalid input"
+            "description": "Invalid data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "example-1": {
+                    "summary": "Invalid name",
+                    "value": {
+                      "success": false,
+                      "message": "text field cannot be blank",
+                      "status": 400,
+                      "data": null
+                    }
+                  },
+                  "example-2": {
+                    "summary": "Invalid name",
+                    "value": {
+                      "success": false,
+                      "message": "choose a unique coreValue name",
+                      "status": 400,
+                      "data": null
+                    }
+                  },
+                  "example-3": {
+                    "summary": "Invalid description",
+                    "value": {
+                      "success": false,
+                      "message": "description cannot be blank",
+                      "status": 400,
+                      "data": null
+                    }
+                  },
+                  "example-4": {
+                    "summary": "Invalid parent core value",
+                    "value": {
+                      "success": false,
+                      "message": "invalid parent core value",
+                      "status": 400,
+                      "data": null
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unathorized access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "example-1": {
+                    "summary": "Invalid auth token",
+                    "value": {
+                      "success": false,
+                      "message": "Invalid auth token",
+                      "status": 401,
+                      "data": null
+                    }
+                  }
+                }
+              }
+            }
           },
           "500": {
-            "description": "Internal server error"
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "example-1": {
+                    "summary": "Internal server error",
+                    "value": {
+                      "success": false,
+                      "message": "Internal server error",
+                      "status": 500,
+                      "data": null
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       },
@@ -201,9 +403,7 @@
             "bearerAuth": []
           }
         ],
-        "tags": [
-          "Core Values"
-        ],
+        "tags": ["Core Values"],
         "summary": "List all corevalues of the organisation",
         "description": "List all the core values of the specified organisation",
         "operationId": "listCoreValues",
@@ -214,9 +414,7 @@
             "required": true,
             "description": "Defines the media type and version of the API endpoint",
             "schema": {
-              "enum": [
-                "application/vnd.peerly.v1"
-              ],
+              "enum": ["application/vnd.peerly.v1"],
               "type": "string"
             }
           }
@@ -227,16 +425,52 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ListCoreValuesResp"
+                  "$ref": "#/components/schemas/ListCoreValuesResp"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unathorized access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "example-1": {
+                    "summary": "Invalid auth token",
+                    "value": {
+                      "success": false,
+                      "message": "Invalid auth token",
+                      "status": 401,
+                      "data": null
+                    }
                   }
                 }
               }
             }
           },
           "500": {
-            "description": "Internal server error"
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "example-1": {
+                    "summary": "Internal server error",
+                    "value": {
+                      "success": false,
+                      "message": "Internal server error",
+                      "status": 500,
+                      "data": null
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -248,9 +482,7 @@
             "bearerAuth": []
           }
         ],
-        "tags": [
-          "Appreciation"
-        ],
+        "tags": ["Appreciation"],
         "summary": "get appreciation by id",
         "description": "Display Appreciation",
         "parameters": [
@@ -271,9 +503,7 @@
             "required": true,
             "description": "Defines the version of the API endpoint",
             "schema": {
-              "enum": [
-                "application/vnd.peerly.v1"
-              ],
+              "enum": ["application/vnd.peerly.v1"],
               "type": "string"
             }
           }
@@ -362,9 +592,7 @@
             "bearerAuth": []
           }
         ],
-        "tags": [
-          "Appreciation"
-        ],
+        "tags": ["Appreciation"],
         "summary": "Create appreciation",
         "description": "Create Appreciation",
         "requestBody": {
@@ -384,9 +612,7 @@
             "required": true,
             "description": "Defines the version of the API endpoint",
             "schema": {
-              "enum": [
-                "application/vnd.peerly.v1"
-              ],
+              "enum": ["application/vnd.peerly.v1"],
               "type": "string"
             }
           }
@@ -502,9 +728,7 @@
             "bearerAuth": []
           }
         ],
-        "tags": [
-          "Appreciation"
-        ],
+        "tags": ["Appreciation"],
         "summary": "Get appreciation list",
         "description": "Get Appreciation",
         "parameters": [
@@ -514,9 +738,7 @@
             "required": true,
             "description": "Defines the version of the API endpoint",
             "schema": {
-              "enum": [
-                "application/vnd.peerly.v1"
-              ],
+              "enum": ["application/vnd.peerly.v1"],
               "type": "string"
             }
           }
@@ -558,9 +780,7 @@
     },
     "/user/login": {
       "get": {
-        "tags": [
-          "Login"
-        ],
+        "tags": ["Login"],
         "summary": "Login",
         "description": "Login to peerly",
         "parameters": [
@@ -570,9 +790,7 @@
             "required": true,
             "description": "Defines the version of the API endpoint",
             "schema": {
-              "enum": [
-                "application/vnd.peerly.v1"
-              ],
+              "enum": ["application/vnd.peerly.v1"],
               "type": "string"
             }
           },
@@ -596,6 +814,27 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/LoginSuccessResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unathorized access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "example-1": {
+                    "summary": "Invalid auth token",
+                    "value": {
+                      "success": false,
+                      "message": "Invalid auth token",
+                      "status": 401,
+                      "data": null
+                    }
+                  }
                 }
               }
             }
@@ -631,9 +870,7 @@
             "bearerAuth": []
           }
         ],
-        "tags": [
-          "Get user list"
-        ],
+        "tags": ["Get user list"],
         "summary": "Get user list",
         "description": "Get user list",
         "parameters": [
@@ -673,9 +910,7 @@
             "required": true,
             "description": "Defines the version of the API endpoint",
             "schema": {
-              "enum": [
-                "application/vnd.peerly.v1"
-              ],
+              "enum": ["application/vnd.peerly.v1"],
               "type": "string"
             }
           }
@@ -687,6 +922,27 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/GetUserListSuccessResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unathorized access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "example-1": {
+                    "summary": "Invalid auth token",
+                    "value": {
+                      "success": false,
+                      "message": "Invalid auth token",
+                      "status": 401,
+                      "data": null
+                    }
+                  }
                 }
               }
             }
@@ -722,9 +978,7 @@
             "bearerAuth": []
           }
         ],
-        "tags": [
-          "Report Appreciation"
-        ],
+        "tags": ["Report Appreciation"],
         "summary": "Report Appreciation",
         "description": "Report Appreciation",
         "requestBody": {
@@ -754,9 +1008,7 @@
             "required": true,
             "description": "Defines the version of the API endpoint",
             "schema": {
-              "enum": [
-                "application/vnd.peerly.v1"
-              ],
+              "enum": ["application/vnd.peerly.v1"],
               "type": "string"
             }
           }
@@ -768,6 +1020,57 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ReportAppreciationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Report appreciation data is not valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "example-1": {
+                    "summary": "You cannot report an appreciation twice",
+                    "value": {
+                      "success": false,
+                      "message": "You cannot report an appreciation twice",
+                      "status": 400,
+                      "data": null
+                    }
+                  },
+                  "example-2": {
+                    "summary": "You cannot report your own appreciation",
+                    "value": {
+                      "success": false,
+                      "message": "You cannot report your own appreciation",
+                      "status": 400,
+                      "data": null
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unathorized access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "example-1": {
+                    "summary": "Invalid auth token",
+                    "value": {
+                      "success": false,
+                      "message": "Invalid auth token",
+                      "status": 401,
+                      "data": null
+                    }
+                  }
                 }
               }
             }
@@ -803,9 +1106,7 @@
             "bearerAuth": []
           }
         ],
-        "tags": [
-          "Get user profile"
-        ],
+        "tags": ["Get user profile"],
         "summary": "Get user profile",
         "description": "Get user profile",
         "parameters": [
@@ -815,9 +1116,7 @@
             "required": true,
             "description": "Defines the version of the API endpoint",
             "schema": {
-              "enum": [
-                "application/vnd.peerly.v1"
-              ],
+              "enum": ["application/vnd.peerly.v1"],
               "type": "string"
             }
           }
@@ -829,6 +1128,27 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/GetUserProfileResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unathorized access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "example-1": {
+                    "summary": "Invalid auth token",
+                    "value": {
+                      "success": false,
+                      "message": "Invalid auth token",
+                      "status": 401,
+                      "data": null
+                    }
+                  }
                 }
               }
             }
@@ -880,16 +1200,47 @@
           }
         }
       },
+      "UpdateCoreValuesResp": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "example": true
+          },
+          "message": {
+            "example": "Core value updated"
+          },
+          "status_code": {
+            "example": 200
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "parent_id": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      },
       "CreateCoreValues": {
         "type": "object",
         "properties": {
           "name": {
             "type": "string",
-            "example": "Updated core value"
+            "example": "Core value name"
           },
           "description": {
             "type": "string",
-            "example": "updated description"
+            "example": "core value description"
           },
           "parent_core_value_id": {
             "type": "integer",
@@ -901,57 +1252,102 @@
       "CreateCoreValuesResp": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int64"
+          "success": {
+            "type": "boolean"
           },
-          "name": {
+          "message": {
             "type": "string"
           },
-          "description": {
+          "status_code": {
             "type": "string"
           },
-          "parent_core_value_id": {
-            "type": "integer",
-            "format": "int64"
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "parent_core_value_id": {
+                "type": "integer",
+                "format": "int64"
+              }
+            }
           }
         }
       },
       "GetCoreValuesResp": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int64"
+          "success": {
+            "type": "boolean"
           },
-          "name": {
+          "message": {
             "type": "string"
           },
-          "description": {
+          "status_code": {
             "type": "string"
           },
-          "parent_core_value_id": {
-            "type": "integer",
-            "format": "int64"
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "parent_core_value_id": {
+                "type": "integer",
+                "format": "int64"
+              }
+            }
           }
         }
       },
       "ListCoreValuesResp": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int64"
+          "success": {
+            "type": "boolean"
           },
-          "name": {
+          "message": {
             "type": "string"
           },
-          "description": {
+          "status_code": {
             "type": "string"
           },
-          "parent_core_value_id": {
-            "type": "integer",
-            "format": "int64"
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "parent_core_value_id": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            }
           }
         }
       },
