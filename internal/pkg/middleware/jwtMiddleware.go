@@ -2,8 +2,10 @@ package middleware
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"slices"
+	"strings"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
@@ -24,6 +26,9 @@ func JwtAuthMiddleware(next http.Handler, roles []string) http.Handler {
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
+
+		fmt.Println("authtoken: ", authToken)
+		authToken = strings.TrimPrefix(authToken, "Bearer ")
 
 		claims := &dto.Claims{}
 
