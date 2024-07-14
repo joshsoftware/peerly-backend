@@ -47,3 +47,20 @@ type Grade struct {
 	Name   string `db:"name" json:"name"`
 	Points int    `db:"points" json:"points"`
 }
+
+type ActiveUser struct {
+	ID                  int           `db:"id" json:"id"`
+	FirstName           string        `db:"first_name" json:"first_name"`
+	LastName            string        `db:"last_name" json:"last_name"`
+	Email               string        `db:"email" json:"email"`
+	ProfileImageURL     string        `db:"profile_image_url" json:"profile_image_url"`
+	Grade               int           `db:"grade" json:"grade"`
+	Designation         string        `db:"designation" json:"designation"`
+	RoleID              int           `db:"role_id" json:"role_id"`
+	RewardsQuotaBalance int           `db:"rewards_quota_balance" json:"rewards_quota_balance"`
+	BadgeId             int           `db:"badge_id"`
+	BadgeName           string        `db:"badge_name"`
+	AppreciationPoint   int           `db:"appreciation_point"`
+	Status              int           `db:"status" json:"status"`
+	CreatedAt           time.Time     `db:"created_at" json:"created_at"`
+}

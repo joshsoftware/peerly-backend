@@ -178,3 +178,9 @@ func (us *userStore) GetUserList(ctx context.Context, reqData dto.UserListReq) (
 
 	return
 }
+
+func (us *userStore) GetActiveUserList (ctx context.Context,tx repository.Transaction) (activeUsers []repository.ActiveUser,err error){
+	// queryExecutor := appr.InitiateQueryExecutor(tx)
+return []repository.ActiveUser{},nil
+	
+}
