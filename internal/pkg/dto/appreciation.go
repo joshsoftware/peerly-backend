@@ -1,5 +1,7 @@
 package dto
 
+import "github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
+
 type Appreciation struct {
 	ID           int64  `json:"id"`
 	CoreValueID  int    `json:"core_value_id" `
@@ -15,13 +17,14 @@ type Appreciation struct {
 type AppreciationFilter struct {
 	Name      string `json:"sender_name"`
 	SortOrder string `json:"sort_order"`
+	Page      int64  `json:"page"`
+	Limit     int64  `json:"limit"`
 }
 
 type ResponseAppreciation struct {
 	ID                  int    `json:"id"`
 	CoreValueName       string `json:"core_value_name"`
 	Description         string `json:"description"`
-	IsValid             bool   `json:"is_valid"`
 	TotalRewards        int    `json:"total_rewards"`
 	Quarter             string `json:"quarter"`
 	SenderFirstName     string `json:"sender_first_name"`
@@ -36,32 +39,33 @@ type ResponseAppreciation struct {
 	UpdatedAt           int64  `json:"updated_at"`
 }
 
-func (appr *Appreciation)CreateAppreciation() (errorResponse ErrorResponse, valid bool) {
-	fieldErrors := make(map[string]string)
+// Pagination Object
+type Pagination struct {
+	// Next          *int64 `json:"next"`
+	// Previous      *int64 `json:"previous"`
+	// RecordPerPage int64  `json:"record_per_page"`
+	CurrentPage  int64 `json:"current_page"`
+	TotalPage    int64 `json:"page_count"`
+	TotalRecords int64 `json:"total_count"`
+}
+
+type GetAppreciationResponse struct {
+	Appreciations []ResponseAppreciation `json:"appreciations"`
+	MetaData      Pagination             `json:"metadata"`
+}
+
+func (appr *Appreciation) CreateAppreciation() (err error) {
 
 	if appr.CoreValueID <= 0 {
-		fieldErrors["core_value_id"] = "enter valid core value id"
+		return apperrors.InvalidCoreValueID
 	}
 
 	if appr.Description == "" {
-		fieldErrors["description"] = "enter description"
+		return apperrors.DescFieldBlank
 	}
 
 	if appr.Receiver <= 0 {
-		fieldErrors["receiver"] = "enter valid receiver id"
-	}
-
-	if len(fieldErrors) == 0 {
-		valid = true
-		return
-	}
-
-	errorResponse = ErrorResponse{
-		Error: ErrorObject{
-			Code:          "invalid_data",
-			MessageObject: MessageObject{Message: "Please provide valid appreciation data"},
-			Fields:        fieldErrors,
-		},
+		return apperrors.InvalidReceiverID
 	}
 
 	return

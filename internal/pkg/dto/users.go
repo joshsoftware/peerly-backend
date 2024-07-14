@@ -18,7 +18,7 @@ type Designation struct {
 	Name string `json:"name"`
 }
 
-type EmpolyeeDetail struct {
+type EmployeeDetail struct {
 	EmployeeId  string      `json:"employee_id"`
 	Designation Designation `json:"designation"`
 	Grade       string      `json:"grade"`
@@ -27,7 +27,7 @@ type IntranetUserData struct {
 	Id             int            `json:"id"`
 	Email          string         `json:"email"`
 	PublicProfile  PublicProfile  `json:"public_profile"`
-	EmpolyeeDetail EmpolyeeDetail `json:"employee_detail"`
+	EmpolyeeDetail EmployeeDetail `json:"employee_detail"`
 }
 
 type IntranetGetUserDataResp struct {
@@ -35,7 +35,7 @@ type IntranetGetUserDataResp struct {
 }
 
 type GetUserResp struct {
-	Id                 int    `json:"id" db:"id"`
+	Id                 int64  `json:"id" db:"id"`
 	EmployeeId         string `json:"employee_id" db:"employee_id"`
 	FirstName          string `json:"first_name" db:"first_name"`
 	LastName           string `json:"last_name" db:"last_name"`
@@ -71,7 +71,7 @@ type GetIntranetUserDataReq struct {
 }
 
 type Claims struct {
-	Id   int
+	Id   int64
 	Role string
 	jwt.StandardClaims
 }
@@ -91,4 +91,29 @@ type UpdateUserData struct {
 	Grade         string `json:"grade" db:"name"`
 	GradeId       int    `json:"grade_id" db:"grade_id"`
 	Email         string `json:"email" db:"email"`
+}
+
+type GetUserListReq struct {
+	AuthToken string
+	Page      int
+}
+
+type GetUserListResp struct {
+	EmployeeId  string `json:"employee_id" db:"employee_id"`
+	Email       string `json:"email" db:"email"`
+	FirstName   string `json:"first_name" db:"first_name"`
+	LastName    string `json:"last_name" db:"last_name"`
+	Grade       string `json:"grade" db:"name"`
+	Designation string `json:"designation" db:"designation"`
+	ProfileImg  string `json:"profile_image_url" db:"profile_image_url"`
+}
+
+type GetUserListRespData struct {
+	Data []IntranetUserData `json:"data"`
+}
+
+type UserListReq struct {
+	Page    int
+	PerPage int
+	Name    []string
 }

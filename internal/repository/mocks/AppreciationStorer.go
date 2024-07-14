@@ -77,7 +77,7 @@ func (_m *AppreciationStorer) CreateAppreciation(ctx context.Context, tx reposit
 }
 
 // GetAppreciation provides a mock function with given fields: ctx, tx, filter
-func (_m *AppreciationStorer) GetAppreciation(ctx context.Context, tx repository.Transaction, filter dto.AppreciationFilter) ([]repository.AppreciationInfo, error) {
+func (_m *AppreciationStorer) GetAppreciation(ctx context.Context, tx repository.Transaction, filter dto.AppreciationFilter) ([]repository.AppreciationInfo, repository.Pagination, error) {
 	ret := _m.Called(ctx, tx, filter)
 
 	if len(ret) == 0 {
@@ -85,8 +85,9 @@ func (_m *AppreciationStorer) GetAppreciation(ctx context.Context, tx repository
 	}
 
 	var r0 []repository.AppreciationInfo
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, repository.Transaction, dto.AppreciationFilter) ([]repository.AppreciationInfo, error)); ok {
+	var r1 repository.Pagination
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, repository.Transaction, dto.AppreciationFilter) ([]repository.AppreciationInfo, repository.Pagination, error)); ok {
 		return rf(ctx, tx, filter)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, repository.Transaction, dto.AppreciationFilter) []repository.AppreciationInfo); ok {
@@ -97,13 +98,19 @@ func (_m *AppreciationStorer) GetAppreciation(ctx context.Context, tx repository
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, repository.Transaction, dto.AppreciationFilter) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, repository.Transaction, dto.AppreciationFilter) repository.Pagination); ok {
 		r1 = rf(ctx, tx, filter)
 	} else {
-		r1 = ret.Error(1)
+		r1 = ret.Get(1).(repository.Pagination)
 	}
 
-	return r0, r1
+	if rf, ok := ret.Get(2).(func(context.Context, repository.Transaction, dto.AppreciationFilter) error); ok {
+		r2 = rf(ctx, tx, filter)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // GetAppreciationById provides a mock function with given fields: ctx, tx, appreciationId
@@ -134,17 +141,17 @@ func (_m *AppreciationStorer) GetAppreciationById(ctx context.Context, tx reposi
 	return r0, r1
 }
 
-// HandleTransaction provides a mock function with given fields: ctx, tx, incomingErr
-func (_m *AppreciationStorer) HandleTransaction(ctx context.Context, tx repository.Transaction, incomingErr error) error {
-	ret := _m.Called(ctx, tx, incomingErr)
+// HandleTransaction provides a mock function with given fields: ctx, tx, isSuccess
+func (_m *AppreciationStorer) HandleTransaction(ctx context.Context, tx repository.Transaction, isSuccess bool) error {
+	ret := _m.Called(ctx, tx, isSuccess)
 
 	if len(ret) == 0 {
 		panic("no return value specified for HandleTransaction")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, repository.Transaction, error) error); ok {
-		r0 = rf(ctx, tx, incomingErr)
+	if rf, ok := ret.Get(0).(func(context.Context, repository.Transaction, bool) error); ok {
+		r0 = rf(ctx, tx, isSuccess)
 	} else {
 		r0 = ret.Error(0)
 	}

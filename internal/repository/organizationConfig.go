@@ -6,9 +6,9 @@ import (
 )
 
 type OrganizationStorer interface {
-	GetOrganizationConfig(ctx context.Context) (organization OrganizationConfig, err error)
-	UpdateOrganizationCofig(ctx context.Context, reqOrganization dto.OrganizationConfig) (updatedOrganization OrganizationConfig, err error)
-	CreateOrganizationConfig(ctx context.Context, org dto.OrganizationConfig) (createdOrganization OrganizationConfig, err error)
+	GetOrganizationConfig(ctx context.Context, tx Transaction) (organization OrganizationConfig, err error)
+	UpdateOrganizationConfig(ctx context.Context, tx Transaction, reqOrganization dto.OrganizationConfig) (updatedOrganization OrganizationConfig, err error)
+	CreateOrganizationConfig(ctx context.Context, tx Transaction, org dto.OrganizationConfig) (createdOrganization OrganizationConfig, err error)
 }
 
 type OrganizationConfig struct {

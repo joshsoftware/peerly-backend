@@ -6,11 +6,12 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
-	// logger "github.com/sirupsen/logrus"
+	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
+	logger "github.com/sirupsen/logrus"
 )
 
 type service struct {
-	OranizationRepo     repository.OrganizationStorer
+	OrganizationRepo     repository.OrganizationStorer
 }
 
 type Service interface {
@@ -19,16 +20,16 @@ type Service interface {
 	UpdateOrganizationConfig(ctx context.Context, organization dto.OrganizationConfig) (dto.OrganizationConfig, error)
 }
 
-func NewService(oranizationRepo repository.OrganizationStorer) Service {
+func NewService(organizationRepo repository.OrganizationStorer) Service {
 	return &service{
-		OranizationRepo:     oranizationRepo,
+		OrganizationRepo:     organizationRepo,
 	}
 }
 
 
 func (orgSvc *service) GetOrganizationConfig(ctx context.Context) (dto.OrganizationConfig, error) {
 
-	organization, err := orgSvc.OranizationRepo.GetOrganizationConfig(ctx)
+	organization, err := orgSvc.OrganizationRepo.GetOrganizationConfig(ctx,nil)
 	if err != nil {
 		return dto.OrganizationConfig{}, err
 	}
@@ -40,23 +41,20 @@ func (orgSvc *service) GetOrganizationConfig(ctx context.Context) (dto.Organizat
 
 func (orgSvc *service) CreateOrganizationConfig(ctx context.Context, organizationConfig dto.OrganizationConfig) (dto.OrganizationConfig, error) {
 
-	userID := ctx.Value("userId")
-
-	var userIDInt64 int64
-	switch v := userID.(type) {
-	case int:
-    	userIDInt64 = int64(v)
-	default:
-    return dto.OrganizationConfig{}, apperrors.UserNotFound
+	data := ctx.Value(constants.UserId)
+	userID, ok := data.(int64)
+	if !ok {
+		logger.Error("err in parsing userid from token")
+		return dto.OrganizationConfig{},apperrors.InternalServer
 	}
-	organizationConfig.CreatedBy = userIDInt64
-	organizationConfig.UpdatedBy = userIDInt64
+	organizationConfig.CreatedBy = userID
+	organizationConfig.UpdatedBy = userID
 
-	_ ,err := orgSvc.OranizationRepo.GetOrganizationConfig(ctx);
-	if err != apperrors.OrganizationNotFound {
+	_ ,err := orgSvc.OrganizationRepo.GetOrganizationConfig(ctx,nil);
+	if err != apperrors.OrganizationConfigNotFound {
 		return dto.OrganizationConfig{},apperrors.OrganizationConfigAlreadyPresent
 	}
-	createdOrganization, err := orgSvc.OranizationRepo.CreateOrganizationConfig(ctx, organizationConfig)
+	createdOrganization, err := orgSvc.OrganizationRepo.CreateOrganizationConfig(ctx,nil, organizationConfig)
 	if err != nil {
 		return dto.OrganizationConfig{}, err
 	}
@@ -66,23 +64,20 @@ func (orgSvc *service) CreateOrganizationConfig(ctx context.Context, organizatio
 
 func (orgSvc *service) UpdateOrganizationConfig(ctx context.Context, organizationConfig dto.OrganizationConfig) (dto.OrganizationConfig, error) {
 	
-	userID := ctx.Value("userId")
-
-	var userIDInt64 int64
-	switch v := userID.(type) {
-	case int:
-    	userIDInt64 = int64(v)
-	default:
-    return dto.OrganizationConfig{}, apperrors.UserNotFound
+	data := ctx.Value(constants.UserId)
+	userID, ok := data.(int64)
+	if !ok {
+		logger.Error("err in parsing userid from token")
+		return dto.OrganizationConfig{},apperrors.InternalServer
 	}
-	organizationConfig.UpdatedBy = userIDInt64
+	organizationConfig.UpdatedBy = userID
 
-	_ ,err := orgSvc.OranizationRepo.GetOrganizationConfig(ctx);
+	_ ,err := orgSvc.OrganizationRepo.GetOrganizationConfig(ctx,nil);
 	if err != nil {
 		return dto.OrganizationConfig{},err
 	}
 
-	updatedOrganization, err := orgSvc.OranizationRepo.UpdateOrganizationCofig(ctx, organizationConfig)
+	updatedOrganization, err := orgSvc.OrganizationRepo.UpdateOrganizationConfig(ctx,nil, organizationConfig)
 	if err != nil {
 		return dto.OrganizationConfig{}, err
 	}

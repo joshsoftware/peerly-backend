@@ -7,3 +7,12 @@ var AppreciationColumns = []string{
 var CreateAppreciationColumns = []string{
 	"core_value_id", "description","quarter","sender","receiver",
 }
+
+var OrgConfigColumns = []string{
+	"id",
+	"reward_multiplier",
+	"reward_quota_renewal_frequency",
+	"timezone",
+	"created_by",
+	"updated_by",
+}

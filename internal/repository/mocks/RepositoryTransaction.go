@@ -46,17 +46,17 @@ func (_m *RepositoryTransaction) BeginTx(ctx context.Context) (repository.Transa
 	return r0, r1
 }
 
-// HandleTransaction provides a mock function with given fields: ctx, tx, incomingErr
-func (_m *RepositoryTransaction) HandleTransaction(ctx context.Context, tx repository.Transaction, incomingErr error) error {
-	ret := _m.Called(ctx, tx, incomingErr)
+// HandleTransaction provides a mock function with given fields: ctx, tx, isSuccess
+func (_m *RepositoryTransaction) HandleTransaction(ctx context.Context, tx repository.Transaction, isSuccess bool) error {
+	ret := _m.Called(ctx, tx, isSuccess)
 
 	if len(ret) == 0 {
 		panic("no return value specified for HandleTransaction")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, repository.Transaction, error) error); ok {
-		r0 = rf(ctx, tx, incomingErr)
+	if rf, ok := ret.Get(0).(func(context.Context, repository.Transaction, bool) error); ok {
+		r0 = rf(ctx, tx, isSuccess)
 	} else {
 		r0 = ret.Error(0)
 	}

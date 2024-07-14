@@ -3,6 +3,7 @@ package validation
 import (
 
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
+	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 )
 
 // map with all the time zones
@@ -33,61 +34,29 @@ var timeZones = map[string]bool{
 	"HST":   true, "CAT":   true, "NT":    true, "IDLW":  true,
 }
 
-func OrgValidate(org dto.OrganizationConfig) (errorResponse map[string]dto.ErrorResponse, valid bool) {
-	fieldErrors := make(map[string]string)
+func OrgValidate(org dto.OrganizationConfig) (err error)  {
 
 	if org.RewardMultiplier <= 0 {
-		fieldErrors["reward_multiplier"] = "Please enter reward multiplier greater than 0"
+		return apperrors.InvalidRewardMultiplier
 	}
 
 	if org.RewardQuotaRenewalFrequency <= 0  {
-		fieldErrors["reward_quota_renewal_frequency"] = "Please enter valid reward renewal frequency"
+		return apperrors.InvalidRewardQuotaRenewalFrequency
 	}
 
 	if !isTimeZoneValid(org.Timezone) {
-		fieldErrors["timezone"] = "Please enter valid timezone"
-	}
-
-	if len(fieldErrors) == 0 {
-		valid = true
-		return
-	}
-
-	errorResponse = map[string]dto.ErrorResponse{
-		"error": {
-			Error: dto.ErrorObject{
-				Code:          "invalid_data",
-				MessageObject: dto.MessageObject{Message: "Please provide valid organization data"},
-				Fields:        fieldErrors,
-			},
-		},
+		return apperrors.InvalidTimezone
 	}
 
 	return
 }
 
-func OrgUpdateValidate(org dto.OrganizationConfig) (errorResponse map[string]dto.ErrorResponse, valid bool) {
-	fieldErrors := make(map[string]string)
+func OrgUpdateValidate(org dto.OrganizationConfig) (err error)  {
 
 	if org.Timezone != "" {
 		if !isTimeZoneValid(org.Timezone) {
-			fieldErrors["timezone"] = "Please enter valid timezone"
+			return apperrors.InvalidTimezone
 		}
-	}
-
-	if len(fieldErrors) == 0 {
-		valid = true
-		return
-	}
-
-	errorResponse = map[string]dto.ErrorResponse{
-		"error": {
-			Error: dto.ErrorObject{
-				Code:          "invalid_data",
-				MessageObject: dto.MessageObject{Message: "Please provide valid organization data"},
-				Fields:        fieldErrors,
-			},
-		},
 	}
 
 	return

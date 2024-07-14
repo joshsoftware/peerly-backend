@@ -43,24 +43,22 @@ func (_m *Service) CreateAppreciation(ctx context.Context, apprecication dto.App
 }
 
 // GetAppreciation provides a mock function with given fields: ctx, filter
-func (_m *Service) GetAppreciation(ctx context.Context, filter dto.AppreciationFilter) ([]dto.ResponseAppreciation, error) {
+func (_m *Service) GetAppreciation(ctx context.Context, filter dto.AppreciationFilter) (dto.GetAppreciationResponse, error) {
 	ret := _m.Called(ctx, filter)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetAppreciation")
 	}
 
-	var r0 []dto.ResponseAppreciation
+	var r0 dto.GetAppreciationResponse
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, dto.AppreciationFilter) ([]dto.ResponseAppreciation, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, dto.AppreciationFilter) (dto.GetAppreciationResponse, error)); ok {
 		return rf(ctx, filter)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, dto.AppreciationFilter) []dto.ResponseAppreciation); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, dto.AppreciationFilter) dto.GetAppreciationResponse); ok {
 		r0 = rf(ctx, filter)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]dto.ResponseAppreciation)
-		}
+		r0 = ret.Get(0).(dto.GetAppreciationResponse)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, dto.AppreciationFilter) error); ok {
