@@ -20,6 +20,36 @@ const (
 	InternalServer       = CustomError("Internal server error")
 	FailedToCreateDriver = CustomError("failure to create driver obj")
 	MigrationFailure     = CustomError("migrate failure")
+	InvalidId                  = CustomError("Invalid id")
+	InternalServerError        = CustomError("Internal server error")
+	JSONParsingErrorReq        = CustomError("error in parsing request in json")
+	JSONParsingErrorResp       = CustomError("error in parsing response in json")
+	OutOfRange                 = CustomError("request value is out of range")
+	OrganizationNotFound       = CustomError("organization of given id not found")
+	InvalidContactEmail        = CustomError("Contact email is already present")
+	InvalidDomainName          = CustomError("Domain name is already present")
+	InvalidCoreValueData       = CustomError("Invalid corevalue data")
+	TextFieldBlank             = CustomError("Text field cannot be blank")
+	DescFieldBlank             = CustomError("Description cannot be blank")
+	InvalidParentValue         = CustomError("Invalid parent core value")
+	InvalidOrgId               = CustomError("Invalid organisation")
+	UniqueCoreValue            = CustomError("Choose a unique coreValue name")
+	InvalidAuthToken           = CustomError("Invalid Auth token")
+	IntranetValidationFailed   = CustomError("Intranet Validation Failed")
+	UserNotFound               = CustomError("User not found")
+	InvalidIntranetData        = CustomError("Invalid data recieved from intranet")
+	GradeNotFound              = CustomError("Grade not found")
+	AppreciationNotFound       = CustomError("appreciation not found")
+	RoleUnathorized            = CustomError("Role unauthorized")
+	PageParamNotFound          = CustomError("Page parameter not found")
+	RepeatedUser               = CustomError("Repeated user")
+	SelfAppreciationError      = CustomError("user cannot give appreciation to ourself")
+	UserAlreadyPresent         = CustomError("user already present")
+	RewardAlreadyPresent       = CustomError("reward already present")
+	RewardQuotaIsNotSufficient = CustomError("reward quota is not sufficient")
+	InvalidRewardPoint         = CustomError("invalid reward point")
+	SelfRewardError				= CustomError("user cannot give reward to ourself")
+	SelfAppreciationRewardError = CustomError("user cannot give reward to his posted appreciaiton ")
 )
 
 // ErrKeyNotSet - Returns error object specific to the key value passed in
@@ -30,10 +60,19 @@ func ErrKeyNotSet(key string) (err error) {
 // GetHTTPStatusCode returns status code according to customerror and default returns InternalServer error
 func GetHTTPStatusCode(err error) int {
 	switch err {
-	case InternalServer, FailedToCreateDriver, MigrationFailure:
+	case InternalServerError, JSONParsingErrorResp, InvalidIntranetData:
 		return http.StatusInternalServerError
-	case BadRequest:
+	case OrganizationNotFound, InvalidCoreValueData, InvalidParentValue, InvalidOrgId, GradeNotFound, AppreciationNotFound, PageParamNotFound:
+		return http.StatusNotFound
+	case BadRequest, InvalidId, JSONParsingErrorReq, TextFieldBlank, DescFieldBlank, UniqueCoreValue, IntranetValidationFailed, RepeatedUser, SelfAppreciationError,InvalidRewardPoint:
 		return http.StatusBadRequest
+	case InvalidContactEmail, InvalidDomainName, UserAlreadyPresent, RewardAlreadyPresent:
+		return http.StatusConflict
+	case InvalidAuthToken, RoleUnathorized:
+		return http.StatusUnauthorized
+	case RewardQuotaIsNotSufficient:
+		return http.StatusUnprocessableEntity
+
 	default:
 		return http.StatusInternalServerError
 	}

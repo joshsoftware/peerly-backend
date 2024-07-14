@@ -4,16 +4,21 @@ package main
 // @APIDescription Main API for Microservices in Go!
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"net/http"
 
 	"os"
 	"strconv"
 
+	"github.com/go-co-op/gocron/v2"
 	"github.com/joshsoftware/peerly-backend/internal/api"
 	"github.com/joshsoftware/peerly-backend/internal/app"
+	"github.com/joshsoftware/peerly-backend/internal/app/cronjob"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/config"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
+	"github.com/rs/cors"
 	logger "github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 	"github.com/urfave/negroni"
@@ -79,6 +84,8 @@ func main() {
 
 func startApp() (err error) {
 
+	// Context for main function
+	ctx := context.Background()
 	logger.Info("Starting Peerly Application...")
 	defer logger.Info("Shutting Down Peerly Application...")
 	//initialize database
@@ -88,14 +95,32 @@ func startApp() (err error) {
 		return
 	}
 
+	//cors
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowCredentials: true,
+		AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions},
+		AllowedHeaders:   []string{"*"},
+	})
+
 	//initialize service dependencies
 	services := app.NewService(dbInstance)
 
+	// Initializing Cron Job
+	scheduler, err := gocron.NewScheduler()
+	if err != nil {
+		logger.Error(ctx, "scheduler creation failed with error: %s", err.Error())
+		return
+	}
+
+	cronjob.InitializeJobs(services.AppreciationService,scheduler)
+	defer scheduler.Shutdown()
 	//initialize router
 	router := api.NewRouter(services)
 
 	// init web server
 	server := negroni.Classic()
+	server.Use(c)
 	server.UseHandler(router)
 
 	port := config.AppPort()
