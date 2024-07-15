@@ -29,9 +29,10 @@ type Service interface {
 	LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.LoginUserResp, error)
 	RegisterUser(ctx context.Context, u dto.IntranetUserData) (user dto.GetUserResp, err error)
 	GetUserListIntranet(ctx context.Context, reqData dto.GetUserListReq) (data []dto.IntranetUserData, err error)
-	GetUserList(ctx context.Context, reqData dto.UserListReq) (users []dto.GetUserListResp, err error)
 	UpdateRewardQuota(ctx context.Context)(err error)
 	GetActiveUserList(ctx context.Context) ([]dto.ActiveUser,error)
+	GetUserList(ctx context.Context, reqData dto.UserListReq) (resp dto.UserListWithTotalCount, err error)
+	GetUserById(ctx context.Context) (user dto.GetUserByIdResp, err error)
 }
 
 func NewService(userRepo repository.UserStorer) Service {
@@ -287,7 +288,7 @@ func (us *service) GetUserListIntranet(ctx context.Context, reqData dto.GetUserL
 	return
 }
 
-func (us *service) GetUserList(ctx context.Context, reqData dto.UserListReq) (users []dto.GetUserListResp, err error) {
+func (us *service) GetUserList(ctx context.Context, reqData dto.UserListReq) (resp dto.UserListWithTotalCount, err error) {
 
 	var names []string
 	for _, data := range reqData.Name {
@@ -296,7 +297,45 @@ func (us *service) GetUserList(ctx context.Context, reqData dto.UserListReq) (us
 
 	reqData.Name = names
 
-	users, err = us.userRepo.GetUserList(ctx, reqData)
+	totalCount, err := us.userRepo.GetTotalUserCount(ctx, reqData)
+	if err != nil {
+		return
+	}
+
+	users, err := us.userRepo.GetUserList(ctx, reqData)
+	if err != nil {
+		return
+	}
+
+	resp.UserList = users
+	resp.TotalCount = totalCount
+
+	return
+
+}
+
+func (us *service) GetUserById(ctx context.Context) (user dto.GetUserByIdResp, err error) {
+
+	id := ctx.Value(constants.UserId)
+	fmt.Printf("userId: %T", id)
+	userId, ok := id.(int64)
+	if !ok {
+		logger.Error("Error in typecasting user id")
+		err = apperrors.InternalServerError
+		return
+	}
+
+	quaterTimeStamp := GetQuarterStartUnixTime()
+
+	reqData := dto.GetUserByIdReq{
+		UserId:          userId,
+		QuaterTimeStamp: quaterTimeStamp,
+	}
+
+	user, err = us.userRepo.GetUserById(ctx, reqData)
+	if err != nil {
+		return
+	}
 
 	return
 }
@@ -316,4 +355,10 @@ func (us *service) GetActiveUserList(ctx context.Context) ([]dto.ActiveUser,erro
 func (us *service) UpdateRewardQuota(ctx context.Context)(error){
 	err := us.userRepo.UpdateRewardQuota(ctx,nil)
 	return err
+}
+func GetQuarterStartUnixTime() int64 {
+	// Example function to get the Unix timestamp of the start of the quarter
+	now := time.Now()
+	quarterStart := time.Date(now.Year(), (now.Month()-1)/3*3+1, 1, 0, 0, 0, 0, time.UTC)
+	return quarterStart.Unix() * 1000 // convert to milliseconds
 }

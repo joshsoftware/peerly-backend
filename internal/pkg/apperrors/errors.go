@@ -50,6 +50,8 @@ const (
 	InvalidRewardPoint         = CustomError("invalid reward point")
 	SelfRewardError				= CustomError("user cannot give reward to ourself")
 	SelfAppreciationRewardError = CustomError("user cannot give reward to his posted appreciaiton ")
+	CannotReportOwnAppreciation = CustomError("You cannot report your own appreciations")
+	RepeatedReport              = CustomError("You cannot report an appreciation twice")
 )
 
 // ErrKeyNotSet - Returns error object specific to the key value passed in
@@ -64,7 +66,7 @@ func GetHTTPStatusCode(err error) int {
 		return http.StatusInternalServerError
 	case OrganizationNotFound, InvalidCoreValueData, InvalidParentValue, InvalidOrgId, GradeNotFound, AppreciationNotFound, PageParamNotFound:
 		return http.StatusNotFound
-	case BadRequest, InvalidId, JSONParsingErrorReq, TextFieldBlank, DescFieldBlank, UniqueCoreValue, IntranetValidationFailed, RepeatedUser, SelfAppreciationError,InvalidRewardPoint:
+	case BadRequest, InvalidId, JSONParsingErrorReq, TextFieldBlank, DescFieldBlank, UniqueCoreValue, IntranetValidationFailed, RepeatedUser, SelfAppreciationError,InvalidRewardPoint,CannotReportOwnAppreciation, RepeatedReport:
 		return http.StatusBadRequest
 	case InvalidContactEmail, InvalidDomainName, UserAlreadyPresent, RewardAlreadyPresent:
 		return http.StatusConflict

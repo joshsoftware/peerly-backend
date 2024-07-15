@@ -72,27 +72,39 @@ func (_m *Service) GetIntranetUserData(ctx context.Context, req dto.GetIntranetU
 	return r0, r1
 }
 
+// GetUserById provides a mock function with given fields: ctx
+func (_m *Service) GetUserById(ctx context.Context) (dto.GetUserByIdResp, error) {
+	ret := _m.Called(ctx)
+
+	var r0 dto.GetUserByIdResp
+	if rf, ok := ret.Get(0).(func(context.Context) dto.GetUserByIdResp); ok {
+		r0 = rf(ctx)
+	} else {
+		r0 = ret.Get(0).(dto.GetUserByIdResp)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetUserList provides a mock function with given fields: ctx, reqData
-func (_m *Service) GetUserList(ctx context.Context, reqData dto.UserListReq) ([]dto.GetUserListResp, error) {
+func (_m *Service) GetUserList(ctx context.Context, reqData dto.UserListReq) (dto.UserListWithTotalCount, error) {
 	ret := _m.Called(ctx, reqData)
 
-	if len(ret) == 0 {
-		panic("no return value specified for GetUserList")
-	}
-
-	var r0 []dto.GetUserListResp
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, dto.UserListReq) ([]dto.GetUserListResp, error)); ok {
-		return rf(ctx, reqData)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, dto.UserListReq) []dto.GetUserListResp); ok {
+	var r0 dto.UserListWithTotalCount
+	if rf, ok := ret.Get(0).(func(context.Context, dto.UserListReq) dto.UserListWithTotalCount); ok {
 		r0 = rf(ctx, reqData)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]dto.GetUserListResp)
-		}
+		r0 = ret.Get(0).(dto.UserListWithTotalCount)
 	}
 
+	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, dto.UserListReq) error); ok {
 		r1 = rf(ctx, reqData)
 	} else {
