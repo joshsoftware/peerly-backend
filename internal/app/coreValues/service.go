@@ -2,7 +2,6 @@ package corevalues
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
@@ -143,7 +142,7 @@ func (cs *service) UpdateCoreValue(ctx context.Context, coreValueID string, reqD
 func (cs *service) validateParentCoreValue(ctx context.Context, coreValueID int64) (ok bool) {
 	coreValue, err := cs.coreValuesRepo.GetCoreValue(ctx, coreValueID)
 	if err != nil {
-		logger.Error(fmt.Sprintf("parent core value id not present, err: %s", err.Error()))
+		logger.Errorf("parent core value id not present, err: %s", err.Error())
 		return
 	}
 
