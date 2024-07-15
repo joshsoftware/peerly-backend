@@ -4,10 +4,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
-type LoginReq struct {
-	Authtoken string `json:"authtoken"`
-}
-
 type PublicProfile struct {
 	ProfileImgUrl string `json:"profile_image_url"`
 	FirstName     string `json:"first_name"`
@@ -34,26 +30,18 @@ type IntranetGetUserDataResp struct {
 	Data IntranetUserData `json:"data"`
 }
 
-type GetUserResp struct {
-	Id                 int    `json:"id" db:"id"`
-	EmployeeId         string `json:"employee_id" db:"employee_id"`
-	FirstName          string `json:"first_name" db:"first_name"`
-	LastName           string `json:"last_name" db:"last_name"`
-	Email              string `json:"email" db:"email"`
-	ProfileImgUrl      string `json:"profile_image_url" db:"profile_image_url"`
-	RoleId             int    `json:"role_id" db:"role_id"`
-	RewardQuotaBalance int    `json:"reward_quota_balance" db:"reward_quota_balance"`
-	Designation        string `json:"designation" db:"designation"`
-	GradeId            int    `json:"grade_id" db:"grade_id"`
-	Grade              string `json:"grade" db:"name"`
-	CreatedAt          int64  `db:"created_at" json:"created_at"`
-}
-
-type RegisterUser struct {
-	User               IntranetUserData
-	RoleId             int `json:"role_id" db:"role_id"`
-	RewardQuotaBalance int `json:"reward_quota_balance" db:"reward_quota_balance"`
-	GradeId            int `json:"grade_id" db:"grade_id"`
+type User struct {
+	Id                 int    `json:"id"`
+	EmployeeId         string `json:"employee_id"`
+	FirstName          string `json:"first_name"`
+	LastName           string `json:"last_name"`
+	Email              string `json:"email"`
+	ProfileImgUrl      string `json:"profile_image_url"`
+	RoleId             int    `json:"role_id"`
+	RewardQuotaBalance int    `json:"reward_quota_balance"`
+	Designation        string `json:"designation"`
+	GradeId            int    `json:"grade_id"`
+	CreatedAt          int64  `json:"created_at"`
 }
 
 type ValidateResp struct {
@@ -77,35 +65,13 @@ type Claims struct {
 }
 
 type LoginUserResp struct {
-	User           GetUserResp
+	User           User
 	NewUserCreated bool
 	AuthToken      string
 }
-
-type UpdateUserData struct {
-	EmployeeId    string `json:"employee_id" db:"employee_id"`
-	FirstName     string `json:"first_name" db:"first_name"`
-	LastName      string `json:"last_name" db:"last_name"`
-	ProfileImgUrl string `json:"profile_image_url" db:"profile_image_url"`
-	Designation   string `json:"designation" db:"designation"`
-	Grade         string `json:"grade" db:"name"`
-	GradeId       int    `json:"grade_id" db:"grade_id"`
-	Email         string `json:"email" db:"email"`
-}
-
 type GetUserListReq struct {
 	AuthToken string
 	Page      int
-}
-
-type GetUserListResp struct {
-	EmployeeId  string `json:"employee_id"`
-	Email       string `json:"email"`
-	FirstName   string `json:"first_name"`
-	LastName    string `json:"last_name"`
-	Grade       string `json:"grade"`
-	Designation string `json:"designation"`
-	ProfileImg  string `json:"profile_img_url"`
 }
 
 type GetUserListRespData struct {

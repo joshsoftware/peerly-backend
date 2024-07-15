@@ -26,7 +26,7 @@ type Service interface {
 	ValidatePeerly(ctx context.Context, authToken string) (data dto.ValidateResp, err error)
 	GetIntranetUserData(ctx context.Context, req dto.GetIntranetUserDataReq) (data dto.IntranetUserData, err error)
 	LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.LoginUserResp, error)
-	RegisterUser(ctx context.Context, u dto.IntranetUserData) (user dto.GetUserResp, err error)
+	RegisterUser(ctx context.Context, u dto.IntranetUserData) (user dto.User, err error)
 	GetUserListIntranet(ctx context.Context, reqData dto.GetUserListReq) (data []dto.IntranetUserData, err error)
 }
 
@@ -120,20 +120,6 @@ func (us *service) GetIntranetUserData(ctx context.Context, req dto.GetIntranetU
 func (us *service) LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.LoginUserResp, error) {
 	var resp dto.LoginUserResp
 	resp.NewUserCreated = false
-	// user, err := us.userRepo.GetUserByEmail(ctx, u.Email)
-	// if err == apperrors.InternalServerError {
-	// 	return resp, err
-	// }
-
-	// if err == apperrors.UserNotFound {
-
-	// 	user, err = us.RegisterUser(ctx, u)
-	// 	if err != nil {
-	// 		return resp, err
-	// 	}
-
-	// 	resp.NewUserCreated = true
-	// }
 
 	user, err := us.RegisterUser(ctx, u)
 	if err != nil && err != apperrors.RepeatedUser {
@@ -145,24 +131,22 @@ func (us *service) LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.L
 	}
 
 	//sync user data
-	syncNeeded, dataToBeUpdated := syncData(u, user)
+	syncNeeded, dataToBeUpdated := us.syncData(ctx, u, user)
 	if syncNeeded {
-
-		grade, err := us.userRepo.GetGradeByName(ctx, dataToBeUpdated.Grade)
-		if err != nil {
-			return resp, err
-		}
-		dataToBeUpdated.GradeId = grade.Id
 
 		err = us.userRepo.SyncData(ctx, dataToBeUpdated)
 		if err != nil {
+			logger.Error(err.Error())
 			err = apperrors.InternalServerError
 			return resp, err
 		}
-		user, err = us.userRepo.GetUserByEmail(ctx, u.Email)
+
+		dbResp, err := us.userRepo.GetUserByEmail(ctx, u.Email)
 		if err == apperrors.InternalServerError {
 			return resp, err
 		}
+
+		user = mapUserDbToService(dbResp)
 
 	}
 
@@ -196,9 +180,9 @@ func (us *service) LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.L
 
 }
 
-func (us *service) RegisterUser(ctx context.Context, u dto.IntranetUserData) (user dto.GetUserResp, err error) {
+func (us *service) RegisterUser(ctx context.Context, u dto.IntranetUserData) (user dto.User, err error) {
 
-	user, err = us.userRepo.GetUserByEmail(ctx, u.Email)
+	_, err = us.userRepo.GetUserByEmail(ctx, u.Email)
 	if err == apperrors.InternalServerError || err == nil {
 		err = apperrors.RepeatedUser
 		return
@@ -213,6 +197,7 @@ func (us *service) RegisterUser(ctx context.Context, u dto.IntranetUserData) (us
 	//reward_multiplier from organization config
 	reward_multiplier, err := us.userRepo.GetRewardMultiplier(ctx)
 	if err != nil {
+		logger.Error(err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
@@ -221,22 +206,26 @@ func (us *service) RegisterUser(ctx context.Context, u dto.IntranetUserData) (us
 	//get role by name
 	roleId, err := us.userRepo.GetRoleByName(ctx, constants.UserRole)
 	if err != nil {
+		logger.Error(err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
 
-	var userData dto.RegisterUser
-	userData.User = u
-	userData.GradeId = grade.Id
-	userData.RewardQuotaBalance = reward_quota_balance
-	userData.RoleId = roleId
+	svcData := mapIntranetUserDataToSvcUser(u)
+
+	svcData.GradeId = grade.Id
+	svcData.RewardQuotaBalance = reward_quota_balance
+	svcData.RoleId = roleId
 
 	//register user
-	user, err = us.userRepo.CreateNewUser(ctx, userData)
+	dbResp, err := us.userRepo.CreateNewUser(ctx, svcData)
 	if err != nil {
+		logger.Error(err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
+
+	user = mapUserDbToService(dbResp)
 
 	return
 }
@@ -281,4 +270,49 @@ func (us *service) GetUserListIntranet(ctx context.Context, reqData dto.GetUserL
 
 	data = respData.Data
 	return
+}
+
+func (us *service) syncData(ctx context.Context, intranetUserData dto.IntranetUserData, peerlyUserData dto.User) (syncNeeded bool, dataToBeUpdated dto.User) {
+	syncNeeded = false
+	grade, err := us.userRepo.GetGradeByName(ctx, intranetUserData.EmpolyeeDetail.Grade)
+	if err != nil {
+		return
+	}
+
+	if intranetUserData.PublicProfile.FirstName != peerlyUserData.FirstName || intranetUserData.PublicProfile.LastName != peerlyUserData.LastName || intranetUserData.PublicProfile.ProfileImgUrl != peerlyUserData.ProfileImgUrl || intranetUserData.EmpolyeeDetail.Designation.Name != peerlyUserData.Designation || grade.Id != peerlyUserData.GradeId {
+		syncNeeded = true
+		dataToBeUpdated.FirstName = intranetUserData.PublicProfile.FirstName
+		dataToBeUpdated.LastName = intranetUserData.PublicProfile.LastName
+		dataToBeUpdated.ProfileImgUrl = intranetUserData.PublicProfile.ProfileImgUrl
+		dataToBeUpdated.Designation = intranetUserData.EmpolyeeDetail.Designation.Name
+		dataToBeUpdated.GradeId = grade.Id
+		dataToBeUpdated.Email = intranetUserData.Email
+	}
+	return
+}
+
+func mapUserDbToService(dbStruct repository.User) (svcStruct dto.User) {
+	svcStruct.Id = dbStruct.Id
+	svcStruct.EmployeeId = dbStruct.EmployeeId
+	svcStruct.FirstName = dbStruct.FirstName
+	svcStruct.LastName = dbStruct.LastName
+	svcStruct.Email = dbStruct.Email
+	svcStruct.ProfileImgUrl = dbStruct.ProfileImageURL
+	svcStruct.RoleId = dbStruct.RoleID
+	svcStruct.RewardQuotaBalance = dbStruct.RewardsQuotaBalance
+	svcStruct.Designation = dbStruct.Designation
+	svcStruct.GradeId = dbStruct.GradeId
+	svcStruct.CreatedAt = dbStruct.CreatedAt
+
+	return svcStruct
+}
+
+func mapIntranetUserDataToSvcUser(intranetData dto.IntranetUserData) (svcData dto.User) {
+	svcData.Email = intranetData.Email
+	svcData.EmployeeId = intranetData.EmpolyeeDetail.EmployeeId
+	svcData.ProfileImgUrl = intranetData.PublicProfile.ProfileImgUrl
+	svcData.FirstName = intranetData.PublicProfile.FirstName
+	svcData.LastName = intranetData.PublicProfile.LastName
+	svcData.Designation = intranetData.EmpolyeeDetail.Designation.Name
+	return svcData
 }

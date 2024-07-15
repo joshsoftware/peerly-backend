@@ -12,10 +12,6 @@ import (
 	logger "github.com/sirupsen/logrus"
 )
 
-var (
-	sq = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
-)
-
 var CoreValueColumns = []string{"id", "name", "description", "parent_core_value_id"}
 
 type coreValueStore struct {
@@ -31,7 +27,7 @@ func NewCoreValueRepo(db *sqlx.DB) repository.CoreValueStorer {
 }
 
 func (cs *coreValueStore) ListCoreValues(ctx context.Context) (coreValues []repository.CoreValue, err error) {
-	queryBuilder := sq.Select(CoreValueColumns...).From(cs.TableName)
+	queryBuilder := repository.Sq.Select(CoreValueColumns...).From(cs.TableName)
 	listCoreValuesQuery, _, err := queryBuilder.ToSql()
 	if err != nil {
 		err = fmt.Errorf("error in generating squirrel query, err: %s", err.Error())
@@ -52,7 +48,7 @@ func (cs *coreValueStore) ListCoreValues(ctx context.Context) (coreValues []repo
 }
 
 func (cs *coreValueStore) GetCoreValue(ctx context.Context, coreValueID int64) (coreValue repository.CoreValue, err error) {
-	queryBuilder := sq.
+	queryBuilder := repository.Sq.
 		Select(CoreValueColumns...).
 		From(cs.TableName).
 		Where(squirrel.Eq{"id": coreValueID})
@@ -81,7 +77,7 @@ func (cs *coreValueStore) GetCoreValue(ctx context.Context, coreValueID int64) (
 
 func (cs *coreValueStore) CreateCoreValue(ctx context.Context, coreValue dto.CreateCoreValueReq) (resp repository.CoreValue, err error) {
 
-	queryBuilder := sq.Insert(cs.TableName).Columns(CoreValueColumns[1:]...).Values(coreValue.Name, coreValue.Description, coreValue.ParentCoreValueID).Suffix("RETURNING id, name, description, parent_core_value_id")
+	queryBuilder := repository.Sq.Insert(cs.TableName).Columns(CoreValueColumns[1:]...).Values(coreValue.Name, coreValue.Description, coreValue.ParentCoreValueID).Suffix("RETURNING id, name, description, parent_core_value_id")
 
 	createCoreValueQuery, args, err := queryBuilder.ToSql()
 	if err != nil {
@@ -104,7 +100,7 @@ func (cs *coreValueStore) CreateCoreValue(ctx context.Context, coreValue dto.Cre
 }
 
 func (cs *coreValueStore) UpdateCoreValue(ctx context.Context, updateReq dto.UpdateQueryRequest) (resp repository.CoreValue, err error) {
-	queryBuilder := sq.Update(cs.TableName).
+	queryBuilder := repository.Sq.Update(cs.TableName).
 		Set("name", updateReq.Name).
 		Set("description", updateReq.Description).
 		Where(squirrel.Eq{"id": updateReq.Id}).
@@ -133,7 +129,7 @@ func (cs *coreValueStore) CheckUniqueCoreVal(ctx context.Context, name string) (
 
 	isUnique = false
 	resp := []int64{}
-	queryBuilder := sq.Select("id").
+	queryBuilder := repository.Sq.Select("id").
 		From(cs.TableName).
 		Where(squirrel.Like{"name": name})
 

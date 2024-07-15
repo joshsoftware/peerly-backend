@@ -44,19 +44,18 @@ func TestLoginUser(t *testing.T) {
 				},
 			},
 			setup: func(userMock *mocks.UserStorer) {
-				userMock.On("GetUserByEmail", mock.Anything, mock.Anything).Return(dto.GetUserResp{
-					Id:                 1,
-					EmployeeId:         "26",
-					FirstName:          "sharyu",
-					LastName:           "marwadi",
-					Email:              "sharyu@josh.com",
-					ProfileImgUrl:      "image url",
-					RoleId:             1,
-					RewardQuotaBalance: 10,
-					Designation:        "Intern",
-					GradeId:            1,
-					Grade:              "J12",
-					CreatedAt:          0,
+				userMock.On("GetUserByEmail", mock.Anything, mock.Anything).Return(repository.User{
+					Id:                  1,
+					EmployeeId:          "26",
+					FirstName:           "sharyu",
+					LastName:            "marwadi",
+					Email:               "sharyu@josh.com",
+					ProfileImageURL:     "image url",
+					RoleID:              1,
+					RewardsQuotaBalance: 10,
+					Designation:         "Intern",
+					GradeId:             1,
+					CreatedAt:           0,
 				}, nil).Once()
 
 			},
@@ -82,26 +81,25 @@ func TestLoginUser(t *testing.T) {
 				},
 			},
 			setup: func(userMock *mocks.UserStorer) {
-				userMock.On("GetUserByEmail", mock.Anything, mock.Anything).Return(dto.GetUserResp{}, apperrors.UserNotFound).Once()
+				userMock.On("GetUserByEmail", mock.Anything, mock.Anything).Return(repository.User{}, apperrors.UserNotFound).Once()
 				userMock.On("GetGradeByName", mock.Anything, mock.Anything).Return(repository.Grade{
 					Id:     1,
 					Name:   "J12",
 					Points: 100,
 				}, nil).Once()
 				userMock.On("GetRoleByName", mock.Anything, mock.Anything).Return(1, nil).Once()
-				userMock.On("CreateNewUser", mock.Anything, mock.Anything).Return(dto.GetUserResp{
-					Id:                 1,
-					EmployeeId:         "26",
-					FirstName:          "sharyu",
-					LastName:           "marwadi",
-					Email:              "sharyu@josh.com",
-					ProfileImgUrl:      "image url",
-					RoleId:             1,
-					RewardQuotaBalance: 10,
-					Designation:        "Intern",
-					GradeId:            1,
-					Grade:              "J12",
-					CreatedAt:          0,
+				userMock.On("CreateNewUser", mock.Anything, mock.Anything).Return(repository.User{
+					Id:                  1,
+					EmployeeId:          "26",
+					FirstName:           "sharyu",
+					LastName:            "marwadi",
+					Email:               "sharyu@josh.com",
+					ProfileImageURL:     "image url",
+					RoleID:              1,
+					RewardsQuotaBalance: 10,
+					Designation:         "Intern",
+					GradeId:             1,
+					CreatedAt:           0,
 				}, nil).Once()
 
 			},
@@ -127,19 +125,18 @@ func TestLoginUser(t *testing.T) {
 				},
 			},
 			setup: func(userMock *mocks.UserStorer) {
-				userMock.On("GetUserByEmail", mock.Anything, mock.Anything).Return(dto.GetUserResp{
-					Id:                 1,
-					EmployeeId:         "26",
-					FirstName:          "sharyu",
-					LastName:           "marwadi",
-					Email:              "sharyu@josh.com",
-					ProfileImgUrl:      "image url",
-					RoleId:             1,
-					RewardQuotaBalance: 10,
-					Designation:        "Manager",
-					GradeId:            1,
-					Grade:              "J12",
-					CreatedAt:          0,
+				userMock.On("GetUserByEmail", mock.Anything, mock.Anything).Return(repository.User{
+					Id:                  1,
+					EmployeeId:          "26",
+					FirstName:           "sharyu",
+					LastName:            "marwadi",
+					Email:               "sharyu@josh.com",
+					ProfileImageURL:     "image url",
+					RoleID:              1,
+					RewardsQuotaBalance: 10,
+					Designation:         "Manager",
+					GradeId:             1,
+					CreatedAt:           0,
 				}, nil).Once()
 				userMock.On("GetGradeByName", mock.Anything, mock.Anything).Return(repository.Grade{
 					Id:     1,
@@ -147,19 +144,18 @@ func TestLoginUser(t *testing.T) {
 					Points: 100,
 				}, nil).Once()
 				userMock.On("SyncData", mock.Anything, mock.Anything).Return(nil).Once()
-				userMock.On("GetUserByEmail", mock.Anything, mock.Anything).Return(dto.GetUserResp{
-					Id:                 1,
-					EmployeeId:         "26",
-					FirstName:          "sharyu",
-					LastName:           "marwadi",
-					Email:              "sharyu@josh.com",
-					ProfileImgUrl:      "image url",
-					RoleId:             1,
-					RewardQuotaBalance: 10,
-					Designation:        "Intern",
-					GradeId:            1,
-					Grade:              "J12",
-					CreatedAt:          0,
+				userMock.On("GetUserByEmail", mock.Anything, mock.Anything).Return(repository.User{
+					Id:                  1,
+					EmployeeId:          "26",
+					FirstName:           "sharyu",
+					LastName:            "marwadi",
+					Email:               "sharyu@josh.com",
+					ProfileImageURL:     "image url",
+					RoleID:              1,
+					RewardsQuotaBalance: 10,
+					Designation:         "Intern",
+					GradeId:             1,
+					CreatedAt:           0,
 				}, nil).Once()
 			},
 			isErrorExpected: false,
@@ -184,7 +180,7 @@ func TestLoginUser(t *testing.T) {
 				},
 			},
 			setup: func(userMock *mocks.UserStorer) {
-				userMock.On("GetUserByEmail", mock.Anything, mock.Anything).Return(dto.GetUserResp{}, apperrors.UserNotFound).Once()
+				userMock.On("GetUserByEmail", mock.Anything, mock.Anything).Return(repository.User{}, apperrors.UserNotFound).Once()
 				userMock.On("GetGradeByName", mock.Anything, mock.Anything).Return(repository.Grade{}, apperrors.GradeNotFound).Once()
 			},
 			isErrorExpected: true,
@@ -209,7 +205,7 @@ func TestLoginUser(t *testing.T) {
 				},
 			},
 			setup: func(userMock *mocks.UserStorer) {
-				userMock.On("GetUserByEmail", mock.Anything, mock.Anything).Return(dto.GetUserResp{}, apperrors.UserNotFound).Once()
+				userMock.On("GetUserByEmail", mock.Anything, mock.Anything).Return(repository.User{}, apperrors.UserNotFound).Once()
 				userMock.On("GetGradeByName", mock.Anything, mock.Anything).Return(repository.Grade{
 					Id:     1,
 					Name:   "J12",
@@ -239,14 +235,14 @@ func TestLoginUser(t *testing.T) {
 				},
 			},
 			setup: func(userMock *mocks.UserStorer) {
-				userMock.On("GetUserByEmail", mock.Anything, mock.Anything).Return(dto.GetUserResp{}, apperrors.UserNotFound).Once()
+				userMock.On("GetUserByEmail", mock.Anything, mock.Anything).Return(repository.User{}, apperrors.UserNotFound).Once()
 				userMock.On("GetGradeByName", mock.Anything, mock.Anything).Return(repository.Grade{
 					Id:     1,
 					Name:   "J12",
 					Points: 100,
 				}, nil).Once()
 				userMock.On("GetRoleByName", mock.Anything, mock.Anything).Return(1, nil).Once()
-				userMock.On("CreateNewUser", mock.Anything, mock.Anything).Return(dto.GetUserResp{}, apperrors.InternalServerError).Once()
+				userMock.On("CreateNewUser", mock.Anything, mock.Anything).Return(repository.User{}, apperrors.InternalServerError).Once()
 			},
 			isErrorExpected: true,
 		},
@@ -270,19 +266,18 @@ func TestLoginUser(t *testing.T) {
 				},
 			},
 			setup: func(userMock *mocks.UserStorer) {
-				userMock.On("GetUserByEmail", mock.Anything, mock.Anything).Return(dto.GetUserResp{
-					Id:                 1,
-					EmployeeId:         "26",
-					FirstName:          "sharyu",
-					LastName:           "marwadi",
-					Email:              "sharyu@josh.com",
-					ProfileImgUrl:      "image url",
-					RoleId:             1,
-					RewardQuotaBalance: 10,
-					Designation:        "Manager",
-					GradeId:            1,
-					Grade:              "J12",
-					CreatedAt:          0,
+				userMock.On("GetUserByEmail", mock.Anything, mock.Anything).Return(repository.User{
+					Id:                  1,
+					EmployeeId:          "26",
+					FirstName:           "sharyu",
+					LastName:            "marwadi",
+					Email:               "sharyu@josh.com",
+					ProfileImageURL:     "image url",
+					RoleID:              1,
+					RewardsQuotaBalance: 10,
+					Designation:         "Manager",
+					GradeId:             1,
+					CreatedAt:           0,
 				}, nil).Once()
 				userMock.On("GetGradeByName", mock.Anything, mock.Anything).Return(repository.Grade{
 					Id:     1,
