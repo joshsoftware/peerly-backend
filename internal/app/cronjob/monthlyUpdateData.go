@@ -14,8 +14,8 @@ const MONTHLY_CRON_JOB_INTERVAL_MONTHS = 1
 
 var MonthlyJobTiming = JobTime{
 	hours:   0,
-	minutes: 5,
-	seconds: 20,
+	minutes: 0,
+	seconds: 0,
 }
 
 type MonthlyJob struct {
@@ -36,7 +36,7 @@ func NewMontlyJob(userSvc user.Service,scheduler gocron.Scheduler) Job {
 func (cron *MonthlyJob) Schedule() {
 	var err error
 	cron.job, err = cron.scheduler.NewJob(
-		gocron.MonthlyJob(MONTHLY_CRON_JOB_INTERVAL_MONTHS, gocron.NewDaysOfTheMonth(15),
+		gocron.MonthlyJob(MONTHLY_CRON_JOB_INTERVAL_MONTHS, gocron.NewDaysOfTheMonth(-1),
 			gocron.NewAtTimes(
 				gocron.NewAtTime(
 					MonthlyJobTiming.hours,

@@ -329,7 +329,7 @@ FROM (
     JOIN grades g ON u.grade_id = g.id
     WHERE a.is_valid = true
       AND r.created_at >= EXTRACT(EPOCH FROM TIMESTAMP 'yesterday'::TIMESTAMP) * 1000
-     AND r.created_at >= EXTRACT(EPOCH FROM TIMESTAMP 'today'::TIMESTAMP) * 1000
+     AND r.created_at < EXTRACT(EPOCH FROM TIMESTAMP 'today'::TIMESTAMP) * 1000
     GROUP BY appreciation_id
 ) AS agg
 WHERE app.id = agg.appreciation_id;
