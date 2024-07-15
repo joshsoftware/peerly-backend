@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	sq "github.com/Masterminds/squirrel"
+	"github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
@@ -12,21 +12,29 @@ import (
 	logger "github.com/sirupsen/logrus"
 )
 
+var (
+	sq = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
+)
+
+var CoreValueColumns = []string{"id", "name", "description", "parent_core_value_id"}
+
 type coreValueStore struct {
-	DB *sqlx.DB
+	DB        *sqlx.DB
+	TableName string
 }
 
 func NewCoreValueRepo(db *sqlx.DB) repository.CoreValueStorer {
 	return &coreValueStore{
-		DB: db,
+		DB:        db,
+		TableName: "core_values",
 	}
 }
 
 func (cs *coreValueStore) ListCoreValues(ctx context.Context) (coreValues []repository.CoreValue, err error) {
-	queryBuilder := sq.Select("id", "name", "description", "parent_core_value_id").From("core_values")
+	queryBuilder := sq.Select(CoreValueColumns...).From(cs.TableName)
 	listCoreValuesQuery, _, err := queryBuilder.ToSql()
 	if err != nil {
-		logger.Error(fmt.Sprintf("error in generating squirrel query, err: %s", err.Error()))
+		err = fmt.Errorf("error in generating squirrel query, err: %s", err.Error())
 		return
 	}
 	err = cs.DB.SelectContext(
@@ -36,7 +44,7 @@ func (cs *coreValueStore) ListCoreValues(ctx context.Context) (coreValues []repo
 	)
 
 	if err != nil {
-		logger.Error(fmt.Sprintf("error while getting core values, err: %s", err.Error()))
+		err = fmt.Errorf("error while getting core values, err: %s", err.Error())
 		return
 	}
 
@@ -45,13 +53,14 @@ func (cs *coreValueStore) ListCoreValues(ctx context.Context) (coreValues []repo
 
 func (cs *coreValueStore) GetCoreValue(ctx context.Context, coreValueID int64) (coreValue repository.CoreValue, err error) {
 	queryBuilder := sq.
-		Select("id", "name", "description", "parent_core_value_id").
-		From("core_values").
-		Where(sq.Eq{"id": coreValueID})
+		Select(CoreValueColumns...).
+		From(cs.TableName).
+		Where(squirrel.Eq{"id": coreValueID})
 
 	getCoreValueQuery, args, err := queryBuilder.ToSql()
 	if err != nil {
 		logger.Error(fmt.Sprintf("error in generating squirrel query, err: %s", err.Error()))
+		err = apperrors.InternalServerError
 		return
 	}
 
@@ -72,12 +81,11 @@ func (cs *coreValueStore) GetCoreValue(ctx context.Context, coreValueID int64) (
 
 func (cs *coreValueStore) CreateCoreValue(ctx context.Context, coreValue dto.CreateCoreValueReq) (resp repository.CoreValue, err error) {
 
-	queryBuilder := sq.Insert("core_values").Columns("name",
-		"description", "parent_core_value_id").Values(coreValue.Name, coreValue.Description, coreValue.ParentCoreValueID).Suffix("RETURNING id, name, description, parent_core_value_id")
+	queryBuilder := sq.Insert(cs.TableName).Columns(CoreValueColumns[1:]...).Values(coreValue.Name, coreValue.Description, coreValue.ParentCoreValueID).Suffix("RETURNING id, name, description, parent_core_value_id")
 
 	createCoreValueQuery, args, err := queryBuilder.ToSql()
 	if err != nil {
-		logger.Error(fmt.Sprintf("error in generating squirrel query, err: %s", err.Error()))
+		err = fmt.Errorf("error in generating squirrel query, err: %s", err.Error())
 		return
 	}
 
@@ -88,7 +96,7 @@ func (cs *coreValueStore) CreateCoreValue(ctx context.Context, coreValue dto.Cre
 		args...,
 	)
 	if err != nil {
-		logger.Error(fmt.Sprintf("error while creating core value, err: %s", err.Error()))
+		err = fmt.Errorf("error while creating core value, err: %s", err.Error())
 		return
 	}
 
@@ -96,15 +104,15 @@ func (cs *coreValueStore) CreateCoreValue(ctx context.Context, coreValue dto.Cre
 }
 
 func (cs *coreValueStore) UpdateCoreValue(ctx context.Context, updateReq dto.UpdateQueryRequest) (resp repository.CoreValue, err error) {
-	queryBuilder := sq.Update("core_values").
+	queryBuilder := sq.Update(cs.TableName).
 		Set("name", updateReq.Name).
 		Set("description", updateReq.Description).
-		Where(sq.Eq{"id": updateReq.Id}).
+		Where(squirrel.Eq{"id": updateReq.Id}).
 		Suffix("RETURNING id, name, description, parent_core_value_id")
 
 	updateCoreValueQuery, args, err := queryBuilder.ToSql()
 	if err != nil {
-		logger.Error(fmt.Sprintf("error in generating squirrel query, err: %s", err.Error()))
+		err = fmt.Errorf("error in generating squirrel query, err: %s", err.Error())
 		return
 	}
 	err = cs.DB.GetContext(
@@ -114,7 +122,7 @@ func (cs *coreValueStore) UpdateCoreValue(ctx context.Context, updateReq dto.Upd
 		args...,
 	)
 	if err != nil {
-		logger.Error(fmt.Sprintf("error while updating core value, corevalue_id: %d, err: %s", updateReq.Id, err.Error()))
+		err = fmt.Errorf("error while updating core value, corevalue_id: %d, err: %s", updateReq.Id, err.Error())
 		return
 	}
 
@@ -125,14 +133,13 @@ func (cs *coreValueStore) CheckUniqueCoreVal(ctx context.Context, name string) (
 
 	isUnique = false
 	resp := []int64{}
-
 	queryBuilder := sq.Select("id").
-		From("core_values").
-		Where(sq.Eq{"name": name})
+		From(cs.TableName).
+		Where(squirrel.Like{"name": name})
 
 	checkUniqueCoreVal, args, err := queryBuilder.ToSql()
 	if err != nil {
-		logger.Error(fmt.Sprintf("error in generating squirrel query, err: %s", err.Error()))
+		err = fmt.Errorf("error in generating squirrel query, err: %s", err.Error())
 		return
 	}
 
@@ -144,8 +151,7 @@ func (cs *coreValueStore) CheckUniqueCoreVal(ctx context.Context, name string) (
 	)
 
 	if err != nil {
-		logger.Error(fmt.Sprintf("error while checking unique core vlaues, err: %s", err.Error()))
-		err = apperrors.InternalServerError
+		err = fmt.Errorf("error while checking unique core vlaues, err: %s", err.Error())
 		return
 	}
 

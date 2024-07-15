@@ -20,7 +20,6 @@ type Service interface {
 	GetCoreValue(ctx context.Context, coreValueID string) (coreValue dto.CoreValue, err error)
 	CreateCoreValue(ctx context.Context, coreValue dto.CreateCoreValueReq) (resp dto.CoreValue, err error)
 	UpdateCoreValue(ctx context.Context, coreValueID string, coreValue dto.UpdateQueryRequest) (resp dto.CoreValue, err error)
-	ValidateParentCoreValue(ctx context.Context, coreValueID int64) (ok bool)
 }
 
 func NewService(coreValuesRepo repository.CoreValueStorer) Service {
@@ -33,13 +32,12 @@ func (cs *service) ListCoreValues(ctx context.Context) (resp []dto.CoreValue, er
 
 	dbResp, err := cs.coreValuesRepo.ListCoreValues(ctx)
 	if err != nil {
+		logger.Error(err.Error())
 		err = apperrors.InternalServerError
 	}
 
-	fmt.Println(dbResp)
-
-	for i := 0; i < len(dbResp); i++ {
-		coreValue := MapCoreValueDbToService(dbResp[i])
+	for _, value := range dbResp {
+		coreValue := mapCoreValueDbToService(value)
 		resp = append(resp, coreValue)
 	}
 
@@ -59,7 +57,7 @@ func (cs *service) GetCoreValue(ctx context.Context, coreValueID string) (coreVa
 		return
 	}
 
-	coreValue = MapCoreValueDbToService(dbResp)
+	coreValue = mapCoreValueDbToService(dbResp)
 
 	return
 }
@@ -68,6 +66,8 @@ func (cs *service) CreateCoreValue(ctx context.Context, coreValue dto.CreateCore
 
 	isUnique, err := cs.coreValuesRepo.CheckUniqueCoreVal(ctx, coreValue.Name)
 	if err != nil {
+		logger.Error(err.Error())
+		err = apperrors.InternalServerError
 		return
 	}
 	if !isUnique {
@@ -75,18 +75,19 @@ func (cs *service) CreateCoreValue(ctx context.Context, coreValue dto.CreateCore
 		return
 	}
 
-	err = cs.Validate(ctx, coreValue)
+	err = cs.validate(ctx, coreValue)
 	if err != nil {
 		return
 	}
 
 	dbResp, err := cs.coreValuesRepo.CreateCoreValue(ctx, coreValue)
 	if err != nil {
+		logger.Error(err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
 
-	resp = MapCoreValueDbToService(dbResp)
+	resp = mapCoreValueDbToService(dbResp)
 
 	return
 }
@@ -115,6 +116,8 @@ func (cs *service) UpdateCoreValue(ctx context.Context, coreValueID string, reqD
 
 	isUnique, err := cs.coreValuesRepo.CheckUniqueCoreVal(ctx, reqData.Name)
 	if err != nil {
+		logger.Error(err.Error())
+		err = apperrors.InternalServerError
 		return
 	}
 	if !isUnique && reqData.Name != coreValue.Name {
@@ -126,20 +129,21 @@ func (cs *service) UpdateCoreValue(ctx context.Context, coreValueID string, reqD
 
 	dbResp, err := cs.coreValuesRepo.UpdateCoreValue(ctx, reqData)
 	if err != nil {
+		logger.Error(err.Error())
 		err = apperrors.InternalServerError
 
 		return
 	}
 
-	resp = MapCoreValueDbToService(dbResp)
+	resp = mapCoreValueDbToService(dbResp)
 
 	return
 }
 
-func (cs *service) ValidateParentCoreValue(ctx context.Context, coreValueID int64) (ok bool) {
+func (cs *service) validateParentCoreValue(ctx context.Context, coreValueID int64) (ok bool) {
 	coreValue, err := cs.coreValuesRepo.GetCoreValue(ctx, coreValueID)
 	if err != nil {
-		logger.WithField("err", err.Error()).Error("Parent core value id not present")
+		logger.Error(fmt.Sprintf("parent core value id not present, err: %s", err.Error()))
 		return
 	}
 
@@ -151,7 +155,7 @@ func (cs *service) ValidateParentCoreValue(ctx context.Context, coreValueID int6
 	return true
 }
 
-func (cs *service) Validate(ctx context.Context, coreValue dto.CreateCoreValueReq) (err error) {
+func (cs *service) validate(ctx context.Context, coreValue dto.CreateCoreValueReq) (err error) {
 
 	if coreValue.Name == "" {
 		err = apperrors.TextFieldBlank
@@ -160,8 +164,7 @@ func (cs *service) Validate(ctx context.Context, coreValue dto.CreateCoreValueRe
 		err = apperrors.DescFieldBlank
 	}
 	if coreValue.ParentCoreValueID != nil {
-		svc := NewService(cs.coreValuesRepo)
-		if !svc.ValidateParentCoreValue(ctx, *coreValue.ParentCoreValueID) {
+		if !cs.validateParentCoreValue(ctx, *coreValue.ParentCoreValueID) {
 			err = apperrors.InvalidParentValue
 		}
 	}
@@ -169,7 +172,7 @@ func (cs *service) Validate(ctx context.Context, coreValue dto.CreateCoreValueRe
 	return
 }
 
-func MapCoreValueDbToService(dbStruct repository.CoreValue) (svcStruct dto.CoreValue) {
+func mapCoreValueDbToService(dbStruct repository.CoreValue) (svcStruct dto.CoreValue) {
 	svcStruct.ID = dbStruct.ID
 	svcStruct.Name = dbStruct.Name
 	svcStruct.Description = dbStruct.Description
