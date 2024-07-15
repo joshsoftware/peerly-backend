@@ -16,10 +16,29 @@ func (e CustomError) Error() string {
 
 // Custome errors with errormessage
 const (
-	BadRequest           = CustomError("Bad request")
-	InternalServer       = CustomError("Internal server error")
-	FailedToCreateDriver = CustomError("failure to create driver obj")
-	MigrationFailure     = CustomError("migrate failure")
+	InvalidId                = CustomError("invalid id")
+	InternalServerError      = CustomError("internal server error")
+	JSONParsingErrorReq      = CustomError("error in parsing request in json")
+	JSONParsingErrorResp     = CustomError("error in parsing response in json")
+	OutOfRange               = CustomError("request value is out of range")
+	OrganizationNotFound     = CustomError("organization of given id not found")
+	InvalidContactEmail      = CustomError("contact email is already present")
+	InvalidDomainName        = CustomError("domain name is already present")
+	InvalidCoreValueData     = CustomError("invalid corevalue data")
+	TextFieldBlank           = CustomError("text field cannot be blank")
+	DescFieldBlank           = CustomError("description cannot be blank")
+	InvalidParentValue       = CustomError("invalid parent core value")
+	InvalidOrgId             = CustomError("invalid organisation")
+	UniqueCoreValue          = CustomError("choose a unique coreValue name")
+	InvalidAuthToken         = CustomError("invalid Auth token")
+	IntranetValidationFailed = CustomError("intranet Validation Failed")
+	UserNotFound             = CustomError("user not found")
+	InvalidIntranetData      = CustomError("invalid data recieved from intranet")
+	GradeNotFound            = CustomError("grade not found")
+	BadRequest               = CustomError("bad request")
+	InternalServer           = CustomError("internal Server")
+	FailedToCreateDriver     = CustomError("failure to create driver obj")
+	MigrationFailure         = CustomError("migrate failure")
 )
 
 // ErrKeyNotSet - Returns error object specific to the key value passed in
@@ -30,10 +49,16 @@ func ErrKeyNotSet(key string) (err error) {
 // GetHTTPStatusCode returns status code according to customerror and default returns InternalServer error
 func GetHTTPStatusCode(err error) int {
 	switch err {
-	case InternalServer, FailedToCreateDriver, MigrationFailure:
+	case InternalServerError, JSONParsingErrorResp, InvalidIntranetData:
 		return http.StatusInternalServerError
-	case BadRequest:
+	case OrganizationNotFound, InvalidOrgId, GradeNotFound:
+		return http.StatusNotFound
+	case InvalidId, JSONParsingErrorReq, TextFieldBlank, InvalidCoreValueData, InvalidParentValue, DescFieldBlank, UniqueCoreValue:
 		return http.StatusBadRequest
+	case InvalidAuthToken, IntranetValidationFailed:
+		return http.StatusUnauthorized
+	case InvalidContactEmail, InvalidDomainName:
+		return http.StatusConflict
 	default:
 		return http.StatusInternalServerError
 	}
