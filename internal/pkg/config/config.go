@@ -85,7 +85,6 @@ func ReadEnvBool(key string) bool {
 
 func checkIfSet(key string) {
 	if !viper.IsSet(key) {
-		// err := errors.New(fmt.Sprintf("Key %s is not set", key))
 		panic(apperrors.ErrKeyNotSet(key))
 	}
 }
