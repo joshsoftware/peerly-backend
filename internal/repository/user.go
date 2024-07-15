@@ -59,6 +59,15 @@ type ActiveUser struct {
 	FirstName          string         `db:"first_name"`
 	LastName           string         `db:"last_name"`
 	ProfileImageURL    sql.NullString `db:"profile_image_url"`
-	BadgeName          sql.NullString        `db:"badge_name"`
+	BadgeName          sql.NullString `db:"badge_name"`
+	AppreciationPoints int            `db:"appreciation_points"`
+}
+
+type Top10Users struct {
+	ID                 int            `db:"id"`
+	FirstName          string         `db:"first_name"`
+	LastName           string         `db:"last_name"`
+	ProfileImageURL    sql.NullString `db:"profile_image_url"`
+	BadgeName          sql.NullString `db:"badge_name"`
 	AppreciationPoints int            `db:"appreciation_points"`
 }

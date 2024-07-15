@@ -13,13 +13,19 @@ import (
 	logger "github.com/sirupsen/logrus"
 )
 
+var (
+	leaderBoardColumns = []string{"id", "first_name", "last_name", "profile_image_url", "badge_name", "appreciation_points"}
+)
+
 type userStore struct {
 	BaseRepository
+	UserTable string
 }
 
 func NewUserRepo(db *sqlx.DB) repository.UserStorer {
 	return &userStore{
 		BaseRepository: BaseRepository{db},
+		UserTable:      "users",
 	}
 }
 
@@ -273,9 +279,9 @@ LEFT JOIN
      WHERE ub.id = (SELECT MAX(id) FROM user_badges WHERE user_id = ub.user_id)) AS b ON u.id = b.user_id;
 `
 
-	rows, err := queryExecutor.Query(query,afterTime,afterTime,afterTime)
+	rows, err := queryExecutor.Query(query, afterTime, afterTime, afterTime)
 	if err != nil {
-		logger.Error("err: userStore ",err.Error())
+		logger.Error("err: userStore ", err.Error())
 		return []repository.ActiveUser{}, err
 	}
 	defer rows.Close()
@@ -290,14 +296,14 @@ LEFT JOIN
 			&user.BadgeName,
 			&user.AppreciationPoints,
 		); err != nil {
-			logger.Error("err: userStore ",err.Error())
+			logger.Error("err: userStore ", err.Error())
 			return nil, err
 		}
 		activeUsers = append(activeUsers, user)
 	}
 
 	if err = rows.Err(); err != nil {
-		logger.Error("err: userStore ",err.Error())
+		logger.Error("err: userStore ", err.Error())
 		return []repository.ActiveUser{}, err
 	}
 
@@ -371,5 +377,12 @@ func (us *userStore) GetUserById(ctx context.Context, reqData dto.GetUserByIdReq
 		user.Badge = userList[0].Badge.String
 		user.BadgeCreatedAt = userList[0].BadgeCreatedAt.Int64
 	}
+	return
+}
+
+func (us *userStore) GetTop10Users(ctx context.Context) (users []repository.Top10Users, err error) {
+
+	// queryBuilder := repository.Sq.Select(leaderBoardColumns...).From(us.UserTable)
+
 	return
 }
