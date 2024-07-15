@@ -59,7 +59,7 @@ func (cs *coreValueStore) GetCoreValue(ctx context.Context, coreValueID int64) (
 
 	getCoreValueQuery, args, err := queryBuilder.ToSql()
 	if err != nil {
-		logger.Errorf("error in generating squirrel query, err: %s", err.Error())
+		logger.Errorf("error in generating squirrel query, err: %w", err)
 		err = apperrors.InternalServerError
 		return
 	}
@@ -71,7 +71,7 @@ func (cs *coreValueStore) GetCoreValue(ctx context.Context, coreValueID int64) (
 		args...,
 	)
 	if err != nil {
-		logger.Errorf("error while getting core value, corevalue_id: %d, err: %s", coreValueID, err.Error())
+		logger.Errorf("error while getting core value, corevalue_id: %d, err: %w", coreValueID, err)
 		err = apperrors.InvalidCoreValueData
 		return
 	}
