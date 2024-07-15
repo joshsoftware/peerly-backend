@@ -182,8 +182,9 @@ func (us *service) LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.L
 
 func (us *service) RegisterUser(ctx context.Context, u dto.IntranetUserData) (user dto.User, err error) {
 
-	_, err = us.userRepo.GetUserByEmail(ctx, u.Email)
+	dbUser, err := us.userRepo.GetUserByEmail(ctx, u.Email)
 	if err == apperrors.InternalServerError || err == nil {
+		user = mapUserDbToService(dbUser)
 		err = apperrors.RepeatedUser
 		return
 	}

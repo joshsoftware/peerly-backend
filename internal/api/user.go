@@ -100,7 +100,7 @@ func registerUser(userSvc user.Service) http.HandlerFunc {
 		var user dto.IntranetUserData
 		err := json.NewDecoder(req.Body).Decode(&user)
 		if err != nil {
-			logger.WithField("err", err.Error()).Error("Error while decoding request data")
+			logger.Errorf("error while decoding request data. err: %s", err.Error())
 			err = apperrors.JSONParsingErrorReq
 			dto.ErrorRepsonse(rw, err)
 			return
