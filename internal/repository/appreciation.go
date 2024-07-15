@@ -35,7 +35,7 @@ type AppreciationInfo struct {
 	CoreValueName       string         `db:"core_value_name"`
 	Description         string         `db:"description"`
 	IsValid             bool           `db:"is_valid"`
-	TotalRewards        int            `db:"total_reward_points"`
+	TotalRewardPoints   int            `db:"total_reward_points"`
 	Quarter             string         `db:"quarter"`
 	SenderFirstName     string         `db:"sender_first_name"`
 	SenderLastName      string         `db:"sender_last_name"`
@@ -45,6 +45,8 @@ type AppreciationInfo struct {
 	ReceiverLastName    string         `db:"receiver_last_name"`
 	ReceiverImageURL    sql.NullString `db:"receiver_image_url"`
 	ReceiverDesignation string         `db:"receiver_designation"`
+	TotalRewards        int            `db:"total_rewards"`
+	GivenRewardPoint    int            `db:"given_reward_point"`
 	CreatedAt           int64          `db:"created_at"`
 	UpdatedAt           int64          `db:"updated_at"`
 }
