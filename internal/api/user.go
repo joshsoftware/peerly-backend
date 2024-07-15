@@ -145,3 +145,15 @@ func getUserHandler(userSvc user.Service) http.HandlerFunc {
 		dto.SuccessRepsonse(rw, http.StatusOK, "Intranet users listed", resp)
 	}
 }
+
+func getActiveUserListHandler(userSvc user.Service) http.HandlerFunc {
+	return func(rw http.ResponseWriter, req *http.Request) {
+
+		resp,err := userSvc.GetActiveUserList(req.Context())
+		if err != nil{
+			dto.ErrorRepsonse(rw, err)
+			return
+		}
+		dto.SuccessRepsonse(rw, http.StatusOK, "Active Users list", resp)
+	}
+}

@@ -1,0 +1,115 @@
+openapi: 3.0.3
+info:
+  title: Swagger Peerly
+  description: |-
+    Peer to peer appreciations
+  version: 1.0.11
+servers:
+  - url: http://localhost:33001/
+tags:
+  - name: Core Values
+    description: Core Value cruds
+  - name: Appreciation
+    description: Appreciations CRUD
+  - name: User
+    description: Users CRUD
+
+paths:
+  /appreciations:
+    get:
+      tags: 
+        - User
+      summary: Get Active Users list
+      description: Get Active Users
+      parameters:
+        - in: header
+          name: Accept-Version
+          required: true
+          description: Defines the version of the API endpoint
+          schema:
+            enum:
+              - 'application/vnd.peerly.v1'
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActiveUsersSuccessResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                example-1:
+                  summary: Internal server error
+                  value:
+                   message: "Internal server error"
+                   status: 500x`x
+
+      
+components:
+  schemas:
+    SuccessResponse:
+      type: object
+      properties:
+        success: 
+          type: boolean
+          example: true
+        message:
+          type: string
+        status_code:
+          type: string
+        data:
+          type: object
+
+    ErrorResponse:
+      type: object
+      properties:
+        success: 
+          type: boolean
+        message:
+          type: string
+        status_code:
+          type: string
+        data:
+          type: object
+
+    ActiveUser:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 55
+        first_name:
+          type: string
+          example: Deepak
+        last_name:
+          type: string
+          example: Kumar
+        profile_image_url:
+          type: string
+          example: www.example.com/user1
+        appreciation_points:
+          type: integer
+          example: 10
+    ActiveUsersSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessResponse'
+        - type: object
+          properties:
+            success:
+              example: true
+            message:
+              example: "Active Users list"
+            status_code:
+              example: 200
+            data:
+              type: array
+              description: "List of active users (limited to 10)"
+              maxItems: 10
+              items:
+                $ref: '#/components/schemas/ActiveUser'

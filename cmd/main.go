@@ -113,7 +113,7 @@ func startApp() (err error) {
 		return
 	}
 
-	cronjob.InitializeJobs(services.AppreciationService,scheduler)
+	cronjob.InitializeJobs(services.AppreciationService,services.UserService,scheduler)
 	defer scheduler.Shutdown()
 	//initialize router
 	router := api.NewRouter(services)

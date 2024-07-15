@@ -30,6 +30,8 @@ type Service interface {
 	RegisterUser(ctx context.Context, u dto.IntranetUserData) (user dto.GetUserResp, err error)
 	GetUserListIntranet(ctx context.Context, reqData dto.GetUserListReq) (data []dto.IntranetUserData, err error)
 	GetUserList(ctx context.Context, reqData dto.UserListReq) (users []dto.GetUserListResp, err error)
+	UpdateRewardQuota(ctx context.Context)(err error)
+	GetActiveUserList(ctx context.Context) ([]dto.ActiveUser,error)
 }
 
 func NewService(userRepo repository.UserStorer) Service {
@@ -297,4 +299,21 @@ func (us *service) GetUserList(ctx context.Context, reqData dto.UserListReq) (us
 	users, err = us.userRepo.GetUserList(ctx, reqData)
 
 	return
+}
+
+func (us *service) GetActiveUserList(ctx context.Context) ([]dto.ActiveUser,error){
+	activeUserDb,err := us.userRepo.GetActiveUserList(ctx,nil)
+	if err != nil{
+		return []dto.ActiveUser{},err
+	}
+	res := make([]dto.ActiveUser,0)
+	for _,activerUser := range activeUserDb{
+		actUsr := MapActiveUserDbtoDto(activerUser)
+		res = append(res, actUsr)
+	}
+	return res,nil
+}
+func (us *service) UpdateRewardQuota(ctx context.Context)(error){
+	err := us.userRepo.UpdateRewardQuota(ctx,nil)
+	return err
 }

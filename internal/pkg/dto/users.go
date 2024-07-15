@@ -117,3 +117,12 @@ type UserListReq struct {
 	PerPage int
 	Name    []string
 }
+
+type ActiveUser struct {
+	ID                  int       `json:"id"`
+	FirstName           string    `json:"first_name"`
+	LastName            string    `json:"last_name"`
+	ProfileImageURL     string    `json:"profile_image_url"`
+	BadgeName           string    `json:"badge_name"`
+	AppreciationPoints  int       `json:"appreciation_points"`
+}

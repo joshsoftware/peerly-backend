@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"database/sql" 
 	"testing"
 
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
@@ -9,6 +10,7 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
 	"github.com/joshsoftware/peerly-backend/internal/repository/mocks"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -355,4 +357,127 @@ func TestGetUserList(t *testing.T) {
 		})
 	}
 
+}
+
+func TestUpdateRewardQuota(t *testing.T){
+	userRepo := mocks.NewUserStorer(t)
+	service := NewService(userRepo)
+
+	tests := []struct {
+		name            string
+		context         context.Context
+		setup           func(userMock *mocks.UserStorer)
+		expectedError   error
+	}{
+		{
+			name: "success",
+			context: context.Background(),
+			setup: func(userMock *mocks.UserStorer) {
+				userMock.On("UpdateRewardQuota",mock.Anything,nil).Return(nil).Once()
+			},
+			expectedError: nil,
+		},
+		{
+			name: "failure",
+			context: context.Background(),
+			setup: func(userMock *mocks.UserStorer) {
+				userMock.On("UpdateRewardQuota",mock.Anything,nil).Return(apperrors.InternalServer)
+			},
+			expectedError: apperrors.InternalServer,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			test.setup(userRepo)
+
+			// test service
+			err := service.UpdateRewardQuota(test.context)
+
+			assert.Equal(t, test.expectedError, err)
+
+		})
+	}
+}
+
+func TestGetActiveUserList(t *testing.T){
+	userRepo := mocks.NewUserStorer(t)
+	service := NewService(userRepo)
+
+	tests := []struct {
+		name            string
+		context         context.Context
+		setup           func(userMock *mocks.UserStorer)
+		expectedResp	[]dto.ActiveUser
+		expectedError   error
+	}{
+		{
+			name: "success",
+			context: context.Background(),
+			setup: func(userMock *mocks.UserStorer) {
+				userMock.On("GetActiveUserList",mock.Anything,mock.Anything).Return([]repository.ActiveUser{
+					{
+						ID: 55,
+						FirstName: "Deepak",
+						LastName: "Kumar",
+						ProfileImageURL: sql.NullString{String:"",Valid: false},
+						BadgeName: sql.NullString{String:"",Valid: false},
+						AppreciationPoints: 0,
+					},
+					{
+						ID: 58,
+						FirstName: "Dominic",
+						LastName: "Lopes",
+						ProfileImageURL: sql.NullString{String:"",Valid: false},
+						BadgeName: sql.NullString{String:"Gold",Valid: true},
+						AppreciationPoints: 5000,
+					},
+				},nil).Once()
+			},
+			expectedResp: []dto.ActiveUser{
+				{
+					ID: 55,
+					FirstName: "Deepak",
+					LastName: "Kumar",
+					ProfileImageURL: "",
+					BadgeName: "",
+					AppreciationPoints: 0,
+				},
+				{
+					ID: 58,
+					FirstName: "Dominic",
+					LastName: "Lopes",
+					ProfileImageURL: "",
+					BadgeName: "Gold",
+					AppreciationPoints: 5000,
+				},
+			},
+			expectedError: nil,
+		},
+		{
+			name: "failure",
+			context: context.Background(),
+			setup: func(userMock *mocks.UserStorer) {
+				userMock.On("GetActiveUserList",mock.Anything,mock.Anything).Return([]repository.ActiveUser{},apperrors.InternalServer).Once()
+			},
+			expectedResp: []dto.ActiveUser{},
+			expectedError: apperrors.InternalServer,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			test.setup(userRepo)
+
+			// test service
+			resp,err := service.GetActiveUserList(test.context)
+
+			if err != nil{
+				assert.Equal(t, test.expectedError, err)
+			}else{
+				assert.Equal(t,test.expectedResp,resp)
+			}
+
+		})
+	}
 }
