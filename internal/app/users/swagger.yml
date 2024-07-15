@@ -15,7 +15,7 @@ tags:
     description: Users CRUD
 
 paths:
-  /appreciations:
+  /users/active:
     get:
       tags: 
         - User
