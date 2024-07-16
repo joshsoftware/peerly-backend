@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	sq "github.com/Masterminds/squirrel"
+	"github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
@@ -30,7 +30,6 @@ func (rwrd *rewardStore) GiveReward(ctx context.Context, tx repository.Transacti
 		Insert("rewards").
 		Columns(constants.CreateRewardColumns...).
 		Values(reward.AppreciationId, reward.Point, reward.SenderId).
-		PlaceholderFormat(sq.Dollar).
 		Suffix("RETURNING \"id\",\"appreciation_id\", \"point\",\"sender\",\"created_at\"").
 		ToSql()
 
@@ -52,18 +51,17 @@ func (rwrd *rewardStore) GiveReward(ctx context.Context, tx repository.Transacti
 
 func (rwrd *rewardStore) IsUserRewardForAppreciationPresent(ctx context.Context, tx repository.Transaction, apprId int64, senderId int64) (bool, error) {
 	// Initialize the Squirrel query builder
-	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 	fmt.Println("appr id: ", apprId)
 	fmt.Println("sender: ", senderId)
 	// Build the SQL query
-	query, args, err := psql.Select("COUNT(*)").
-    From("rewards").
-    Where(sq.And{
-        sq.Eq{"appreciation_id": apprId},
-        sq.Eq{"sender": senderId},
-    }).
-    ToSql()
+	query, args, err := sq.Select("COUNT(*)").
+		From("rewards").
+		Where(squirrel.And{
+			squirrel.Eq{"appreciation_id": apprId},
+			squirrel.Eq{"sender": senderId},
+		}).
+		ToSql()
 	if err != nil {
 		logger.Error("err ", err.Error())
 		return false, apperrors.InternalServer
@@ -90,9 +88,8 @@ func (rwrd *rewardStore) DeduceRewardQuotaOfUser(ctx context.Context, tx reposit
 	// Build the SQL query to update the reward_quota_balance
 	updateQuery, args, err := sq.
 		Update("users").
-		Set("reward_quota_balance", sq.Expr("reward_quota_balance - ? * (SELECT points FROM grades WHERE id = users.grade_id)", points)).
-		Where(sq.Eq{"id": userId}).
-		PlaceholderFormat(sq.Dollar).
+		Set("reward_quota_balance", squirrel.Expr("reward_quota_balance - ? * (SELECT points FROM grades WHERE id = users.grade_id)", points)).
+		Where(squirrel.Eq{"id": userId}).
 		ToSql()
 
 	if err != nil {

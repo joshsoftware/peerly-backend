@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	sq "github.com/Masterminds/squirrel"
+	"github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
@@ -29,7 +29,6 @@ func (appr *appreciationsStore) CreateAppreciation(ctx context.Context, tx repos
 	insertQuery, args, err := sq.
 		Insert("appreciations").Columns(constants.CreateAppreciationColumns...).
 		Values(appreciation.CoreValueID, appreciation.Description, appreciation.Quarter, appreciation.Sender, appreciation.Receiver).
-		PlaceholderFormat(sq.Dollar).
 		Suffix("RETURNING \"id\",\"core_value_id\", \"description\",\"total_reward_points\",\"quarter\",\"sender\",\"receiver\",\"created_at\",\"updated_at\"").
 		ToSql()
 
@@ -74,10 +73,9 @@ func (appr *appreciationsStore) GetAppreciationById(ctx context.Context, tx repo
 		LeftJoin("users u_sender ON a.sender = u_sender.id").
 		LeftJoin("users u_receiver ON a.receiver = u_receiver.id").
 		LeftJoin("core_values cv ON a.core_value_id = cv.id").
-		PlaceholderFormat(sq.Dollar).
-		Where(sq.And{
-			sq.Eq{"a.id": apprId},
-			sq.Eq{"is_valid": true},
+		Where(squirrel.And{
+			squirrel.Eq{"a.id": apprId},
+			squirrel.Eq{"is_valid": true},
 		}).
 		ToSql()
 
@@ -130,8 +128,7 @@ func (appr *appreciationsStore) GetAppreciation(ctx context.Context, tx reposito
 		LeftJoin("users u_sender ON a.sender = u_sender.id").
 		LeftJoin("users u_receiver ON a.receiver = u_receiver.id").
 		LeftJoin("core_values cv ON a.core_value_id = cv.id").
-		PlaceholderFormat(sq.Dollar).
-		Where(sq.Eq{"a.is_valid": true})
+		Where(squirrel.Eq{"a.is_valid": true})
 
 	if filter.Name != "" {
 		countQueryBuilder = countQueryBuilder.Where(
@@ -179,8 +176,7 @@ func (appr *appreciationsStore) GetAppreciation(ctx context.Context, tx reposito
 		LeftJoin("users u_sender ON a.sender = u_sender.id").
 		LeftJoin("users u_receiver ON a.receiver = u_receiver.id").
 		LeftJoin("core_values cv ON a.core_value_id = cv.id").
-		PlaceholderFormat(sq.Dollar).
-		Where(sq.Eq{"a.is_valid": true})
+		Where(squirrel.Eq{"a.is_valid": true})
 
 	if filter.Name != "" {
 		queryBuilder = queryBuilder.Where(
@@ -248,11 +244,10 @@ func (appr *appreciationsStore) GetAppreciation(ctx context.Context, tx reposito
 func (appr *appreciationsStore) ValidateAppreciation(ctx context.Context, tx repository.Transaction, isValid bool, apprId int) (bool, error) {
 	query, args, err := sq.Update("appreciations").
 		Set("is_valid", isValid).
-		Where(sq.And{
-			sq.Eq{"id": apprId},
-			sq.Eq{"is_valid": true},
+		Where(squirrel.And{
+			squirrel.Eq{"id": apprId},
+			squirrel.Eq{"is_valid": true},
 		}).
-		PlaceholderFormat(sq.Dollar).
 		ToSql()
 
 	if err != nil {
@@ -284,12 +279,11 @@ func (appr *appreciationsStore) ValidateAppreciation(ctx context.Context, tx rep
 
 func (appr *appreciationsStore) IsUserPresent(ctx context.Context, tx repository.Transaction, userID int64) (bool, error) {
 	// Initialize the Squirrel query builder
-	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 	// Build the SQL query
-	query, args, err := psql.Select("COUNT(*)").
+	query, args, err := sq.Select("COUNT(*)").
 		From("users").
-		Where(sq.Eq{"id": userID}).
+		Where(squirrel.Eq{"id": userID}).
 		ToSql()
 
 	if err != nil {

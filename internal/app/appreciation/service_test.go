@@ -87,7 +87,7 @@ func TestCreateAppreciation(t *testing.T) {
 			expectedResult:  dto.Appreciation{},
 			expectedError:   apperrors.UserNotFound,
 		},
-		
+
 		{
 			name:    "transaction failure",
 			context: context.WithValue(context.Background(), constants.UserId, int64(1)),
@@ -132,7 +132,7 @@ func TestGetAppreciationById(t *testing.T) {
 
 	tests := []struct {
 		name            string
-		context         context.Context	
+		context         context.Context
 		appreciationId  int
 		setup           func(apprMock *mocks.AppreciationStorer)
 		isErrorExpected bool
@@ -141,7 +141,7 @@ func TestGetAppreciationById(t *testing.T) {
 	}{
 		{
 			name:           "successful get appreciation by id",
-			context: context.WithValue(context.Background(), constants.UserId, int64(1)),
+			context:        context.WithValue(context.Background(), constants.UserId, int64(1)),
 			appreciationId: 1,
 			setup: func(apprMock *mocks.AppreciationStorer) {
 				apprMock.On("GetAppreciationById", mock.Anything, mock.Anything, 1).Return(repository.AppreciationInfo{
@@ -153,11 +153,11 @@ func TestGetAppreciationById(t *testing.T) {
 					Quarter:             "Q1",
 					SenderFirstName:     "John",
 					SenderLastName:      "Doe",
-					SenderImageURL:      sql.NullString{String: "image_url",Valid: true},
+					SenderImageURL:      sql.NullString{String: "image_url", Valid: true},
 					SenderDesignation:   "Manager",
 					ReceiverFirstName:   "Jane",
 					ReceiverLastName:    "Smith",
-					ReceiverImageURL:    sql.NullString{String: "image_url",Valid: true},
+					ReceiverImageURL:    sql.NullString{String: "image_url", Valid: true},
 					ReceiverDesignation: "Developer",
 					CreatedAt:           1620000000,
 					UpdatedAt:           1620000000,
@@ -185,7 +185,7 @@ func TestGetAppreciationById(t *testing.T) {
 		},
 		{
 			name:           "appreciation not found",
-			context: context.WithValue(context.Background(), constants.UserId, int64(1)),
+			context:        context.WithValue(context.Background(), constants.UserId, int64(1)),
 			appreciationId: 1,
 			setup: func(apprMock *mocks.AppreciationStorer) {
 				apprMock.On("GetAppreciationById", mock.Anything, mock.Anything, 1).Return(repository.AppreciationInfo{}, apperrors.AppreciationNotFound).Once()
@@ -196,7 +196,7 @@ func TestGetAppreciationById(t *testing.T) {
 		},
 		{
 			name:           "database error",
-			context: context.WithValue(context.Background(), constants.UserId, int64(1)),
+			context:        context.WithValue(context.Background(), constants.UserId, int64(1)),
 			appreciationId: 1,
 			setup: func(apprMock *mocks.AppreciationStorer) {
 				apprMock.On("GetAppreciationById", mock.Anything, mock.Anything, 1).Return(repository.AppreciationInfo{}, errors.New("database error"))
