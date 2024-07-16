@@ -22,7 +22,9 @@ func loginUser(userSvc user.Service) http.HandlerFunc {
 			return
 		}
 
-		validateResp, err := userSvc.ValidatePeerly(req.Context(), authToken)
+		ctx := req.Context()
+
+		validateResp, err := userSvc.ValidatePeerly(ctx, authToken)
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)
 			return
@@ -33,7 +35,7 @@ func loginUser(userSvc user.Service) http.HandlerFunc {
 			UserId: validateResp.Data.UserId,
 		}
 
-		user, err := userSvc.GetIntranetUserData(req.Context(), reqData)
+		user, err := userSvc.GetIntranetUserData(ctx, reqData)
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)
 			return
@@ -45,7 +47,7 @@ func loginUser(userSvc user.Service) http.HandlerFunc {
 			return
 		}
 
-		resp, err := userSvc.LoginUser(req.Context(), user)
+		resp, err := userSvc.LoginUser(ctx, user)
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)
 			return
@@ -74,7 +76,9 @@ func getIntranetUserListHandler(userSvc user.Service) http.HandlerFunc {
 		}
 		pageInt, _ := strconv.Atoi(page)
 
-		validateResp, err := userSvc.ValidatePeerly(req.Context(), authToken)
+		ctx := req.Context()
+
+		validateResp, err := userSvc.ValidatePeerly(ctx, authToken)
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)
 			return
@@ -85,7 +89,7 @@ func getIntranetUserListHandler(userSvc user.Service) http.HandlerFunc {
 			Page:      pageInt,
 		}
 
-		usersData, err := userSvc.GetUserListIntranet(req.Context(), reqData)
+		usersData, err := userSvc.GetUserListIntranet(ctx, reqData)
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)
 			return

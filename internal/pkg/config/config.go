@@ -92,3 +92,15 @@ func checkIfSet(key string) {
 func IntranetClientCode() string {
 	return ReadEnvString("INTRANET_CLIENT_CODE")
 }
+
+func IntranetAuthToken() string {
+	return (ReadEnvString(constants.IntanetAuthToken))
+}
+
+func PeerlyBaseUrl() string {
+	return (ReadEnvString(constants.PeerlyBaseUrl))
+}
+
+func IntranetBaseUrl() string {
+	return (ReadEnvString(constants.IntranetBaseUrl))
+}

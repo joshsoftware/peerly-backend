@@ -38,8 +38,9 @@ func NewService(userRepo repository.UserStorer) Service {
 
 func (us *service) ValidatePeerly(ctx context.Context, authToken string) (data dto.ValidateResp, err error) {
 	client := &http.Client{}
-	validationReq, err := http.NewRequest("POST", "https://pg-stage-intranet.joshsoftware.com/api/peerly/v1/sessions/login", nil)
+	validationReq, err := http.NewRequest(http.MethodPost, config.IntranetBaseUrl()+constants.PeerlyValidationUrl, nil)
 	if err != nil {
+		logger.Errorf("error in creating new validation request err: %s", err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
@@ -47,25 +48,25 @@ func (us *service) ValidatePeerly(ctx context.Context, authToken string) (data d
 	validationReq.Header.Add(constants.ClientCode, config.IntranetClientCode())
 	resp, err := client.Do(validationReq)
 	if err != nil {
-		logger.WithField("err", err.Error()).Error("Error in intranet validation api. Status returned:  ", resp.StatusCode)
+		logger.Errorf("error in intranet validation api. status returned: %d, err: %s", resp.StatusCode, err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
 	if resp.StatusCode != http.StatusOK {
-		logger.Error("Status returned ", resp.StatusCode)
+		logger.Errorf("error returned,  status returned: %d", resp.StatusCode)
 		err = apperrors.IntranetValidationFailed
 		return
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		logger.WithField("err", err.Error()).Error("Error in readall parsing")
+		logger.Errorf("error in readall parsing. err: %s", err.Error())
 		err = apperrors.JSONParsingErrorResp
 		return
 	}
 	err = json.Unmarshal(body, &data)
 	if err != nil {
-		logger.WithField("err", err.Error()).Error("Error in unmarshal parsing")
+		logger.Errorf("error in unmarshal parsing. err: %s", err.Error())
 		err = apperrors.JSONParsingErrorResp
 		return
 	}
@@ -76,9 +77,10 @@ func (us *service) ValidatePeerly(ctx context.Context, authToken string) (data d
 func (us *service) GetIntranetUserData(ctx context.Context, req dto.GetIntranetUserDataReq) (data dto.IntranetUserData, err error) {
 
 	client := &http.Client{}
-	url := fmt.Sprintf("https://pg-stage-intranet.joshsoftware.com/api/peerly/v1/users/%d", req.UserId)
-	intranetReq, err := http.NewRequest("GET", url, nil)
+	url := fmt.Sprintf("%s/api/peerly/v1/users/%d", config.IntranetBaseUrl(), req.UserId)
+	intranetReq, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
+		logger.Errorf("error in creating new validation request. err: %s", err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
@@ -86,12 +88,12 @@ func (us *service) GetIntranetUserData(ctx context.Context, req dto.GetIntranetU
 	intranetReq.Header.Add(constants.AuthorizationHeader, req.Token)
 	resp, err := client.Do(intranetReq)
 	if err != nil {
-		logger.WithField("err", err.Error()).Error("Error in intranet get user api. Status returned:  ", resp.StatusCode)
+		logger.Errorf("error in intranet get user api. status returned: %d, err: %s  ", resp.StatusCode, err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
 	if resp.StatusCode != http.StatusOK {
-		logger.WithField("err", "err").Error("Status returned ", resp.StatusCode)
+		logger.Errorf("error in intranet get user api. status returned: %d ", resp.StatusCode)
 		err = apperrors.InternalServerError
 		return
 	}
@@ -99,15 +101,16 @@ func (us *service) GetIntranetUserData(ctx context.Context, req dto.GetIntranetU
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		logger.WithField("err", err.Error()).Error("Error in io.readall")
+		logger.Errorf("error in io.readall. err: %s", err.Error())
 		err = apperrors.JSONParsingErrorResp
+		return
 	}
 
 	var respData dto.IntranetGetUserDataResp
 
 	err = json.Unmarshal(body, &respData)
 	if err != nil {
-		logger.WithField("err", err.Error()).Error("Error in unmarshalling data")
+		logger.Errorf("error in unmarshalling data. err: %s", err.Error())
 		err = apperrors.JSONParsingErrorResp
 		return
 	}
@@ -168,7 +171,7 @@ func (us *service) LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.L
 	tokenString, err := token.SignedString(jwtKey)
 
 	if err != nil {
-		logger.WithField("err", err.Error()).Error("Error generating authtoken")
+		logger.Errorf("error generating authtoken. err: %s", err.Error())
 		err = apperrors.InternalServerError
 		return resp, err
 	}
@@ -233,9 +236,10 @@ func (us *service) RegisterUser(ctx context.Context, u dto.IntranetUserData) (us
 
 func (us *service) GetUserListIntranet(ctx context.Context, reqData dto.GetUserListReq) (data []dto.IntranetUserData, err error) {
 	client := &http.Client{}
-	url := fmt.Sprintf("https://pg-stage-intranet.joshsoftware.com/api/peerly/v1/users?page=%d&per_page=%d", reqData.Page, constants.PerPage)
-	intranetReq, err := http.NewRequest("GET", url, nil)
+	url := config.IntranetBaseUrl() + fmt.Sprintf("/api/peerly/v1/users?page=%d&per_page=%d", reqData.Page, constants.PerPage)
+	intranetReq, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
+		logger.Errorf("error in creating new validation request. err: %s", err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
@@ -243,12 +247,12 @@ func (us *service) GetUserListIntranet(ctx context.Context, reqData dto.GetUserL
 	intranetReq.Header.Add(constants.AuthorizationHeader, reqData.AuthToken)
 	resp, err := client.Do(intranetReq)
 	if err != nil {
-		logger.WithField("err", err.Error()).Error("Error in intranet get user api. Status returned:  ", resp.StatusCode)
+		logger.Errorf("error in intranet get user api. status returned: %d, err: %s ", resp.StatusCode, err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
 	if resp.StatusCode != http.StatusOK {
-		logger.WithField("err", "err").Error("Status returned ", resp.StatusCode)
+		logger.Errorf("erro in intranet user list request. status returned: %d", resp.StatusCode)
 		err = apperrors.InternalServerError
 		return
 	}
@@ -258,13 +262,13 @@ func (us *service) GetUserListIntranet(ctx context.Context, reqData dto.GetUserL
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		logger.WithField("err", err.Error()).Error("Error in io.readall")
+		logger.Errorf("error in io.readall, err: %s", err.Error())
 		err = apperrors.JSONParsingErrorResp
 	}
 
 	err = json.Unmarshal(body, &respData)
 	if err != nil {
-		logger.WithField("err", err.Error()).Error("Error in unmarshalling data")
+		logger.Errorf("error in unmarshalling data, err: %s", err.Error())
 		err = apperrors.JSONParsingErrorResp
 		return
 	}
