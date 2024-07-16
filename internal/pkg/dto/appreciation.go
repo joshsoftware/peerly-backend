@@ -24,8 +24,9 @@ type AppreciationFilter struct {
 type ResponseAppreciation struct {
 	ID                  int    `json:"id"`
 	CoreValueName       string `json:"core_value_name"`
+	CoreValueDesc       string `json:"core_value_description"`
 	Description         string `json:"description"`
-	TotalRewards        int    `json:"total_rewards"`
+	TotalRewardPoints   int    `json:"total_reward_points"`
 	Quarter             string `json:"quarter"`
 	SenderFirstName     string `json:"sender_first_name"`
 	SenderLastName      string `json:"sender_last_name"`
@@ -35,6 +36,8 @@ type ResponseAppreciation struct {
 	ReceiverLastName    string `json:"receiver_last_name"`
 	ReceiverImageURL    string `json:"receiver_image_url"`
 	ReceiverDesignation string `json:"receiver_designation"`
+	TotalRewards        int    `json:"total_rewards"`
+	GivenRewardPoint    int    `json:"given_reward_point"`
 	CreatedAt           int64  `json:"created_at"`
 	UpdatedAt           int64  `json:"updated_at"`
 }
