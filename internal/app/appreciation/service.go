@@ -39,43 +39,42 @@ func (apprSvc *service) CreateAppreciation(ctx context.Context, apprecication dt
 	sender, ok := data.(int64)
 	if !ok {
 		logger.Error("err in parsing userid from token")
-		return dto.Appreciation{},apperrors.InternalServer
+		return dto.Appreciation{}, apperrors.InternalServer
 	}
-	usrChk,err := apprSvc.appreciationRepo.IsUserPresent(ctx,nil,sender)
+	usrChk, err := apprSvc.appreciationRepo.IsUserPresent(ctx, nil, sender)
 	if err != nil {
-		return dto.Appreciation{},err
+		return dto.Appreciation{}, err
 	}
 
-	if !usrChk  {
-		return dto.Appreciation{},apperrors.UserNotFound
+	if !usrChk {
+		return dto.Appreciation{}, apperrors.UserNotFound
 	}
 
 	apprecication.Sender = sender
 
 	//initializing database transaction
 	tx, err := apprSvc.appreciationRepo.BeginTx(ctx)
-	
+
 	if err != nil {
 		return dto.Appreciation{}, err
 	}
 
 	defer func() {
-        rvr := recover()
-        defer func() {
-            if rvr != nil {
-                logger.Info(ctx, "Transaction aborted because of panic: %v, Propagating panic further", rvr)
-                panic(rvr)
-            }
-        }()
+		rvr := recover()
+		defer func() {
+			if rvr != nil {
+				logger.Info(ctx, "Transaction aborted because of panic: %v, Propagating panic further", rvr)
+				panic(rvr)
+			}
+		}()
 
-        txErr := apprSvc.appreciationRepo.HandleTransaction(ctx, tx, err == nil && rvr == nil)
-        if txErr != nil {
-            err = txErr
-            logger.Info(ctx, "error in creating transaction, err: %s", txErr.Error())
-            return
-        }
-    }()
-
+		txErr := apprSvc.appreciationRepo.HandleTransaction(ctx, tx, err == nil && rvr == nil)
+		if txErr != nil {
+			err = txErr
+			logger.Info(ctx, "error in creating transaction, err: %s", txErr.Error())
+			return
+		}
+	}()
 
 	//check is corevalue present in database
 	_, err = apprSvc.corevaluesRespo.GetCoreValue(ctx, int64(apprecication.CoreValueID))
@@ -94,7 +93,7 @@ func (apprSvc *service) CreateAppreciation(ctx context.Context, apprecication dt
 
 	// check self appreciation
 	if apprecication.Receiver == sender {
-		return dto.Appreciation{},apperrors.SelfAppreciationError
+		return dto.Appreciation{}, apperrors.SelfAppreciationError
 	}
 
 	appr, err := apprSvc.appreciationRepo.CreateAppreciation(ctx, tx, apprecication)
@@ -107,7 +106,6 @@ func (apprSvc *service) CreateAppreciation(ctx context.Context, apprecication dt
 
 func (apprSvc *service) GetAppreciationById(ctx context.Context, appreciationId int) (dto.ResponseAppreciation, error) {
 
-	
 	resAppr, err := apprSvc.appreciationRepo.GetAppreciationById(ctx, nil, appreciationId)
 	if err != nil {
 		return dto.ResponseAppreciation{}, err
@@ -117,18 +115,25 @@ func (apprSvc *service) GetAppreciationById(ctx context.Context, appreciationId 
 }
 
 func (apprSvc *service) GetAppreciation(ctx context.Context, filter dto.AppreciationFilter) (dto.GetAppreciationResponse, error) {
-	infos,pagination, err := apprSvc.appreciationRepo.GetAppreciation(ctx, nil, filter)
+	//get logged user
+	data := ctx.Value(constants.UserId)
+	user, ok := data.(int64)
+	if !ok {
+		logger.Error("err in parsing userid from token")
+		return dto.GetAppreciationResponse{}, apperrors.InternalServer
+	}
+	infos, pagination, err := apprSvc.appreciationRepo.GetAppreciation(ctx, nil, filter, user)
 	if err != nil {
 		return dto.GetAppreciationResponse{}, err
 	}
 
-	responses := make([]dto.ResponseAppreciation,0)
+	responses := make([]dto.ResponseAppreciation, 0)
 	for _, info := range infos {
 		response := mapRepoGetAppreciationInfoToDTOGetAppreciationInfo(info)
 		responses = append(responses, response)
 	}
 	paginationResp := DtoPagination(pagination)
-	return dto.GetAppreciationResponse{Appreciations:responses,MetaData: paginationResp}, nil
+	return dto.GetAppreciationResponse{Appreciations: responses, MetaData: paginationResp}, nil
 }
 
 func (apprSvc *service) ValidateAppreciation(ctx context.Context, isValid bool, apprId int) (bool, error) {

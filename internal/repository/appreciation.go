@@ -12,7 +12,7 @@ type AppreciationStorer interface {
 
 	CreateAppreciation(ctx context.Context, tx Transaction, appreciation dto.Appreciation) (Appreciation, error)
 	GetAppreciationById(ctx context.Context, tx Transaction, appreciationId int) (AppreciationInfo, error)
-	GetAppreciation(ctx context.Context, tx Transaction, filter dto.AppreciationFilter) ([]AppreciationInfo, Pagination, error)
+	GetAppreciation(ctx context.Context, tx Transaction, filter dto.AppreciationFilter, userID int64) ([]AppreciationInfo, Pagination, error)
 	ValidateAppreciation(ctx context.Context, tx Transaction, isValid bool, apprId int) (bool, error)
 	IsUserPresent(ctx context.Context, tx Transaction, userID int64) (bool, error)
 }

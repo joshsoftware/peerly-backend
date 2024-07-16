@@ -118,7 +118,7 @@ func (appr *appreciationsStore) GetAppreciationById(ctx context.Context, tx repo
 	return resAppr, nil
 }
 
-func (appr *appreciationsStore) GetAppreciation(ctx context.Context, tx repository.Transaction, filter dto.AppreciationFilter) ([]repository.AppreciationInfo, repository.Pagination, error) {
+func (appr *appreciationsStore) GetAppreciation(ctx context.Context, tx repository.Transaction, filter dto.AppreciationFilter, userID int64) ([]repository.AppreciationInfo, repository.Pagination, error) {
 
 	// query builder for counting total records
 	countQueryBuilder := sq.Select("COUNT(*)").
@@ -151,8 +151,10 @@ func (appr *appreciationsStore) GetAppreciation(ctx context.Context, tx reposito
 		return []repository.AppreciationInfo{}, repository.Pagination{}, apperrors.InternalServerError
 	}
 
-	pagination := GetPaginationMetaData(filter.Page,filter.Limit,totalRecords)
+	pagination := GetPaginationMetaData(filter.Page, filter.Limit, totalRecords)
 	fmt.Println("pagination: ", pagination)
+
+	// Initialize the Squirrel query builder
 	queryBuilder := sq.Select(
 		"a.id",
 		"cv.name AS core_value_name",
@@ -172,6 +174,12 @@ func (appr *appreciationsStore) GetAppreciation(ctx context.Context, tx reposito
 		"a.created_at",
 		"a.updated_at",
 		"COUNT(r.id) AS total_rewards",
+		fmt.Sprintf(
+			`COALESCE((
+				SELECT r2.point 
+				FROM rewards r2 
+				WHERE r2.appreciation_id = a.id AND r2.sender = %d
+			), 0) AS given_reward_point`, userID),
 	).From("appreciations a").
 		LeftJoin("users u_sender ON a.sender = u_sender.id").
 		LeftJoin("users u_receiver ON a.receiver = u_receiver.id").
@@ -205,48 +213,15 @@ func (appr *appreciationsStore) GetAppreciation(ctx context.Context, tx reposito
 
 	queryExecutor = appr.InitiateQueryExecutor(tx)
 	res := make([]repository.AppreciationInfo, 0)
-	err = sqlx.Select(queryExecutor,&res,sql,args...)
-	// rows, err := queryExecutor.Query(sql, args...)
+	err = sqlx.Select(queryExecutor, &res, sql, args...)
 	if err != nil {
 		logger.Error("failed to execute query: ", err.Error())
 		return nil, repository.Pagination{}, apperrors.InternalServerError
 	}
-	fmt.Println("get apprecitations: ")
-	fmt.Println("res: ",res)
-	// defer rows.Close()
-
-	
-
-	// for rows.Next() {
-	// 	fmt.Println("Hello")
-	// 	var resAppr repository.AppreciationInfo
-	// 	err = rows.Scan(
-	// 		&resAppr.ID,
-	// 		&resAppr.CoreValueName,
-	// 		&resAppr.Description,
-	// 		&resAppr.IsValid,
-	// 		&resAppr.TotalRewards,
-	// 		&resAppr.Quarter,
-	// 		&resAppr.SenderFirstName,
-	// 		&resAppr.SenderLastName,
-	// 		&resAppr.SenderImageURL,
-	// 		&resAppr.SenderDesignation,
-	// 		&resAppr.ReceiverFirstName,
-	// 		&resAppr.ReceiverLastName,
-	// 		&resAppr.ReceiverImageURL,
-	// 		&resAppr.ReceiverDesignation,
-	// 		&resAppr.CreatedAt,
-	// 		&resAppr.UpdatedAt,
-	// 	)
-	// 	if err != nil {
-	// 		logger.Error("failed to scan row: ", err.Error())
-	// 		return []repository.AppreciationInfo{}, repository.Pagination{}, apperrors.InternalServerError
-	// 	}
-	// 	res = append(res, resAppr)
-	// }
 
 	return res, pagination, nil
 }
+
 
 func (appr *appreciationsStore) ValidateAppreciation(ctx context.Context, tx repository.Transaction, isValid bool, apprId int) (bool, error) {
 	query, args, err := sq.Update("appreciations").
