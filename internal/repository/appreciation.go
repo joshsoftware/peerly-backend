@@ -33,6 +33,7 @@ type Appreciation struct {
 type AppreciationInfo struct {
 	ID                  int            `db:"id"`
 	CoreValueName       string         `db:"core_value_name"`
+	CoreValueDesc       string         `db:"core_value_description"`
 	Description         string         `db:"description"`
 	IsValid             bool           `db:"is_valid"`
 	TotalRewardPoints   int            `db:"total_reward_points"`

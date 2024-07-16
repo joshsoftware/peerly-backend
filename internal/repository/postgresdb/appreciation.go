@@ -153,10 +153,10 @@ func (appr *appreciationsStore) GetAppreciation(ctx context.Context, tx reposito
 
 	pagination := GetPaginationMetaData(filter.Page,filter.Limit,totalRecords)
 	fmt.Println("pagination: ", pagination)
-	// Initialize the Squirrel query builder
 	queryBuilder := sq.Select(
 		"a.id",
 		"cv.name AS core_value_name",
+		"cv.description AS core_value_description",
 		"a.description",
 		"a.is_valid",
 		"a.total_reward_points",
@@ -171,12 +171,15 @@ func (appr *appreciationsStore) GetAppreciation(ctx context.Context, tx reposito
 		"u_receiver.designation AS receiver_designation",
 		"a.created_at",
 		"a.updated_at",
+		"COUNT(r.id) AS total_rewards",
 	).From("appreciations a").
 		LeftJoin("users u_sender ON a.sender = u_sender.id").
 		LeftJoin("users u_receiver ON a.receiver = u_receiver.id").
 		LeftJoin("core_values cv ON a.core_value_id = cv.id").
+		LeftJoin("rewards r ON a.id = r.appreciation_id").
 		PlaceholderFormat(sq.Dollar).
-		Where(sq.Eq{"a.is_valid": true})
+		Where(sq.Eq{"a.is_valid": true}).
+		GroupBy("a.id, cv.name, cv.description, u_sender.first_name, u_sender.last_name, u_sender.profile_image_url, u_sender.designation, u_receiver.first_name, u_receiver.last_name, u_receiver.profile_image_url, u_receiver.designation")
 
 	if filter.Name != "" {
 		queryBuilder = queryBuilder.Where(
@@ -208,6 +211,8 @@ func (appr *appreciationsStore) GetAppreciation(ctx context.Context, tx reposito
 		logger.Error("failed to execute query: ", err.Error())
 		return nil, repository.Pagination{}, apperrors.InternalServerError
 	}
+	fmt.Println("get apprecitations: ")
+	fmt.Println("res: ",res)
 	// defer rows.Close()
 
 	
