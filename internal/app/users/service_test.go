@@ -2,7 +2,7 @@ package user
 
 import (
 	"context"
-	"database/sql" 
+	"database/sql"
 	"testing"
 
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
@@ -360,29 +360,29 @@ func TestGetUserList(t *testing.T) {
 
 }
 
-func TestUpdateRewardQuota(t *testing.T){
+func TestUpdateRewardQuota(t *testing.T) {
 	userRepo := mocks.NewUserStorer(t)
 	service := NewService(userRepo)
 
 	tests := []struct {
-		name            string
-		context         context.Context
-		setup           func(userMock *mocks.UserStorer)
-		expectedError   error
+		name          string
+		context       context.Context
+		setup         func(userMock *mocks.UserStorer)
+		expectedError error
 	}{
 		{
-			name: "success",
+			name:    "success",
 			context: context.Background(),
 			setup: func(userMock *mocks.UserStorer) {
-				userMock.On("UpdateRewardQuota",mock.Anything,nil).Return(nil).Once()
+				userMock.On("UpdateRewardQuota", mock.Anything, nil).Return(nil).Once()
 			},
 			expectedError: nil,
 		},
 		{
-			name: "failure",
+			name:    "failure",
 			context: context.Background(),
 			setup: func(userMock *mocks.UserStorer) {
-				userMock.On("UpdateRewardQuota",mock.Anything,nil).Return(apperrors.InternalServer)
+				userMock.On("UpdateRewardQuota", mock.Anything, nil).Return(apperrors.InternalServer)
 			},
 			expectedError: apperrors.InternalServer,
 		},
@@ -401,67 +401,67 @@ func TestUpdateRewardQuota(t *testing.T){
 	}
 }
 
-func TestGetActiveUserList(t *testing.T){
+func TestGetActiveUserList(t *testing.T) {
 	userRepo := mocks.NewUserStorer(t)
 	service := NewService(userRepo)
 
 	tests := []struct {
-		name            string
-		context         context.Context
-		setup           func(userMock *mocks.UserStorer)
-		expectedResp	[]dto.ActiveUser
-		expectedError   error
+		name          string
+		context       context.Context
+		setup         func(userMock *mocks.UserStorer)
+		expectedResp  []dto.ActiveUser
+		expectedError error
 	}{
 		{
-			name: "success",
+			name:    "success",
 			context: context.Background(),
 			setup: func(userMock *mocks.UserStorer) {
-				userMock.On("GetActiveUserList",mock.Anything,mock.Anything).Return([]repository.ActiveUser{
+				userMock.On("GetActiveUserList", mock.Anything, mock.Anything).Return([]repository.ActiveUser{
 					{
-						ID: 55,
-						FirstName: "Deepak",
-						LastName: "Kumar",
-						ProfileImageURL: sql.NullString{String:"",Valid: false},
-						BadgeName: sql.NullString{String:"",Valid: false},
+						ID:                 55,
+						FirstName:          "Deepak",
+						LastName:           "Kumar",
+						ProfileImageURL:    sql.NullString{String: "", Valid: false},
+						BadgeName:          sql.NullString{String: "", Valid: false},
 						AppreciationPoints: 0,
 					},
 					{
-						ID: 58,
-						FirstName: "Dominic",
-						LastName: "Lopes",
-						ProfileImageURL: sql.NullString{String:"",Valid: false},
-						BadgeName: sql.NullString{String:"Gold",Valid: true},
+						ID:                 58,
+						FirstName:          "Dominic",
+						LastName:           "Lopes",
+						ProfileImageURL:    sql.NullString{String: "", Valid: false},
+						BadgeName:          sql.NullString{String: "Gold", Valid: true},
 						AppreciationPoints: 5000,
 					},
-				},nil).Once()
+				}, nil).Once()
 			},
 			expectedResp: []dto.ActiveUser{
 				{
-					ID: 55,
-					FirstName: "Deepak",
-					LastName: "Kumar",
-					ProfileImageURL: "",
-					BadgeName: "",
+					ID:                 55,
+					FirstName:          "Deepak",
+					LastName:           "Kumar",
+					ProfileImageURL:    "",
+					BadgeName:          "",
 					AppreciationPoints: 0,
 				},
 				{
-					ID: 58,
-					FirstName: "Dominic",
-					LastName: "Lopes",
-					ProfileImageURL: "",
-					BadgeName: "Gold",
+					ID:                 58,
+					FirstName:          "Dominic",
+					LastName:           "Lopes",
+					ProfileImageURL:    "",
+					BadgeName:          "Gold",
 					AppreciationPoints: 5000,
 				},
 			},
 			expectedError: nil,
 		},
 		{
-			name: "failure",
+			name:    "failure",
 			context: context.Background(),
 			setup: func(userMock *mocks.UserStorer) {
-				userMock.On("GetActiveUserList",mock.Anything,mock.Anything).Return([]repository.ActiveUser{},apperrors.InternalServer).Once()
+				userMock.On("GetActiveUserList", mock.Anything, mock.Anything).Return([]repository.ActiveUser{}, apperrors.InternalServer).Once()
 			},
-			expectedResp: []dto.ActiveUser{},
+			expectedResp:  []dto.ActiveUser{},
 			expectedError: apperrors.InternalServer,
 		},
 	}
@@ -471,12 +471,12 @@ func TestGetActiveUserList(t *testing.T){
 			test.setup(userRepo)
 
 			// test service
-			resp,err := service.GetActiveUserList(test.context)
+			resp, err := service.GetActiveUserList(test.context)
 
-			if err != nil{
+			if err != nil {
 				assert.Equal(t, test.expectedError, err)
-			}else{
-				assert.Equal(t,test.expectedResp,resp)
+			} else {
+				assert.Equal(t, test.expectedResp, resp)
 			}
 
 		})
@@ -534,6 +534,52 @@ func TestGetUserById(t *testing.T) {
 
 			// test service
 			_, err := service.GetUserById(ctx)
+
+			if (err != nil) != test.isErrorExpected {
+				t.Errorf("Test Failed, expected error to be %v, but got err %v", test.isErrorExpected, err != nil)
+			}
+		})
+	}
+
+}
+
+func TestGetTop10Users(t *testing.T) {
+	userRepo := mocks.NewUserStorer(t)
+	service := NewService(userRepo)
+
+	tests := []struct {
+		name            string
+		context         context.Context
+		setup           func(userMock *mocks.UserStorer)
+		isErrorExpected bool
+	}{
+		{
+			name:    "Success for get top 10 users",
+			context: context.Background(),
+			setup: func(userMock *mocks.UserStorer) {
+				userMock.On("GetTop10Users", mock.Anything).Return([]repository.Top10Users{}, nil).Once()
+
+			},
+			isErrorExpected: false,
+		},
+		{
+			name:    "Faliure for get top 10 users",
+			context: context.Background(),
+			setup: func(userMock *mocks.UserStorer) {
+				userMock.On("GetTop10Users", mock.Anything).Return([]repository.Top10Users{}, apperrors.InternalServerError).Once()
+
+			},
+			isErrorExpected: true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+
+			test.setup(userRepo)
+
+			// test service
+			_, err := service.GetTop10Users(test.context)
 
 			if (err != nil) != test.isErrorExpected {
 				t.Errorf("Test Failed, expected error to be %v, but got err %v", test.isErrorExpected, err != nil)

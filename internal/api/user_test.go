@@ -483,3 +483,51 @@ func TestGetUserByIdHandler(t *testing.T) {
 		})
 	}
 }
+
+func TestGetTop10UsersHandler(t *testing.T) {
+	userSvc := mocks.NewService(t)
+	getTop10Users := getTop10UserHandler(userSvc)
+
+	tests := []struct {
+		name               string
+		setup              func(mock *mocks.Service)
+		expectedStatusCode int
+	}{
+		{
+			name: "Success for get top 10 users",
+			setup: func(mockSvc *mocks.Service) {
+				mockSvc.On("GetTop10Users", mock.Anything).Return([]dto.Top10User{}, nil).Once()
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+		{
+			name: "Faliure for get top 10 users",
+			setup: func(mockSvc *mocks.Service) {
+				mockSvc.On("GetTop10Users", mock.Anything).Return([]dto.Top10User{}, apperrors.InternalServerError).Once()
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			test.setup(userSvc)
+
+			req, err := http.NewRequest("GET", "/users/top10", bytes.NewBuffer([]byte("")))
+			if err != nil {
+				t.Fatal(err)
+				return
+			}
+
+			rr := httptest.NewRecorder()
+			handler := http.HandlerFunc(getTop10Users)
+			handler.ServeHTTP(rr, req)
+
+			fmt.Println("Error")
+
+			if rr.Result().StatusCode != test.expectedStatusCode {
+				t.Errorf("Expected %d but got %d", test.expectedStatusCode, rr.Result().StatusCode)
+			}
+		})
+	}
+}
