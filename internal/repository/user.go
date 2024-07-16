@@ -23,6 +23,7 @@ type UserStorer interface {
 	GetActiveUserList(ctx context.Context, tx Transaction) (activeUsers []ActiveUser, err error)
 	GetTotalUserCount(ctx context.Context, reqData dto.UserListReq) (totalCount int64, err error)
 	GetUserById(ctx context.Context, reqData dto.GetUserByIdReq) (user dto.GetUserByIdResp, err error)
+	GetTop10Users(ctx context.Context) (users []Top10Users, err error)
 }
 
 // User - basic struct representing a User
@@ -68,6 +69,6 @@ type Top10Users struct {
 	FirstName          string         `db:"first_name"`
 	LastName           string         `db:"last_name"`
 	ProfileImageURL    sql.NullString `db:"profile_image_url"`
-	BadgeName          sql.NullString `db:"badge_name"`
-	AppreciationPoints int            `db:"appreciation_points"`
+	BadgeName          sql.NullString `db:"name"`
+	AppreciationPoints int            `db:"ap"`
 }

@@ -382,7 +382,32 @@ func (us *userStore) GetUserById(ctx context.Context, reqData dto.GetUserByIdReq
 
 func (us *userStore) GetTop10Users(ctx context.Context) (users []repository.Top10Users, err error) {
 
-	// queryBuilder := repository.Sq.Select(leaderBoardColumns...).From(us.UserTable)
+	getTop10UserQuery := `select users.id, users.first_name, users.last_name, users.profile_image_url, sum(appreciations.total_reward_points) as AP from users join appreciations on users.id = appreciations.receiver group by users.id, appreciations.receiver order by AP desc limit 10`
+
+	err = us.DB.Select(&users, getTop10UserQuery)
+	if err != nil {
+		err = fmt.Errorf("err in getTop10UsersQuery err: %w", err)
+		return
+	}
+
+	getUserBadge := `select badges.name from badges join user_badges on user_badges.badge_id = badges.id where user_badges.user_id = $1 and created_at >= 1721104757782 group by badges.id, user_badges.created_at  order by created_at desc limit 1`
+
+	for i, user := range users {
+		var badge []sql.NullString
+		err = us.DB.Select(&badge, getUserBadge, user.ID)
+		if err != nil {
+			err = fmt.Errorf("err in getUserBadge query. userId:%d, err: %w", user.ID, err)
+			return
+		}
+
+		if len(badge) > 0 {
+			fmt.Println("badge: ", badge[0], " for id: ", user.ID)
+			user.BadgeName = badge[0]
+			users[i] = user
+		}
+		// users = append(users, user)
+
+	}
 
 	return
 }

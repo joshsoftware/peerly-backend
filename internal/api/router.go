@@ -47,6 +47,8 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 
 	router.Handle("/users/all", middleware.JwtAuthMiddleware(getUserHandler(deps.UserService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
 
+	router.Handle("/users/top10", middleware.JwtAuthMiddleware(getTop10UserHandler(deps.UserService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
+
 	//appreciations
 
 	router.Handle("/appreciation/{id:[0-9]+}", middleware.JwtAuthMiddleware(getAppreciationByIdHandler(deps.AppreciationService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
@@ -64,7 +66,6 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 
 	//report appreciation
 	router.Handle("/report_appreciation/{id:[0-9]+}", middleware.JwtAuthMiddleware(reportAppreciationHandler(deps.ReportAppreciationService), []string{constants.UserRole})).Methods(http.MethodPost).Headers(versionHeader, v1)
-
 
 	return router
 }

@@ -125,12 +125,20 @@ type UserListReq struct {
 }
 
 type ActiveUser struct {
-	ID                  int       `json:"id"`
-	FirstName           string    `json:"first_name"`
-	LastName            string    `json:"last_name"`
-	ProfileImageURL     string    `json:"profile_image_url"`
-	BadgeName           string    `json:"badge_name"`
-	AppreciationPoints  int       `json:"appreciation_points"`
+	ID                 int    `json:"id"`
+	FirstName          string `json:"first_name"`
+	LastName           string `json:"last_name"`
+	ProfileImageURL    string `json:"profile_image_url"`
+	BadgeName          string `json:"badge_name"`
+	AppreciationPoints int    `json:"appreciation_points"`
+}
+type Top10User struct {
+	ID                 int    `json:"id"`
+	FirstName          string `json:"first_name"`
+	LastName           string `json:"last_name"`
+	ProfileImageURL    string `json:"profile_image_url"`
+	BadgeName          string `json:"badge_name"`
+	AppreciationPoints int    `json:"appreciation_points"`
 }
 type GetUserByIdReq struct {
 	UserId          int64 `json:"user_id" db:"id"`
