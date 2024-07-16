@@ -389,6 +389,52 @@ func TestGetUserHandler(t *testing.T) {
 	}
 }
 
+func TestGetActiveUserListHandler(t *testing.T) {
+	userSvc := mocks.NewService(t)
+	getActiveUserListHandler := getActiveUserListHandler(userSvc)
+
+	tests := []struct {
+		name               string
+		setup              func(mock *mocks.Service)
+		expectedStatusCode int
+	}{
+		{
+			name: "Success for get active user list",
+			setup: func(mockSvc *mocks.Service) {
+				mockSvc.On("GetActiveUserList", mock.Anything, mock.Anything).Return([]dto.ActiveUser{}, nil).Once()
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+		{
+			name: "Failure",
+			setup: func(mockSvc *mocks.Service) {
+				mockSvc.On("GetActiveUserList", mock.Anything, mock.Anything).Return([]dto.ActiveUser{}, apperrors.InternalServer).Once()
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			test.setup(userSvc)
+
+			req, err := http.NewRequest("GET", "/users/activeusers", bytes.NewBuffer([]byte("")))
+			if err != nil {
+				t.Fatal(err)
+				return
+			}
+
+			rr := httptest.NewRecorder()
+			handler := http.HandlerFunc(getActiveUserListHandler)
+			handler.ServeHTTP(rr, req)
+
+			if rr.Result().StatusCode != test.expectedStatusCode {
+				t.Errorf("Expected %d but got %d", test.expectedStatusCode, rr.Result().StatusCode)
+			}
+		})
+	}
+}
+
 func TestGetUserByIdHandler(t *testing.T) {
 	userSvc := mocks.NewService(t)
 	getUserById := getUserByIdHandler(userSvc)
@@ -439,6 +485,54 @@ func TestGetUserByIdHandler(t *testing.T) {
 
 			rr := httptest.NewRecorder()
 			handler := http.HandlerFunc(getUserById)
+			handler.ServeHTTP(rr, req)
+
+			fmt.Println("Error")
+
+			if rr.Result().StatusCode != test.expectedStatusCode {
+				t.Errorf("Expected %d but got %d", test.expectedStatusCode, rr.Result().StatusCode)
+			}
+		})
+	}
+}
+
+func TestGetTop10UsersHandler(t *testing.T) {
+	userSvc := mocks.NewService(t)
+	getTop10Users := getTop10UserHandler(userSvc)
+
+	tests := []struct {
+		name               string
+		setup              func(mock *mocks.Service)
+		expectedStatusCode int
+	}{
+		{
+			name: "Success for get top 10 users",
+			setup: func(mockSvc *mocks.Service) {
+				mockSvc.On("GetTop10Users", mock.Anything).Return([]dto.Top10User{}, nil).Once()
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+		{
+			name: "Faliure for get top 10 users",
+			setup: func(mockSvc *mocks.Service) {
+				mockSvc.On("GetTop10Users", mock.Anything).Return([]dto.Top10User{}, apperrors.InternalServerError).Once()
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			test.setup(userSvc)
+
+			req, err := http.NewRequest("GET", "/users/top10", bytes.NewBuffer([]byte("")))
+			if err != nil {
+				t.Fatal(err)
+				return
+			}
+
+			rr := httptest.NewRecorder()
+			handler := http.HandlerFunc(getTop10Users)
 			handler.ServeHTTP(rr, req)
 
 			fmt.Println("Error")

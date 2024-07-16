@@ -11,6 +11,29 @@ type Service struct {
 	mock.Mock
 }
 
+// GetActiveUserList provides a mock function with given fields: ctx
+func (_m *Service) GetActiveUserList(ctx context.Context) ([]dto.ActiveUser, error) {
+	ret := _m.Called(ctx)
+
+	var r0 []dto.ActiveUser
+	if rf, ok := ret.Get(0).(func(context.Context) []dto.ActiveUser); ok {
+		r0 = rf(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]dto.ActiveUser)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetIntranetUserData provides a mock function with given fields: ctx, req
 func (_m *Service) GetIntranetUserData(ctx context.Context, req dto.GetIntranetUserDataReq) (dto.IntranetUserData, error) {
 	ret := _m.Called(ctx, req)
@@ -25,6 +48,29 @@ func (_m *Service) GetIntranetUserData(ctx context.Context, req dto.GetIntranetU
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, dto.GetIntranetUserDataReq) error); ok {
 		r1 = rf(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetTop10Users provides a mock function with given fields: ctx
+func (_m *Service) GetTop10Users(ctx context.Context) ([]dto.Top10User, error) {
+	ret := _m.Called(ctx)
+
+	var r0 []dto.Top10User
+	if rf, ok := ret.Get(0).(func(context.Context) []dto.Top10User); ok {
+		r0 = rf(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]dto.Top10User)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -137,6 +183,20 @@ func (_m *Service) RegisterUser(ctx context.Context, u dto.IntranetUserData) (dt
 	}
 
 	return r0, r1
+}
+
+// UpdateRewardQuota provides a mock function with given fields: ctx
+func (_m *Service) UpdateRewardQuota(ctx context.Context) error {
+	ret := _m.Called(ctx)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context) error); ok {
+		r0 = rf(ctx)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // ValidatePeerly provides a mock function with given fields: ctx, authToken

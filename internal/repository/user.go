@@ -10,6 +10,8 @@ import (
 )
 
 type UserStorer interface {
+	RepositoryTransaction
+
 	GetUserByEmail(ctx context.Context, email string) (user dto.GetUserResp, err error)
 	GetRoleByName(ctx context.Context, name string) (roleId int, err error)
 	CreateNewUser(ctx context.Context, u dto.RegisterUser) (resp dto.GetUserResp, err error)
@@ -17,8 +19,11 @@ type UserStorer interface {
 	GetRewardMultiplier(ctx context.Context) (value int, err error)
 	SyncData(ctx context.Context, updateData dto.UpdateUserData) (err error)
 	GetUserList(ctx context.Context, reqData dto.UserListReq) (resp []dto.GetUserListResp, err error)
+	UpdateRewardQuota(ctx context.Context, tx Transaction) (err error)
+	GetActiveUserList(ctx context.Context, tx Transaction) (activeUsers []ActiveUser, err error)
 	GetTotalUserCount(ctx context.Context, reqData dto.UserListReq) (totalCount int64, err error)
 	GetUserById(ctx context.Context, reqData dto.GetUserByIdReq) (user dto.GetUserByIdResp, err error)
+	GetTop10Users(ctx context.Context) (users []Top10Users, err error)
 }
 
 // User - basic struct representing a User
@@ -48,4 +53,22 @@ type Grade struct {
 	Id     int    `db:"id" json:"id"`
 	Name   string `db:"name" json:"name"`
 	Points int    `db:"points" json:"points"`
+}
+
+type ActiveUser struct {
+	ID                 int            `db:"id"`
+	FirstName          string         `db:"first_name"`
+	LastName           string         `db:"last_name"`
+	ProfileImageURL    sql.NullString `db:"profile_image_url"`
+	BadgeName          sql.NullString `db:"badge_name"`
+	AppreciationPoints int            `db:"appreciation_points"`
+}
+
+type Top10Users struct {
+	ID                 int            `db:"id"`
+	FirstName          string         `db:"first_name"`
+	LastName           string         `db:"last_name"`
+	ProfileImageURL    sql.NullString `db:"profile_image_url"`
+	BadgeName          sql.NullString `db:"name"`
+	AppreciationPoints int            `db:"ap"`
 }

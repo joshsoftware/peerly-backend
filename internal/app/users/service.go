@@ -30,7 +30,10 @@ type Service interface {
 	RegisterUser(ctx context.Context, u dto.IntranetUserData) (user dto.GetUserResp, err error)
 	GetUserListIntranet(ctx context.Context, reqData dto.GetUserListReq) (data []dto.IntranetUserData, err error)
 	GetUserList(ctx context.Context, reqData dto.UserListReq) (resp dto.UserListWithMetadata, err error)
+	UpdateRewardQuota(ctx context.Context) (err error)
+	GetActiveUserList(ctx context.Context) ([]dto.ActiveUser, error)
 	GetUserById(ctx context.Context) (user dto.GetUserByIdResp, err error)
+	GetTop10Users(ctx context.Context) (users []dto.Top10User, err error)
 }
 
 func NewService(userRepo repository.UserStorer) Service {
@@ -340,9 +343,52 @@ func (us *service) GetUserById(ctx context.Context) (user dto.GetUserByIdResp, e
 	return
 }
 
+func (us *service) GetActiveUserList(ctx context.Context) ([]dto.ActiveUser, error) {
+	activeUserDb, err := us.userRepo.GetActiveUserList(ctx, nil)
+	if err != nil {
+		return []dto.ActiveUser{}, err
+	}
+	res := make([]dto.ActiveUser, 0)
+	for _, activerUser := range activeUserDb {
+		actUsr := MapActiveUserDbtoDto(activerUser)
+		res = append(res, actUsr)
+	}
+	return res, nil
+}
+func (us *service) UpdateRewardQuota(ctx context.Context) error {
+	err := us.userRepo.UpdateRewardQuota(ctx, nil)
+	return err
+}
 func GetQuarterStartUnixTime() int64 {
 	// Example function to get the Unix timestamp of the start of the quarter
 	now := time.Now()
 	quarterStart := time.Date(now.Year(), (now.Month()-1)/3*3+1, 1, 0, 0, 0, 0, time.UTC)
 	return quarterStart.Unix() * 1000 // convert to milliseconds
+}
+
+func (us *service) GetTop10Users(ctx context.Context) (users []dto.Top10User, err error) {
+
+	dbUsers, err := us.userRepo.GetTop10Users(ctx)
+	if err != nil {
+		logger.Error(err.Error())
+		err = apperrors.InternalServerError
+		return
+	}
+
+	for _, dbUser := range dbUsers {
+		svcUser := mapDbTop10ToSvcTop10(dbUser)
+		users = append(users, svcUser)
+	}
+
+	return
+}
+
+func mapDbTop10ToSvcTop10(dbStruct repository.Top10Users) (svcStruct dto.Top10User) {
+	svcStruct.ID = dbStruct.ID
+	svcStruct.FirstName = dbStruct.FirstName
+	svcStruct.LastName = dbStruct.LastName
+	svcStruct.ProfileImageURL = dbStruct.ProfileImageURL.String
+	svcStruct.BadgeName = dbStruct.BadgeName.String
+	svcStruct.AppreciationPoints = dbStruct.AppreciationPoints
+	return
 }

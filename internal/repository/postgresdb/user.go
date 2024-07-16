@@ -13,13 +13,19 @@ import (
 	logger "github.com/sirupsen/logrus"
 )
 
+var (
+	leaderBoardColumns = []string{"id", "first_name", "last_name", "profile_image_url", "badge_name", "appreciation_points"}
+)
+
 type userStore struct {
-	DB *sqlx.DB
+	BaseRepository
+	UserTable string
 }
 
 func NewUserRepo(db *sqlx.DB) repository.UserStorer {
 	return &userStore{
-		DB: db,
+		BaseRepository: BaseRepository{db},
+		UserTable:      "users",
 	}
 }
 
@@ -225,6 +231,118 @@ func (us *userStore) GetUserList(ctx context.Context, reqData dto.UserListReq) (
 	return
 }
 
+func (us *userStore) GetActiveUserList(ctx context.Context, tx repository.Transaction) (activeUsers []repository.ActiveUser, err error) {
+	queryExecutor := us.InitiateQueryExecutor(tx)
+	afterTime := GetQuarterStartUnixTime()
+	query := `WITH user_points AS (
+    SELECT 
+        u.id AS user_id,
+        COALESCE(received.total_received_appreciations, 0) AS total_received_appreciations,
+        COALESCE(sent.total_sent_appreciations, 0) AS total_sent_appreciations,
+        COALESCE(given.total_given_rewards, 0) AS total_given_rewards,
+        (3 * COALESCE(sent.total_sent_appreciations, 0) + 2 * COALESCE(received.total_received_appreciations, 0) + COALESCE(given.total_given_rewards, 0)) AS active_user_points
+    FROM 
+        users u
+    LEFT JOIN 
+        (SELECT receiver AS user_id, COUNT(*) AS total_received_appreciations 
+         FROM appreciations 
+		 WHERE
+        Appreciations.is_valid = true AND appreciations.created_at >=$1
+         GROUP BY receiver
+		 ) AS received ON u.id = received.user_id
+    LEFT JOIN 
+        (SELECT sender AS user_id, COUNT(*) AS total_sent_appreciations 
+         FROM appreciations
+		 WHERE
+        Appreciations.is_valid = true AND appreciations.created_at >=$2 
+         GROUP BY sender) AS sent ON u.id = sent.user_id
+    LEFT JOIN 
+        (SELECT sender AS user_id, COUNT(*) AS total_given_rewards 
+         FROM rewards
+		 WHERE
+		 rewards.created_at >=$3 
+         GROUP BY sender) AS given ON u.id = given.user_id
+    WHERE
+        COALESCE(received.total_received_appreciations, 0) > 0 OR
+        COALESCE(sent.total_sent_appreciations, 0) > 0 OR
+        COALESCE(given.total_given_rewards, 0) > 0
+    ORDER BY
+        active_user_points DESC,
+        total_sent_appreciations DESC,
+        total_given_rewards DESC,
+        total_received_appreciations DESC
+)
+SELECT 
+    up.user_id,
+    u.first_name ,
+	u.last_name ,
+    u.profile_image_url,
+    b.name AS badge,
+    COALESCE(ap.appreciation_points, 0) AS appreciation_points
+FROM 
+    user_points up
+JOIN 
+    users u ON up.user_id = u.id
+LEFT JOIN 
+    (SELECT receiver, SUM(total_reward_points) AS appreciation_points 
+     FROM appreciations 
+     GROUP BY receiver) AS ap ON u.id = ap.receiver
+LEFT JOIN 
+    (SELECT ub.user_id, b.name
+     FROM user_badges ub 
+     JOIN badges b ON ub.badge_id = b.id
+     WHERE ub.id = (SELECT MAX(id) FROM user_badges WHERE user_id = ub.user_id)) AS b ON u.id = b.user_id;
+`
+
+	rows, err := queryExecutor.Query(query, afterTime, afterTime, afterTime)
+	if err != nil {
+		logger.Error("err: userStore ", err.Error())
+		return []repository.ActiveUser{}, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var user repository.ActiveUser
+		if err := rows.Scan(
+			&user.ID,
+			&user.FirstName,
+			&user.LastName,
+			&user.ProfileImageURL,
+			&user.BadgeName,
+			&user.AppreciationPoints,
+		); err != nil {
+			logger.Error("err: userStore ", err.Error())
+			return nil, err
+		}
+		activeUsers = append(activeUsers, user)
+	}
+
+	if err = rows.Err(); err != nil {
+		logger.Error("err: userStore ", err.Error())
+		return []repository.ActiveUser{}, err
+	}
+
+	return activeUsers, nil
+}
+
+func (us *userStore) UpdateRewardQuota(ctx context.Context, tx repository.Transaction) (err error) {
+
+	queryExecutor := us.InitiateQueryExecutor(tx)
+	query := `UPDATE users
+	SET reward_quota_balance = (
+    SELECT oc.reward_multiplier * g.points
+    FROM organization_config oc,grades g
+    WHERE users.grade_id = g.id
+	)`
+
+	_, err = queryExecutor.Exec(query)
+	if err != nil {
+		logger.Error("err: userStore ", err.Error())
+		return err
+	}
+	return
+}
+
 func (us *userStore) GetUserById(ctx context.Context, reqData dto.GetUserByIdReq) (user dto.GetUserByIdResp, err error) {
 
 	getUserById := `select users.id, users.first_name, users.last_name, users.email, users.profile_image_url, users.designation, users.reward_quota_balance, users.grade_id, users.employee_id, 
@@ -273,6 +391,37 @@ func (us *userStore) GetUserById(ctx context.Context, reqData dto.GetUserByIdReq
 		user.TotalPoints = userList[0].TotalPoints
 		user.Badge = userList[0].Badge.String
 		user.BadgeCreatedAt = userList[0].BadgeCreatedAt.Int64
+	}
+	return
+}
+
+func (us *userStore) GetTop10Users(ctx context.Context) (users []repository.Top10Users, err error) {
+
+	getTop10UserQuery := `select users.id, users.first_name, users.last_name, users.profile_image_url, sum(appreciations.total_reward_points) as AP from users join appreciations on users.id = appreciations.receiver group by users.id, appreciations.receiver order by AP desc limit 10`
+
+	err = us.DB.Select(&users, getTop10UserQuery)
+	if err != nil {
+		err = fmt.Errorf("err in getTop10UsersQuery err: %w", err)
+		return
+	}
+
+	getUserBadge := `select badges.name from badges join user_badges on user_badges.badge_id = badges.id where user_badges.user_id = $1 and created_at >= 1721104757782 group by badges.id, user_badges.created_at  order by created_at desc limit 1`
+
+	for i, user := range users {
+		var badge []sql.NullString
+		err = us.DB.Select(&badge, getUserBadge, user.ID)
+		if err != nil {
+			err = fmt.Errorf("err in getUserBadge query. userId:%d, err: %w", user.ID, err)
+			return
+		}
+
+		if len(badge) > 0 {
+			fmt.Println("badge: ", badge[0], " for id: ", user.ID)
+			user.BadgeName = badge[0]
+			users[i] = user
+		}
+		// users = append(users, user)
+
 	}
 
 	return
