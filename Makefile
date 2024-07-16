@@ -29,3 +29,6 @@ seed:
 
 todo:
 	grep -Rin --include="*go" "TODO" * 
+
+loadUsers:
+	go run cmd/main.go loadUsers
