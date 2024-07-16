@@ -366,7 +366,8 @@ func GetQuarterStartUnixTime() int64 {
 
 func (us *service) GetTop10Users(ctx context.Context) (users []dto.Top10User, err error) {
 
-	dbUsers, err := us.userRepo.GetTop10Users(ctx)
+	quaterTimeStamp := GetQuarterStartUnixTime()
+	dbUsers, err := us.userRepo.GetTop10Users(ctx, quaterTimeStamp)
 	if err != nil {
 		logger.Error(err.Error())
 		err = apperrors.InternalServerError
