@@ -26,21 +26,21 @@ func TestListCoreValuesHandler(t *testing.T) {
 		{
 			name: "Success for list corevalues",
 			setup: func(mockSvc *mocks.Service) {
-				mockSvc.On("ListCoreValues", mock.Anything).Return([]dto.ListCoreValuesResp{}, nil).Once()
+				mockSvc.On("ListCoreValues", mock.Anything).Return([]dto.CoreValue{}, nil).Once()
 			},
 			expectedStatusCode: http.StatusOK,
 		},
 		{
 			name: "Error in vars string to int conversion",
 			setup: func(mockSvc *mocks.Service) {
-				mockSvc.On("ListCoreValues", mock.Anything).Return([]dto.ListCoreValuesResp{}, apperrors.InternalServerError).Once()
+				mockSvc.On("ListCoreValues", mock.Anything).Return([]dto.CoreValue{}, apperrors.InternalServerError).Once()
 			},
 			expectedStatusCode: http.StatusInternalServerError,
 		},
 		{
 			name: "Error in vars ListCoreValues db functions",
 			setup: func(mockSvc *mocks.Service) {
-				mockSvc.On("ListCoreValues", mock.Anything).Return([]dto.ListCoreValuesResp{}, apperrors.InternalServerError).Once()
+				mockSvc.On("ListCoreValues", mock.Anything).Return([]dto.CoreValue{}, apperrors.InternalServerError).Once()
 			},
 			expectedStatusCode: http.StatusInternalServerError,
 		},
@@ -83,7 +83,7 @@ func TestGetCoreValueHandler(t *testing.T) {
 			name:        "Success for get corevalue",
 			coreValueId: 1,
 			setup: func(mockSvc *mocks.Service) {
-				mockSvc.On("GetCoreValue", mock.Anything, mock.Anything).Return(dto.GetCoreValueResp{}, nil).Once()
+				mockSvc.On("GetCoreValue", mock.Anything, mock.Anything).Return(dto.CoreValue{}, nil).Once()
 			},
 			expectedStatusCode: http.StatusOK,
 		},
@@ -91,7 +91,7 @@ func TestGetCoreValueHandler(t *testing.T) {
 			name:        "Error in vars string to int conversion",
 			coreValueId: 1,
 			setup: func(mockSvc *mocks.Service) {
-				mockSvc.On("GetCoreValue", mock.Anything, mock.Anything).Return(dto.GetCoreValueResp{}, apperrors.InternalServerError).Once()
+				mockSvc.On("GetCoreValue", mock.Anything, mock.Anything).Return(dto.CoreValue{}, apperrors.InternalServerError).Once()
 			},
 			expectedStatusCode: http.StatusInternalServerError,
 		},
@@ -99,7 +99,7 @@ func TestGetCoreValueHandler(t *testing.T) {
 			name:        "Error in GetCoreValue db function",
 			coreValueId: 1,
 			setup: func(mockSvc *mocks.Service) {
-				mockSvc.On("GetCoreValue", mock.Anything, mock.Anything).Return(dto.GetCoreValueResp{}, apperrors.InvalidCoreValueData).Once()
+				mockSvc.On("GetCoreValue", mock.Anything, mock.Anything).Return(dto.CoreValue{}, apperrors.InvalidCoreValueData).Once()
 			},
 			expectedStatusCode: http.StatusNotFound,
 		},
@@ -147,7 +147,7 @@ func TestCreateCoreValueHandler(t *testing.T) {
 				"description": "desc"
 			}`,
 			setup: func(mockSvc *mocks.Service) {
-				mockSvc.On("CreateCoreValue", mock.Anything, mock.Anything, mock.Anything).Return(dto.CreateCoreValueResp{}, nil).Once()
+				mockSvc.On("CreateCoreValue", mock.Anything, mock.Anything, mock.Anything).Return(dto.CoreValue{}, nil).Once()
 			},
 			expectedStatusCode: http.StatusCreated,
 		},
@@ -158,7 +158,7 @@ func TestCreateCoreValueHandler(t *testing.T) {
 				"description": "desc"
 			}`,
 			setup: func(mockSvc *mocks.Service) {
-				mockSvc.On("CreateCoreValue", mock.Anything, mock.Anything, mock.Anything).Return(dto.CreateCoreValueResp{}, apperrors.TextFieldBlank).Once()
+				mockSvc.On("CreateCoreValue", mock.Anything, mock.Anything, mock.Anything).Return(dto.CoreValue{}, apperrors.TextFieldBlank).Once()
 			},
 			expectedStatusCode: http.StatusBadRequest,
 		},
@@ -169,7 +169,7 @@ func TestCreateCoreValueHandler(t *testing.T) {
 				"name": "corevalue3"
 			}`,
 			setup: func(mockSvc *mocks.Service) {
-				mockSvc.On("CreateCoreValue", mock.Anything, mock.Anything, mock.Anything).Return(dto.CreateCoreValueResp{}, apperrors.DescFieldBlank).Once()
+				mockSvc.On("CreateCoreValue", mock.Anything, mock.Anything, mock.Anything).Return(dto.CoreValue{}, apperrors.DescFieldBlank).Once()
 			},
 			expectedStatusCode: http.StatusBadRequest,
 		},
@@ -182,7 +182,7 @@ func TestCreateCoreValueHandler(t *testing.T) {
 				"parent_core_value_id": 0
 			}`,
 			setup: func(mockSvc *mocks.Service) {
-				mockSvc.On("CreateCoreValue", mock.Anything, mock.Anything, mock.Anything).Return(dto.CreateCoreValueResp{}, apperrors.InvalidParentValue).Once()
+				mockSvc.On("CreateCoreValue", mock.Anything, mock.Anything, mock.Anything).Return(dto.CoreValue{}, apperrors.InvalidParentValue).Once()
 			},
 			expectedStatusCode: http.StatusNotFound,
 		},
@@ -195,7 +195,7 @@ func TestCreateCoreValueHandler(t *testing.T) {
 				"parent_core_value_id": 1
 			}`,
 			setup: func(mockSvc *mocks.Service) {
-				mockSvc.On("CreateCoreValue", mock.Anything, mock.Anything, mock.Anything).Return(dto.CreateCoreValueResp{}, apperrors.InternalServerError).Once()
+				mockSvc.On("CreateCoreValue", mock.Anything, mock.Anything, mock.Anything).Return(dto.CoreValue{}, apperrors.InternalServerError).Once()
 			},
 			expectedStatusCode: http.StatusInternalServerError,
 		},
@@ -243,7 +243,7 @@ func TestUpdateCoreValueHandler(t *testing.T) {
 				"description": "desc"
 			}`,
 			setup: func(mockSvc *mocks.Service) {
-				mockSvc.On("UpdateCoreValue", mock.Anything, mock.Anything, mock.Anything).Return(dto.UpdateCoreValuesResp{}, nil).Once()
+				mockSvc.On("UpdateCoreValue", mock.Anything, mock.Anything, mock.Anything).Return(dto.CoreValue{}, nil).Once()
 			},
 			expectedStatusCode: http.StatusOK,
 		},
@@ -255,7 +255,7 @@ func TestUpdateCoreValueHandler(t *testing.T) {
 				"description": "desc"
 			}`,
 			setup: func(mockSvc *mocks.Service) {
-				mockSvc.On("UpdateCoreValue", mock.Anything, mock.Anything, mock.Anything).Return(dto.UpdateCoreValuesResp{}, apperrors.InvalidCoreValueData).Once()
+				mockSvc.On("UpdateCoreValue", mock.Anything, mock.Anything, mock.Anything).Return(dto.CoreValue{}, apperrors.InvalidCoreValueData).Once()
 			},
 			expectedStatusCode: http.StatusNotFound,
 		},
@@ -267,7 +267,7 @@ func TestUpdateCoreValueHandler(t *testing.T) {
 				"description": "desc"
 			}`,
 			setup: func(mockSvc *mocks.Service) {
-				mockSvc.On("UpdateCoreValue", mock.Anything, mock.Anything, mock.Anything).Return(dto.UpdateCoreValuesResp{}, apperrors.InternalServerError).Once()
+				mockSvc.On("UpdateCoreValue", mock.Anything, mock.Anything, mock.Anything).Return(dto.CoreValue{}, apperrors.InternalServerError).Once()
 			},
 			expectedStatusCode: http.StatusInternalServerError,
 		},

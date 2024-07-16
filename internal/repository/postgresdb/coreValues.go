@@ -2,7 +2,9 @@ package repository
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
@@ -10,33 +12,31 @@ import (
 	logger "github.com/sirupsen/logrus"
 )
 
+var (
+	sq = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
+)
+
+var CoreValueColumns = []string{"id", "name", "description", "parent_core_value_id"}
+
 type coreValueStore struct {
-	DB *sqlx.DB
+	DB        *sqlx.DB
+	TableName string
 }
 
 func NewCoreValueRepo(db *sqlx.DB) repository.CoreValueStorer {
 	return &coreValueStore{
-		DB: db,
+		DB:        db,
+		TableName: "core_values",
 	}
 }
 
-const (
-	listCoreValuesQuery  = `SELECT id, name, description, parent_core_value_id FROM core_values`
-	getCoreValueQuery    = `SELECT id, name, description, parent_core_value_id FROM core_values WHERE id = $1`
-	createCoreValueQuery = `INSERT INTO core_values (name,
-		description, parent_core_value_id) VALUES ($1, $2, $3) RETURNING id, name, description, parent_core_value_id`
-	//edit dele
-	deleteSubCoreValueQuery = `UPDATE core_values SET soft_delete = true, soft_delete_by = $1, updated_at = $2 WHERE org_id = $3 and parent_id = $4`
-	deleteCoreValueQuery    = `UPDATE core_values SET soft_delete = true, soft_delete_by = $1, updated_at = $2 WHERE org_id = $3 and id = $4`
-	//edit dele
-	updateCoreValueQuery = `UPDATE core_values SET (name, description) =
-		($1, $2) where id = $3 RETURNING id, name, description, parent_core_value_id`
-
-	// checkOrganisationQuery = `SELECT id from organizations WHERE id = $1`
-	checkUniqueCoreVal = `SELECT id from core_values WHERE name = $1`
-)
-
-func (cs *coreValueStore) ListCoreValues(ctx context.Context) (coreValues []dto.ListCoreValuesResp, err error) {
+func (cs *coreValueStore) ListCoreValues(ctx context.Context) (coreValues []repository.CoreValue, err error) {
+	queryBuilder := sq.Select(CoreValueColumns...).From(cs.TableName)
+	listCoreValuesQuery, _, err := queryBuilder.ToSql()
+	if err != nil {
+		err = fmt.Errorf("error in generating squirrel query, err: %w", err)
+		return
+	}
 	err = cs.DB.SelectContext(
 		ctx,
 		&coreValues,
@@ -44,27 +44,34 @@ func (cs *coreValueStore) ListCoreValues(ctx context.Context) (coreValues []dto.
 	)
 
 	if err != nil {
-		logger.WithFields(logger.Fields{
-			"err": err.Error(),
-		}).Error("Error while getting core values")
+		err = fmt.Errorf("error while getting core values, err: %w", err)
 		return
 	}
 
 	return
 }
 
-func (cs *coreValueStore) GetCoreValue(ctx context.Context, coreValueID int64) (coreValue dto.GetCoreValueResp, err error) {
+func (cs *coreValueStore) GetCoreValue(ctx context.Context, coreValueID int64) (coreValue repository.CoreValue, err error) {
+	queryBuilder := sq.
+		Select(CoreValueColumns...).
+		From(cs.TableName).
+		Where(squirrel.Eq{"id": coreValueID})
+
+	getCoreValueQuery, args, err := queryBuilder.ToSql()
+	if err != nil {
+		logger.Errorf("error in generating squirrel query, err: %w", err)
+		err = apperrors.InternalServerError
+		return
+	}
+
 	err = cs.DB.GetContext(
 		ctx,
 		&coreValue,
 		getCoreValueQuery,
-		coreValueID,
+		args...,
 	)
 	if err != nil {
-		logger.WithFields(logger.Fields{
-			"err":         err.Error(),
-			"coreValueId": coreValueID,
-		}).Error("Error while getting core value")
+		logger.Errorf("error while getting core value, corevalue_id: %d, err: %w", coreValueID, err)
 		err = apperrors.InvalidCoreValueData
 		return
 	}
@@ -72,62 +79,79 @@ func (cs *coreValueStore) GetCoreValue(ctx context.Context, coreValueID int64) (
 	return
 }
 
-func (cs *coreValueStore) CreateCoreValue(ctx context.Context, userId int64, coreValue dto.CreateCoreValueReq) (resp dto.CreateCoreValueResp, err error) {
+func (cs *coreValueStore) CreateCoreValue(ctx context.Context, coreValue dto.CreateCoreValueReq) (resp repository.CoreValue, err error) {
+
+	queryBuilder := sq.Insert(cs.TableName).Columns(CoreValueColumns[1:]...).Values(coreValue.Name, coreValue.Description, coreValue.ParentCoreValueID).Suffix("RETURNING id, name, description, parent_core_value_id")
+
+	createCoreValueQuery, args, err := queryBuilder.ToSql()
+	if err != nil {
+		err = fmt.Errorf("error in generating squirrel query, err: %w", err)
+		return
+	}
 
 	err = cs.DB.GetContext(
 		ctx,
 		&resp,
 		createCoreValueQuery,
-		coreValue.Name,
-		coreValue.Description,
-		coreValue.ParentCoreValueID,
+		args...,
 	)
 	if err != nil {
-		logger.WithFields(logger.Fields{
-			"err":               err.Error(),
-			"core_value_params": coreValue,
-		}).Error("Error while creating core value")
+		err = fmt.Errorf("error while creating core value, err: %w", err)
 		return
 	}
 
 	return
 }
 
-func (cs *coreValueStore) UpdateCoreValue(ctx context.Context, coreValueID int64, updateReq dto.UpdateQueryRequest) (resp dto.UpdateCoreValuesResp, err error) {
+func (cs *coreValueStore) UpdateCoreValue(ctx context.Context, updateReq dto.UpdateQueryRequest) (resp repository.CoreValue, err error) {
+	queryBuilder := sq.Update(cs.TableName).
+		Set("name", updateReq.Name).
+		Set("description", updateReq.Description).
+		Where(squirrel.Eq{"id": updateReq.Id}).
+		Suffix("RETURNING id, name, description, parent_core_value_id")
+
+	updateCoreValueQuery, args, err := queryBuilder.ToSql()
+	if err != nil {
+		err = fmt.Errorf("error in generating squirrel query, err: %w", err)
+		return
+	}
 	err = cs.DB.GetContext(
 		ctx,
 		&resp,
 		updateCoreValueQuery,
-		updateReq.Name,
-		updateReq.Description,
-		coreValueID,
+		args...,
 	)
 	if err != nil {
-		logger.WithFields(logger.Fields{
-			"err":           err.Error(),
-			"core_value_id": coreValueID,
-		}).Error("Error while updating core value")
+		err = fmt.Errorf("error while updating core value, corevalue_id: %d, err: %w", updateReq.Id, err)
 		return
 	}
 
 	return
 }
 
-func (cs *coreValueStore) CheckUniqueCoreVal(ctx context.Context, text string) (isUnique bool, err error) {
+func (cs *coreValueStore) CheckUniqueCoreVal(ctx context.Context, name string) (isUnique bool, err error) {
+
 	isUnique = false
 	resp := []int64{}
+	queryBuilder := sq.Select("id").
+		From(cs.TableName).
+		Where(squirrel.Like{"name": name})
+
+	checkUniqueCoreVal, args, err := queryBuilder.ToSql()
+	if err != nil {
+		err = fmt.Errorf("error in generating squirrel query, err: %w", err)
+		return
+	}
+
 	err = cs.DB.SelectContext(
 		ctx,
 		&resp,
 		checkUniqueCoreVal,
-		text,
+		args...,
 	)
 
 	if err != nil {
-		logger.WithFields(logger.Fields{
-			"err": err.Error(),
-		}).Error("Error while checking unique core values")
-		err = apperrors.InternalServerError
+		err = fmt.Errorf("error while checking unique core vlaues, err: %w", err)
 		return
 	}
 

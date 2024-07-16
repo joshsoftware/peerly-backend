@@ -40,7 +40,7 @@ func TestCreateAppreciation(t *testing.T) {
 				tx := &sql.Tx{}
 				apprMock.On("BeginTx", mock.Anything).Return(tx, nil).Once()
 				apprMock.On("IsUserPresent", mock.Anything, nil, int64(1)).Return(true, nil).Once()
-				coreValueRepo.On("GetCoreValue", mock.Anything, int64(1)).Return(dto.GetCoreValueResp{}, nil).Once()
+				coreValueRepo.On("GetCoreValue", mock.Anything, int64(1)).Return(repository.CoreValue{ID:1}, nil).Once()
 				apprMock.On("IsUserPresent", mock.Anything, tx, int64(2)).Return(true, nil).Once()
 				apprMock.On("CreateAppreciation", mock.Anything, tx, mock.Anything).Return(repository.Appreciation{ID: 1}, nil).Once()
 				apprMock.On("HandleTransaction", mock.Anything, tx, true).Return(nil).Once()
@@ -60,7 +60,7 @@ func TestCreateAppreciation(t *testing.T) {
 				tx := &sql.Tx{}
 				apprMock.On("BeginTx", mock.Anything).Return(tx, nil).Once()
 				apprMock.On("IsUserPresent", mock.Anything, nil, int64(1)).Return(true, nil).Once()
-				coreValueRepo.On("GetCoreValue", mock.Anything, int64(1)).Return(dto.GetCoreValueResp{}, apperrors.InvalidCoreValueData).Once()
+				coreValueRepo.On("GetCoreValue", mock.Anything, int64(1)).Return(repository.CoreValue{}, apperrors.InvalidCoreValueData).Once()
 				apprMock.On("HandleTransaction", mock.Anything, tx, false).Return(apperrors.InvalidCoreValueData).Once()
 			},
 			isErrorExpected: true,
@@ -79,7 +79,7 @@ func TestCreateAppreciation(t *testing.T) {
 				tx := &sql.Tx{}
 				apprMock.On("BeginTx", mock.Anything).Return(tx, nil).Once()
 				apprMock.On("IsUserPresent", mock.Anything, nil, int64(1)).Return(true, nil).Once() // Mock sender presence check
-				coreValueRepo.On("GetCoreValue", mock.Anything, int64(1)).Return(dto.GetCoreValueResp{ID: 1}, nil).Once()
+				coreValueRepo.On("GetCoreValue", mock.Anything, int64(1)).Return(repository.CoreValue{}, nil).Once()
 				apprMock.On("IsUserPresent", mock.Anything, tx, int64(2)).Return(false, apperrors.UserNotFound).Once() // Ensure correct transaction context
 				apprMock.On("HandleTransaction", mock.Anything, tx, false).Return(nil).Once()
 			},
