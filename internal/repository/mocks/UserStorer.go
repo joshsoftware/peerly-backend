@@ -143,13 +143,13 @@ func (_m *UserStorer) GetRoleByName(ctx context.Context, name string) (int, erro
 	return r0, r1
 }
 
-// GetTop10Users provides a mock function with given fields: ctx
-func (_m *UserStorer) GetTop10Users(ctx context.Context) ([]repository.Top10Users, error) {
-	ret := _m.Called(ctx)
+// GetTop10Users provides a mock function with given fields: ctx, quarterTimestamp
+func (_m *UserStorer) GetTop10Users(ctx context.Context, quarterTimestamp int64) ([]repository.Top10Users, error) {
+	ret := _m.Called(ctx, quarterTimestamp)
 
 	var r0 []repository.Top10Users
-	if rf, ok := ret.Get(0).(func(context.Context) []repository.Top10Users); ok {
-		r0 = rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, int64) []repository.Top10Users); ok {
+		r0 = rf(ctx, quarterTimestamp)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]repository.Top10Users)
@@ -157,8 +157,8 @@ func (_m *UserStorer) GetTop10Users(ctx context.Context) ([]repository.Top10User
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = rf(ctx)
+	if rf, ok := ret.Get(1).(func(context.Context, int64) error); ok {
+		r1 = rf(ctx, quarterTimestamp)
 	} else {
 		r1 = ret.Error(1)
 	}

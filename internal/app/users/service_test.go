@@ -567,7 +567,7 @@ func TestGetTop10Users(t *testing.T) {
 			name:    "Success for get top 10 users",
 			context: context.Background(),
 			setup: func(userMock *mocks.UserStorer) {
-				userMock.On("GetTop10Users", mock.Anything).Return([]repository.Top10Users{}, nil).Once()
+				userMock.On("GetTop10Users", mock.Anything, mock.Anything).Return([]repository.Top10Users{}, nil).Once()
 
 			},
 			isErrorExpected: false,
@@ -576,7 +576,7 @@ func TestGetTop10Users(t *testing.T) {
 			name:    "Faliure for get top 10 users",
 			context: context.Background(),
 			setup: func(userMock *mocks.UserStorer) {
-				userMock.On("GetTop10Users", mock.Anything).Return([]repository.Top10Users{}, apperrors.InternalServerError).Once()
+				userMock.On("GetTop10Users", mock.Anything, mock.Anything).Return([]repository.Top10Users{}, apperrors.InternalServerError).Once()
 
 			},
 			isErrorExpected: true,

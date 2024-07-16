@@ -220,6 +220,7 @@ func (_m *Service) ValidatePeerly(ctx context.Context, authToken string) (dto.Va
 	return r0, r1
 }
 
+
 func NewService(t interface {
 	mock.TestingT
 	Cleanup(func())
