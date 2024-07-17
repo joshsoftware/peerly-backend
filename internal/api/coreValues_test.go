@@ -101,7 +101,7 @@ func TestGetCoreValueHandler(t *testing.T) {
 			setup: func(mockSvc *mocks.Service) {
 				mockSvc.On("GetCoreValue", mock.Anything, mock.Anything).Return(dto.CoreValue{}, apperrors.InvalidCoreValueData).Once()
 			},
-			expectedStatusCode: http.StatusNotFound,
+			expectedStatusCode: http.StatusBadRequest,
 		},
 	}
 
@@ -184,7 +184,7 @@ func TestCreateCoreValueHandler(t *testing.T) {
 			setup: func(mockSvc *mocks.Service) {
 				mockSvc.On("CreateCoreValue", mock.Anything, mock.Anything, mock.Anything).Return(dto.CoreValue{}, apperrors.InvalidParentValue).Once()
 			},
-			expectedStatusCode: http.StatusNotFound,
+			expectedStatusCode: http.StatusBadRequest,
 		},
 		{
 			name:   "Error in CreateCoreValues db function",
@@ -257,7 +257,7 @@ func TestUpdateCoreValueHandler(t *testing.T) {
 			setup: func(mockSvc *mocks.Service) {
 				mockSvc.On("UpdateCoreValue", mock.Anything, mock.Anything, mock.Anything).Return(dto.CoreValue{}, apperrors.InvalidCoreValueData).Once()
 			},
-			expectedStatusCode: http.StatusNotFound,
+			expectedStatusCode: http.StatusBadRequest,
 		},
 		{
 			name:        "Error in UpdateCoreValue db function",
