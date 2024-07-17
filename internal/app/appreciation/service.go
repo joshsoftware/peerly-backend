@@ -18,7 +18,7 @@ type service struct {
 type Service interface {
 	CreateAppreciation(ctx context.Context, apprecication dto.Appreciation) (dto.Appreciation, error)
 	GetAppreciationById(ctx context.Context, appreciationId int) (dto.ResponseAppreciation, error)
-	GetAppreciation(ctx context.Context, filter dto.AppreciationFilter) (dto.GetAppreciationResponse, error)
+	GetAppreciations(ctx context.Context, filter dto.AppreciationFilter) (dto.GetAppreciationResponse, error)
 	ValidateAppreciation(ctx context.Context, isValid bool, apprId int) (bool, error)
 }
 
@@ -101,7 +101,7 @@ func (apprSvc *service) CreateAppreciation(ctx context.Context, apprecication dt
 		return dto.Appreciation{}, err
 	}
 
-	return MapAppreciationDBToDTO(appr), nil
+	return mapAppreciationDBToDTO(appr), nil
 }
 
 func (apprSvc *service) GetAppreciationById(ctx context.Context, appreciationId int) (dto.ResponseAppreciation, error) {
@@ -114,15 +114,9 @@ func (apprSvc *service) GetAppreciationById(ctx context.Context, appreciationId 
 	return mapRepoGetAppreciationInfoToDTOGetAppreciationInfo(resAppr), nil
 }
 
-func (apprSvc *service) GetAppreciation(ctx context.Context, filter dto.AppreciationFilter) (dto.GetAppreciationResponse, error) {
-	//get logged user
-	data := ctx.Value(constants.UserId)
-	user, ok := data.(int64)
-	if !ok {
-		logger.Error("err in parsing userid from token")
-		return dto.GetAppreciationResponse{}, apperrors.InternalServer
-	}
-	infos, pagination, err := apprSvc.appreciationRepo.GetAppreciation(ctx, nil, filter, user)
+func (apprSvc *service) GetAppreciations(ctx context.Context, filter dto.AppreciationFilter) (dto.GetAppreciationResponse, error) {
+
+	infos, pagination, err := apprSvc.appreciationRepo.GetAppreciations(ctx, nil, filter)
 	if err != nil {
 		return dto.GetAppreciationResponse{}, err
 	}

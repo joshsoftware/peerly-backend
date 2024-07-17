@@ -150,7 +150,7 @@ func TestGetAppreciationsHandler(t *testing.T) {
 				"limit": "5",
 			},
 			mockSetup: func(mockSvc *mocks.Service) {
-				mockSvc.On("GetAppreciation", mock.Anything, dto.AppreciationFilter{
+				mockSvc.On("GetAppreciations", mock.Anything, dto.AppreciationFilter{
 					Name:      "John Doe",
 					SortOrder: "asc",
 					Page:      1,
@@ -163,7 +163,7 @@ func TestGetAppreciationsHandler(t *testing.T) {
 			name:               "service error",
 			queryParams:        map[string]string{},
 			mockSetup: func(mockSvc *mocks.Service) {
-				mockSvc.On("GetAppreciation", mock.Anything, dto.AppreciationFilter{
+				mockSvc.On("GetAppreciations", mock.Anything, dto.AppreciationFilter{
 					Name:      "",
 					SortOrder: "",
 					Page:      1,

@@ -18,20 +18,22 @@ func createAppreciationHandler(appreciationSvc appreciation.Service) http.Handle
 		var appreciation dto.Appreciation
 		err := json.NewDecoder(req.Body).Decode(&appreciation)
 		if err != nil {
-			logger.WithField("err", err.Error()).Error("Error while decoding request data")
+			logger.Error(fmt.Sprintf("Error while decoding request data : %v",err))
 			err = apperrors.JSONParsingErrorReq
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
 
 		err = appreciation.CreateAppreciation()
-
 		if err != nil {
+			logger.Error(fmt.Sprintf("Error while validating request data : %v",err))
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
+
 		resp, err := appreciationSvc.CreateAppreciation(req.Context(), appreciation)
 		if err != nil {
+			logger.Error(fmt.Sprintf("err : %v",err))
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
@@ -48,9 +50,10 @@ func getAppreciationByIdHandler(appreciationSvc appreciation.Service) http.Handl
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
-		fmt.Println("appr: ", apprId)
+
 		resp, err := appreciationSvc.GetAppreciationById(req.Context(), apprId)
 		if err != nil {
+			logger.Error(fmt.Sprintf("err : %v",err))
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
@@ -71,6 +74,7 @@ func getAppreciationsHandler(appreciationSvc appreciation.Service) http.HandlerF
 		// Get pagination parameters
 		page,limit, err := getPaginationParams(req)
 		if err != nil {
+			logger.Error(fmt.Sprintf("Error while decoding request query data : %v",err))
 			dto.ErrorRepsonse(rw, apperrors.BadRequest)
 			return
 		}
@@ -78,8 +82,9 @@ func getAppreciationsHandler(appreciationSvc appreciation.Service) http.HandlerF
 		filter.Limit = limit
 		filter.Page = page
 		// Call your appreciationService to fetch appreciations based on filter
-		appreciations, err := appreciationSvc.GetAppreciation(req.Context(), filter)
+		appreciations, err := appreciationSvc.GetAppreciations(req.Context(), filter)
 		if err != nil {
+			logger.Error(fmt.Sprintf("err : %v",err))
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
@@ -92,12 +97,14 @@ func validateAppreciationHandler(appreciationSvc appreciation.Service) http.Hand
 		vars := mux.Vars(req)
 		apprId, err := strconv.Atoi(vars["id"])
 		if err != nil {
+			logger.Error(fmt.Sprintf("Error while decoding request param data : %v",err))
 			dto.ErrorRepsonse(rw, apperrors.BadRequest)
 			return
 		}
 
 		res, err := appreciationSvc.ValidateAppreciation(req.Context(), false, apprId)
 		if err != nil {
+			logger.Error(fmt.Sprintf("err : %v",err))
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
