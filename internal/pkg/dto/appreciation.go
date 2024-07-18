@@ -54,7 +54,7 @@ type GetAppreciationResponse struct {
 	MetaData      Pagination             `json:"metadata"`
 }
 
-func (appr *Appreciation) CreateAppreciation() (err error) {
+func (appr *Appreciation) ValidateCreateAppreciation() (err error) {
 
 	if appr.CoreValueID <= 0 {
 		return apperrors.InvalidCoreValueID

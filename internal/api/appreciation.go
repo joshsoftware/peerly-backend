@@ -24,7 +24,7 @@ func createAppreciationHandler(appreciationSvc appreciation.Service) http.Handle
 			return
 		}
 
-		err = appreciation.CreateAppreciation()
+		err = appreciation.ValidateCreateAppreciation()
 		if err != nil {
 			logger.Error(fmt.Sprintf("Error while validating request data : %v",err))
 			dto.ErrorRepsonse(rw, err)
@@ -80,7 +80,7 @@ func getAppreciationsHandler(appreciationSvc appreciation.Service) http.HandlerF
 		}
 		
 		filter.Limit = limit
-		filter.Page = page
+		filter.Page = page	
 		// Call your appreciationService to fetch appreciations based on filter
 		appreciations, err := appreciationSvc.GetAppreciations(req.Context(), filter)
 		if err != nil {
