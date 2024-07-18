@@ -59,7 +59,7 @@ func (appr *appreciationsStore) CreateAppreciation(ctx context.Context, tx repos
 	return resAppr, nil
 }
 
-func (appr *appreciationsStore) GetAppreciationById(ctx context.Context, tx repository.Transaction, apprId int) (repository.AppreciationInfo, error) {
+func (appr *appreciationsStore) GetAppreciationById(ctx context.Context, tx repository.Transaction, apprId int32) (repository.AppreciationInfo, error) {
 
 	queryExecutor := appr.InitiateQueryExecutor(tx)
 
@@ -157,6 +157,13 @@ func (appr *appreciationsStore) GetAppreciations(ctx context.Context, tx reposit
 			lowerNameFilter, lowerNameFilter,
 		)
 	}
+	
+	if filter.Self {
+		countQueryBuilder = countQueryBuilder.Where(squirrel.Or{
+			squirrel.Eq{"a.sender": userID},
+			squirrel.Eq{"a.receiver": userID},
+		})
+	}
 
 	countSql, countArgs, err := countQueryBuilder.ToSql()
 	if err != nil {
@@ -164,15 +171,14 @@ func (appr *appreciationsStore) GetAppreciations(ctx context.Context, tx reposit
 		return []repository.AppreciationInfo{}, repository.Pagination{}, apperrors.InternalServerError
 	}
 
-	var totalRecords int64
+	var totalRecords int32
 	err = queryExecutor.QueryRowx(countSql, countArgs...).Scan(&totalRecords)
 	if err != nil {
 		logger.Error("failed to execute count query: ", err.Error())
 		return []repository.AppreciationInfo{}, repository.Pagination{}, apperrors.InternalServerError
 	}
 
-	pagination := GetPaginationMetaData(filter.Page, filter.Limit, totalRecords)
-
+	pagination := getPaginationMetaData(filter.Page, filter.Limit, totalRecords)
 	// Initialize the Squirrel query builder
 	queryBuilder := sq.Select(
 		"a.id",
@@ -216,6 +222,14 @@ func (appr *appreciationsStore) GetAppreciations(ctx context.Context, tx reposit
 		)
 	}
 
+	if filter.Self {
+		queryBuilder = queryBuilder.Where(squirrel.Or{
+			squirrel.Eq{"a.sender": userID},
+			squirrel.Eq{"a.receiver": userID},
+		})
+	}
+
+
 	if filter.SortOrder != "" {
 		queryBuilder = queryBuilder.OrderBy(fmt.Sprintf("a.created_at %s", filter.SortOrder))
 	}
@@ -241,9 +255,9 @@ func (appr *appreciationsStore) GetAppreciations(ctx context.Context, tx reposit
 	return res, pagination, nil
 }
 
-func (appr *appreciationsStore) ValidateAppreciation(ctx context.Context, tx repository.Transaction, isValid bool, apprId int) (bool, error) {
+func (appr *appreciationsStore) DeleteAppreciation(ctx context.Context, tx repository.Transaction, apprId int32) (bool, error) {
 	query, args, err := sq.Update("appreciations").
-		Set("is_valid", isValid).
+		Set("is_valid", false).
 		Where(squirrel.And{
 			squirrel.Eq{"id": apprId},
 			squirrel.Eq{"is_valid": true},

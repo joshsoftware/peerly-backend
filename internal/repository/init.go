@@ -73,7 +73,7 @@ func CreateMigrationFile(filename string) (err error) {
 		err = errors.New("filename is not provided")
 		return
 	}
-	
+
 	timeStamp := time.Now().Unix()
 	upMigrationFilePath := fmt.Sprintf("%s/%d_%s.up.sql", config.ReadEnvString(constants.MigrationFolderPath), timeStamp, filename)
 	downMigrationFilePath := fmt.Sprintf("%s/%d_%s.down.sql", config.ReadEnvString(constants.MigrationFolderPath), timeStamp, filename)

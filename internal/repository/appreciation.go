@@ -11,9 +11,9 @@ type AppreciationStorer interface {
 	RepositoryTransaction
 
 	CreateAppreciation(ctx context.Context, tx Transaction, appreciation dto.Appreciation) (Appreciation, error)
-	GetAppreciationById(ctx context.Context, tx Transaction, appreciationId int) (AppreciationInfo, error)
+	GetAppreciationById(ctx context.Context, tx Transaction, appreciationId int32) (AppreciationInfo, error)
 	GetAppreciations(ctx context.Context, tx Transaction, filter dto.AppreciationFilter) ([]AppreciationInfo, Pagination, error)
-	ValidateAppreciation(ctx context.Context, tx Transaction, isValid bool, apprId int) (bool, error)
+	DeleteAppreciation(ctx context.Context, tx Transaction,apprId int32) (bool, error)
 	IsUserPresent(ctx context.Context, tx Transaction, userID int64) (bool, error)
 }
 
@@ -54,10 +54,7 @@ type AppreciationInfo struct {
 
 // Pagination Object
 type Pagination struct {
-	Next          *int64
-	Previous      *int64
-	RecordPerPage int64
-	CurrentPage   int64
-	TotalPage     int64
-	TotalRecords  int64
+	RecordPerPage int16
+	CurrentPage   int16
+	TotalPage     int16
 }

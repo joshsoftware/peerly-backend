@@ -45,7 +45,7 @@ const (
 	MigrationFailure         = CustomError("migrate failure")
 	SelfAppreciationError    = CustomError("user cannot give appreciation to ourself")
 	InvalidCoreValueID       = CustomError("invalid corevalue id")
-	InvalidReceiverID            = CustomError("invalid receiver id")
+	InvalidReceiverID        = CustomError("invalid receiver id")
 )
 
 // ErrKeyNotSet - Returns error object specific to the key value passed in

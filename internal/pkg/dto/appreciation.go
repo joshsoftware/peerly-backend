@@ -15,10 +15,11 @@ type Appreciation struct {
 }
 
 type AppreciationFilter struct {
+	Self      bool   `json:"Self"`
 	Name      string `json:"sender_name"`
 	SortOrder string `json:"sort_order"`
-	Page      int64  `json:"page"`
-	Limit     int64  `json:"limit"`
+	Page      int16  `json:"page"`
+	Limit     int16  `json:"limit"`
 }
 
 type ResponseAppreciation struct {
@@ -44,9 +45,9 @@ type ResponseAppreciation struct {
 
 // Pagination Object
 type Pagination struct {
-	CurrentPage  int64 `json:"current_page"`
-	TotalPage    int64 `json:"page_count"`
-	TotalRecords int64 `json:"total_count"`
+	CurrentPage int16 `json:"page"`
+	TotalPage   int16 `json:"total_page"`
+	PageSize    int16 `json:"page_size"`
 }
 
 type GetAppreciationResponse struct {

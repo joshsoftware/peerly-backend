@@ -1,40 +1,60 @@
 package api
 
 import (
-	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
+
+	logger "github.com/sirupsen/logrus"
 )
 
-func getPaginationParams(req *http.Request) (int64, int64, error) {
-	
+func getPaginationParams(req *http.Request) (page int16, limit int16) {
+
 	pageStr := req.URL.Query().Get("page")
 	limitStr := req.URL.Query().Get("limit")
-	var page int64
-	var limit int64
-	var err error
 
 	if pageStr == "" {
 		page = 1
-		limit = 10
 	} else {
-
-		page, err = strconv.ParseInt(pageStr, 10, 64)
-		if err != nil || page < 1 {
-			return 0, 0, errors.New("invalid page parameter")
+		pageInt64, err := strconv.ParseInt(pageStr, 10, 32)
+		if err != nil {
+			logger.Error(fmt.Sprintf("err: %v",err))
+			page = 1 
 		}
 
-		if limitStr == "" {
-			limit = 10
-		} else {
-			limit, err = strconv.ParseInt(limitStr, 10, 64)
-			if err != nil || limit < 1 {
-				return 0, 0, errors.New("invalid limit parameter")
-			}
+		if pageInt64 < 1 {
+			pageInt64 = 1
 		}
 	}
 
-	//TODO : max limit and min limit
+	if limitStr == "" {
+		limit = 10
+	} else {
+		limitInt64, err := strconv.ParseInt(limitStr, 10, 16)
+		if err != nil  {
+			logger.Error(fmt.Sprintf("err: %v",err))
+			limit = 10
+		}
+		if limitInt64 < 1 {
+			limitInt64 = 10
+		}else if limitInt64 > 1000 {
+			limitInt64 = 1000
+		}
+		limit = int16(limitInt64)
+	}
+
+	return page, limit
+}
+func getSelfParam(req *http.Request) (bool) {
+	paramStr := req.URL.Query().Get("self")
+	if paramStr == "" {
+		return false
+	}
 	
-	return page, limit, nil
+	boolValue, err := strconv.ParseBool(paramStr)
+	if err != nil {
+		return false
+	}
+	
+	return boolValue
 }

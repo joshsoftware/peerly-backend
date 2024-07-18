@@ -15,11 +15,12 @@ type service struct {
 	corevaluesRespo  repository.CoreValueStorer
 }
 
+// Service contains all
 type Service interface {
 	CreateAppreciation(ctx context.Context, apprecication dto.Appreciation) (dto.Appreciation, error)
-	GetAppreciationById(ctx context.Context, appreciationId int) (dto.ResponseAppreciation, error)
+	GetAppreciationById(ctx context.Context, appreciationId int32) (dto.ResponseAppreciation, error)
 	GetAppreciations(ctx context.Context, filter dto.AppreciationFilter) (dto.GetAppreciationResponse, error)
-	ValidateAppreciation(ctx context.Context, isValid bool, apprId int) (bool, error)
+	DeleteAppreciation(ctx context.Context, apprId int32) (bool, error)
 }
 
 func NewService(appreciationRepo repository.AppreciationStorer, coreValuesRepo repository.CoreValueStorer) Service {
@@ -104,7 +105,7 @@ func (apprSvc *service) CreateAppreciation(ctx context.Context, apprecication dt
 	return mapAppreciationDBToDTO(appr), nil
 }
 
-func (apprSvc *service) GetAppreciationById(ctx context.Context, appreciationId int) (dto.ResponseAppreciation, error) {
+func (apprSvc *service) GetAppreciationById(ctx context.Context, appreciationId int32) (dto.ResponseAppreciation, error) {
 
 	resAppr, err := apprSvc.appreciationRepo.GetAppreciationById(ctx, nil, appreciationId)
 	if err != nil {
@@ -130,6 +131,6 @@ func (apprSvc *service) GetAppreciations(ctx context.Context, filter dto.Appreci
 	return dto.GetAppreciationResponse{Appreciations: responses, MetaData: paginationResp}, nil
 }
 
-func (apprSvc *service) ValidateAppreciation(ctx context.Context, isValid bool, apprId int) (bool, error) {
-	return apprSvc.appreciationRepo.ValidateAppreciation(ctx, nil, isValid, apprId)
+func (apprSvc *service) DeleteAppreciation(ctx context.Context, apprId int32) (bool, error) {
+	return apprSvc.appreciationRepo.DeleteAppreciation(ctx, nil,apprId)
 }

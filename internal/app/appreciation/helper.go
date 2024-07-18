@@ -58,27 +58,26 @@ func mapRepoGetAppreciationInfoToDTOGetAppreciationInfo(info repository.Apprecia
 	return dtoApprResp
 }
 
+// GetQuarter returns financial quarter
 func GetQuarter() int {
 	month := int(time.Now().Month())
 	if month >= 1 && month <= 3 {
-		return 1
-	} else if month >= 4 && month <= 6 {
-		return 2
-	} else if month >= 7 && month <= 9 {
-		return 3
-	} else if month >= 10 && month <= 12 {
 		return 4
+	} else if month >= 4 && month <= 6 {
+		return 1
+	} else if month >= 7 && month <= 9 {
+		return 2
+	} else if month >= 10 && month <= 12 {
+		return 3
 	}
 	return -1
 }
 
+// DtoPagination returns modified response pagination struct
 func DtoPagination(pagination repository.Pagination) dto.Pagination {
-	var pagenationResp dto.Pagination
-	pagenationResp.CurrentPage = pagination.CurrentPage
-	// pagenationResp.Next = pagination.Next
-	// pagenationResp.Previous = pagination.Previous
-	// pagenationResp.RecordPerPage = pagination.RecordPerPage
-	pagenationResp.TotalPage = pagination.TotalPage
-	pagenationResp.TotalRecords = pagination.TotalRecords
-	return pagenationResp
+	return dto.Pagination{
+	CurrentPage : pagination.CurrentPage,
+	TotalPage : pagination.TotalPage,
+	PageSize : pagination.RecordPerPage,
+	}
 }
