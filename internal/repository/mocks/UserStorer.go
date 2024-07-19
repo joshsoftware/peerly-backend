@@ -55,14 +55,14 @@ func (_m *UserStorer) GetGradeByName(ctx context.Context, name string) (reposito
 }
 
 // GetRewardMultiplier provides a mock function with given fields: ctx
-func (_m *UserStorer) GetRewardMultiplier(ctx context.Context) (int, error) {
+func (_m *UserStorer) GetRewardMultiplier(ctx context.Context) (int64, error) {
 	ret := _m.Called(ctx)
 
-	var r0 int
-	if rf, ok := ret.Get(0).(func(context.Context) int); ok {
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(context.Context) int64); ok {
 		r0 = rf(ctx)
 	} else {
-		r0 = ret.Get(0).(int)
+		r0 = ret.Get(0).(int64)
 	}
 
 	var r1 error
@@ -76,14 +76,14 @@ func (_m *UserStorer) GetRewardMultiplier(ctx context.Context) (int, error) {
 }
 
 // GetRoleByName provides a mock function with given fields: ctx, name
-func (_m *UserStorer) GetRoleByName(ctx context.Context, name string) (int, error) {
+func (_m *UserStorer) GetRoleByName(ctx context.Context, name string) (int64, error) {
 	ret := _m.Called(ctx, name)
 
-	var r0 int
-	if rf, ok := ret.Get(0).(func(context.Context, string) int); ok {
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(context.Context, string) int64); ok {
 		r0 = rf(ctx, name)
 	} else {
-		r0 = ret.Get(0).(int)
+		r0 = ret.Get(0).(int64)
 	}
 
 	var r1 error

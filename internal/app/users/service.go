@@ -27,7 +27,7 @@ type Service interface {
 	GetIntranetUserData(ctx context.Context, req dto.GetIntranetUserDataReq) (data dto.IntranetUserData, err error)
 	LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.LoginUserResp, error)
 	RegisterUser(ctx context.Context, u dto.IntranetUserData) (user dto.User, err error)
-	GetUserListIntranet(ctx context.Context, reqData dto.GetUserListReq) (data []dto.IntranetUserData, err error)
+	ListIntranetUsers(ctx context.Context, reqData dto.GetUserListReq) (data []dto.IntranetUserData, err error)
 }
 
 func NewService(userRepo repository.UserStorer) Service {
@@ -38,7 +38,7 @@ func NewService(userRepo repository.UserStorer) Service {
 
 func (us *service) ValidatePeerly(ctx context.Context, authToken string) (data dto.ValidateResp, err error) {
 	client := &http.Client{}
-	validationReq, err := http.NewRequest(http.MethodPost, config.IntranetBaseUrl()+constants.PeerlyValidationUrl, nil)
+	validationReq, err := http.NewRequest(http.MethodPost, config.IntranetBaseUrl()+constants.PeerlyValidationPath, nil)
 	if err != nil {
 		logger.Errorf("error in creating new validation request err: %s", err.Error())
 		err = apperrors.InternalServerError
@@ -77,7 +77,7 @@ func (us *service) ValidatePeerly(ctx context.Context, authToken string) (data d
 func (us *service) GetIntranetUserData(ctx context.Context, req dto.GetIntranetUserDataReq) (data dto.IntranetUserData, err error) {
 
 	client := &http.Client{}
-	url := fmt.Sprintf("%s/api/peerly/v1/users/%d", config.IntranetBaseUrl(), req.UserId)
+	url := fmt.Sprintf("%s%s%d", config.IntranetBaseUrl(), constants.GetIntranetUserDataPath, req.UserId)
 	intranetReq, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		logger.Errorf("error in creating new validation request. err: %s", err.Error())
@@ -134,7 +134,12 @@ func (us *service) LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.L
 	}
 
 	//sync user data
-	syncNeeded, dataToBeUpdated := us.syncData(ctx, u, user)
+	syncNeeded, dataToBeUpdated, err := us.syncData(ctx, u, user)
+	if err != nil {
+		logger.Error(err.Error())
+		err = apperrors.InternalServerError
+		return resp, err
+	}
 	if syncNeeded {
 
 		err = us.userRepo.SyncData(ctx, dataToBeUpdated)
@@ -234,9 +239,9 @@ func (us *service) RegisterUser(ctx context.Context, u dto.IntranetUserData) (us
 	return
 }
 
-func (us *service) GetUserListIntranet(ctx context.Context, reqData dto.GetUserListReq) (data []dto.IntranetUserData, err error) {
+func (us *service) ListIntranetUsers(ctx context.Context, reqData dto.GetUserListReq) (data []dto.IntranetUserData, err error) {
 	client := &http.Client{}
-	url := config.IntranetBaseUrl() + fmt.Sprintf("/api/peerly/v1/users?page=%d&per_page=%d", reqData.Page, constants.PerPage)
+	url := config.IntranetBaseUrl() + fmt.Sprintf("/api/peerly/v1/users?page=%d&per_page=%d", reqData.Page, constants.DefaultPageSize)
 	intranetReq, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		logger.Errorf("error in creating new validation request. err: %s", err.Error())
@@ -277,10 +282,11 @@ func (us *service) GetUserListIntranet(ctx context.Context, reqData dto.GetUserL
 	return
 }
 
-func (us *service) syncData(ctx context.Context, intranetUserData dto.IntranetUserData, peerlyUserData dto.User) (syncNeeded bool, dataToBeUpdated dto.User) {
+func (us *service) syncData(ctx context.Context, intranetUserData dto.IntranetUserData, peerlyUserData dto.User) (syncNeeded bool, dataToBeUpdated dto.User, err error) {
 	syncNeeded = false
 	grade, err := us.userRepo.GetGradeByName(ctx, intranetUserData.EmpolyeeDetail.Grade)
 	if err != nil {
+		err = fmt.Errorf("error in selecting grade in syncData err: %w", err)
 		return
 	}
 

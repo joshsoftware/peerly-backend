@@ -14,7 +14,8 @@ import (
 func listCoreValuesHandler(coreValueSvc corevalues.Service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 
-		coreValues, err := coreValueSvc.ListCoreValues(req.Context())
+    ctx := req.Context()
+		coreValues, err := coreValueSvc.ListCoreValues(ctx)
 		if err != nil {
 
 			dto.ErrorRepsonse(rw, err)
@@ -28,8 +29,9 @@ func listCoreValuesHandler(coreValueSvc corevalues.Service) http.HandlerFunc {
 func getCoreValueHandler(coreValueSvc corevalues.Service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
+    ctx := req.Context()
 
-		coreValue, err := coreValueSvc.GetCoreValue(req.Context(), vars["id"])
+		coreValue, err := coreValueSvc.GetCoreValue(ctx, vars["id"])
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)
 			return
@@ -50,7 +52,9 @@ func createCoreValueHandler(coreValueSvc corevalues.Service) http.HandlerFunc {
 			return
 		}
 
-		resp, err := coreValueSvc.CreateCoreValue(req.Context(), coreValue)
+    ctx := req.Context()
+
+		resp, err := coreValueSvc.CreateCoreValue(ctx, coreValue)
 		if err != nil {
 
 			dto.ErrorRepsonse(rw, err)
@@ -74,7 +78,8 @@ func updateCoreValueHandler(coreValueSvc corevalues.Service) http.HandlerFunc {
 			return
 		}
 
-		resp, err := coreValueSvc.UpdateCoreValue(req.Context(), vars["id"], updateReq)
+    ctx := req.Context()
+		resp, err := coreValueSvc.UpdateCoreValue(ctx, vars["id"], updateReq)
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)
 			return

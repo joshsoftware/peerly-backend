@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"slices"
 	"strings"
@@ -26,7 +25,6 @@ func JwtAuthMiddleware(next http.Handler, roles []string) http.Handler {
 			return
 		}
 
-		fmt.Println("authtoken: ", authToken)
 		authToken = strings.TrimPrefix(authToken, "Bearer ")
 
 		claims := &dto.Claims{}

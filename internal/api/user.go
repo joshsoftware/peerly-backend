@@ -74,7 +74,11 @@ func getIntranetUserListHandler(userSvc user.Service) http.HandlerFunc {
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
-		pageInt, _ := strconv.Atoi(page)
+
+		pageInt, err := strconv.ParseInt(page, 10, 64)
+		if err != nil {
+			logger.Errorf("error page string to int64 conversion. err:%s ", err.Error())
+		}
 
 		ctx := req.Context()
 
@@ -89,7 +93,7 @@ func getIntranetUserListHandler(userSvc user.Service) http.HandlerFunc {
 			Page:      pageInt,
 		}
 
-		usersData, err := userSvc.GetUserListIntranet(ctx, reqData)
+		usersData, err := userSvc.ListIntranetUsers(ctx, reqData)
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)
 			return
@@ -115,8 +119,10 @@ func registerUser(userSvc user.Service) http.HandlerFunc {
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
+    
+    ctx := req.Context()
 
-		resp, err := userSvc.RegisterUser(req.Context(), user)
+		resp, err := userSvc.RegisterUser(ctx, user)
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)
 			return

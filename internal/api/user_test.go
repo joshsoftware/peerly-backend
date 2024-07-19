@@ -87,7 +87,7 @@ func TestLoginUser(t *testing.T) {
 					Data: dto.IntranetValidateApiData{},
 				}, apperrors.IntranetValidationFailed).Once()
 			},
-			expectedStatusCode: http.StatusBadRequest,
+			expectedStatusCode: http.StatusUnauthorized,
 		},
 		{
 			name:      "Intranet get user api faliure",
@@ -173,7 +173,7 @@ func TestLoginUser(t *testing.T) {
 					},
 				}, nil).Once()
 			},
-			expectedStatusCode: http.StatusInternalServerError,
+			expectedStatusCode: http.StatusBadRequest,
 		},
 		{
 			name:      "Error for invalid last name",
@@ -201,7 +201,7 @@ func TestLoginUser(t *testing.T) {
 					},
 				}, nil).Once()
 			},
-			expectedStatusCode: http.StatusInternalServerError,
+			expectedStatusCode: http.StatusBadRequest,
 		},
 		{
 			name:      "Error for invalid designation",
@@ -227,7 +227,7 @@ func TestLoginUser(t *testing.T) {
 					},
 				}, nil).Once()
 			},
-			expectedStatusCode: http.StatusInternalServerError,
+			expectedStatusCode: http.StatusBadRequest,
 		},
 		{
 			name:      "Error for invalid email",
@@ -255,7 +255,7 @@ func TestLoginUser(t *testing.T) {
 					},
 				}, nil).Once()
 			},
-			expectedStatusCode: http.StatusInternalServerError,
+			expectedStatusCode: http.StatusBadRequest,
 		},
 		{
 			name:      "Error for invalid grade",
@@ -283,7 +283,7 @@ func TestLoginUser(t *testing.T) {
 					},
 				}, nil).Once()
 			},
-			expectedStatusCode: http.StatusInternalServerError,
+			expectedStatusCode: http.StatusBadRequest,
 		},
 	}
 
@@ -291,12 +291,12 @@ func TestLoginUser(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			test.setup(userSvc)
 
-			req, err := http.NewRequest("POST", "/user/login", bytes.NewBuffer([]byte("")))
+			req, err := http.NewRequest(http.MethodPost, "/user/login", bytes.NewBuffer([]byte("")))
 			if err != nil {
 				t.Fatal(err)
 				return
 			}
-			req.Header.Set("Authorization", test.authToken)
+			req.Header.Set("Intranet-Auth", test.authToken)
 
 			rr := httptest.NewRecorder()
 			handler := http.HandlerFunc(listCoreValuesHandler)

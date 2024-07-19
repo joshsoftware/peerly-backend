@@ -54,10 +54,12 @@ func GetHTTPStatusCode(err error) int {
 	switch err {
 	case InternalServerError, JSONParsingErrorResp:
 		return http.StatusInternalServerError
-	case OrganizationNotFound, InvalidOrgId, GradeNotFound, PageParamNotFound, InvalidIntranetData:
+	case OrganizationNotFound, InvalidOrgId, PageParamNotFound, InvalidCoreValueData:
 		return http.StatusNotFound
-	case InvalidId, JSONParsingErrorReq, TextFieldBlank, InvalidCoreValueData, InvalidParentValue, DescFieldBlank, UniqueCoreValue, RepeatedUser:
+	case InvalidId, JSONParsingErrorReq, TextFieldBlank, InvalidParentValue, DescFieldBlank, UniqueCoreValue, InvalidIntranetData, GradeNotFound:
 		return http.StatusBadRequest
+	case RepeatedUser:
+		return http.StatusConflict
 	case InvalidAuthToken, IntranetValidationFailed, RoleUnathorized:
 		return http.StatusUnauthorized
 	case InvalidContactEmail, InvalidDomainName:

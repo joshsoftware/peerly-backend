@@ -20,7 +20,7 @@ type EmployeeDetail struct {
 	Grade       string      `json:"grade"`
 }
 type IntranetUserData struct {
-	Id             int            `json:"id"`
+	Id             int64          `json:"id"`
 	Email          string         `json:"email"`
 	PublicProfile  PublicProfile  `json:"public_profile"`
 	EmpolyeeDetail EmployeeDetail `json:"employee_detail"`
@@ -31,16 +31,16 @@ type IntranetGetUserDataResp struct {
 }
 
 type User struct {
-	Id                 int    `json:"id"`
+	Id                 int64  `json:"id"`
 	EmployeeId         string `json:"employee_id"`
 	FirstName          string `json:"first_name"`
 	LastName           string `json:"last_name"`
 	Email              string `json:"email"`
 	ProfileImgUrl      string `json:"profile_image_url"`
-	RoleId             int    `json:"role_id"`
-	RewardQuotaBalance int    `json:"reward_quota_balance"`
+	RoleId             int64  `json:"role_id"`
+	RewardQuotaBalance int64  `json:"reward_quota_balance"`
 	Designation        string `json:"designation"`
-	GradeId            int    `json:"grade_id"`
+	GradeId            int64  `json:"grade_id"`
 	CreatedAt          int64  `json:"created_at"`
 }
 
@@ -50,16 +50,16 @@ type ValidateResp struct {
 
 type IntranetValidateApiData struct {
 	JwtToken string `json:"jwt_token"`
-	UserId   int    `json:"user_id"`
+	UserId   int64  `json:"user_id"`
 }
 
 type GetIntranetUserDataReq struct {
 	Token  string
-	UserId int
+	UserId int64
 }
 
 type Claims struct {
-	Id   int
+	Id   int64
 	Role string
 	jwt.StandardClaims
 }
@@ -71,7 +71,7 @@ type LoginUserResp struct {
 }
 type GetUserListReq struct {
 	AuthToken string
-	Page      int
+	Page      int64
 }
 
 type GetUserListRespData struct {

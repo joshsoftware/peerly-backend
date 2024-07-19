@@ -2,18 +2,20 @@ package user
 
 import (
 	"context"
+	"database/sql"
 	"testing"
+	"time"
 
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
-	"github.com/joshsoftware/peerly-backend/internal/pkg/config"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
+	"github.com/joshsoftware/peerly-backend/internal/pkg/testConfig"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
 	"github.com/joshsoftware/peerly-backend/internal/repository/mocks"
 	"github.com/stretchr/testify/mock"
 )
 
 func TestLoginUser(t *testing.T) {
-	config.Load()
+	testConfig.Load()
 	userRepo := mocks.NewUserStorer(t)
 	service := NewService(userRepo)
 
@@ -56,6 +58,11 @@ func TestLoginUser(t *testing.T) {
 					Designation:         "Intern",
 					GradeId:             1,
 					CreatedAt:           0,
+				}, apperrors.InternalServerError).Once()
+				userMock.On("GetGradeByName", mock.Anything, mock.Anything, mock.Anything).Return(repository.Grade{
+					Id:     1,
+					Name:   "J12",
+					Points: 100,
 				}, nil).Once()
 
 			},
@@ -87,7 +94,8 @@ func TestLoginUser(t *testing.T) {
 					Name:   "J12",
 					Points: 100,
 				}, nil).Once()
-				userMock.On("GetRoleByName", mock.Anything, mock.Anything).Return(1, nil).Once()
+				userMock.On("GetRewardMultiplier", mock.Anything).Return(int64(10), nil).Once()
+				userMock.On("GetRoleByName", mock.Anything, mock.Anything).Return(int64(1), nil).Once()
 				userMock.On("CreateNewUser", mock.Anything, mock.Anything).Return(repository.User{
 					Id:                  1,
 					EmployeeId:          "26",
@@ -100,6 +108,21 @@ func TestLoginUser(t *testing.T) {
 					Designation:         "Intern",
 					GradeId:             1,
 					CreatedAt:           0,
+					Status:              1,
+					SoftDelete:          false,
+					SoftDeleteBy: sql.NullInt64{
+						Valid: false,
+						Int64: 0,
+					},
+					SoftDeleteOn: sql.NullTime{
+						Valid: false,
+						Time:  time.Now(),
+					},
+				}, nil).Once()
+				userMock.On("GetGradeByName", mock.Anything, mock.Anything, mock.Anything).Return(repository.Grade{
+					Id:     1,
+					Name:   "J12",
+					Points: 100,
 				}, nil).Once()
 
 			},
@@ -211,7 +234,8 @@ func TestLoginUser(t *testing.T) {
 					Name:   "J12",
 					Points: 100,
 				}, nil).Once()
-				userMock.On("GetRoleByName", mock.Anything, mock.Anything).Return(1, apperrors.InternalServerError).Once()
+				userMock.On("GetRewardMultiplier", mock.Anything, mock.Anything).Return(int64(1), nil).Once()
+				userMock.On("GetRoleByName", mock.Anything, mock.Anything).Return(int64(1), apperrors.InternalServerError).Once()
 			},
 			isErrorExpected: true,
 		},
@@ -241,7 +265,8 @@ func TestLoginUser(t *testing.T) {
 					Name:   "J12",
 					Points: 100,
 				}, nil).Once()
-				userMock.On("GetRoleByName", mock.Anything, mock.Anything).Return(1, nil).Once()
+				userMock.On("GetRewardMultiplier", mock.Anything, mock.Anything).Return(int64(1), nil).Once()
+				userMock.On("GetRoleByName", mock.Anything, mock.Anything).Return(int64(1), nil).Once()
 				userMock.On("CreateNewUser", mock.Anything, mock.Anything).Return(repository.User{}, apperrors.InternalServerError).Once()
 			},
 			isErrorExpected: true,

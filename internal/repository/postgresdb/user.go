@@ -70,9 +70,9 @@ func (us *userStore) GetUserByEmail(ctx context.Context, email string) (user rep
 	return
 }
 
-func (us *userStore) GetRoleByName(ctx context.Context, name string) (roleId int, err error) {
+func (us *userStore) GetRoleByName(ctx context.Context, name string) (roleId int64, err error) {
 
-	queryBuilder := repository.Sq.Select(rolesColumns...).From(us.RolesTable).Where(squirrel.Like{"name": name}).Limit(1)
+	queryBuilder := repository.Sq.Select(rolesColumns...).From(us.RolesTable).Where(squirrel.Like{"name": name})
 
 	getRoleByNameQuery, args, err := queryBuilder.ToSql()
 	if err != nil {
@@ -138,7 +138,7 @@ func (us *userStore) GetGradeByName(ctx context.Context, name string) (grade rep
 	return
 }
 
-func (us *userStore) GetRewardMultiplier(ctx context.Context) (value int, err error) {
+func (us *userStore) GetRewardMultiplier(ctx context.Context) (value int64, err error) {
 
 	queryBuilder := repository.Sq.Select(orgConfigColumns...).From(us.OrgConfigTable).Where(squirrel.Eq{"id": 1})
 	getRewardMultiplier, args, err := queryBuilder.ToSql()
