@@ -971,6 +971,86 @@
         }
       }
     },
+
+    "/users/top10": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": ["Get top 10 user list"],
+        "summary": "Get top 10 user list",
+        "description": "Get top 10 user list",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Accept-Version",
+            "required": true,
+            "description": "Defines the version of the API endpoint",
+            "schema": {
+              "enum": ["application/vnd.peerly.v1"],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Top 10 user list fetched",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Top10UserResp"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unathorized access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "example-1": {
+                    "summary": "Invalid auth token",
+                    "value": {
+                      "success": false,
+                      "message": "Invalid auth token",
+                      "status": 401,
+                      "data": null
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "example-1": {
+                    "summary": "Internal server error",
+                    "value": {
+                      "success": false,
+                      "message": "Internal server error",
+                      "status": 500,
+                      "data": null
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
     "/report_appreciation/{id}": {
       "post": {
         "security": [
@@ -1722,6 +1802,48 @@
               },
               "reported_at": {
                 "type": "integer"
+              }
+            }
+          }
+        }
+      },
+      "Top10UserResp": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "status_code": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "first_name": {
+                  "type": "string"
+                },
+                "last_name": {
+                  "type": "string"
+                },
+                "profile_image_url": {
+                  "type": "string"
+                },
+                "badge_name": {
+                  "type": "string"
+                },
+                "appreciation_points": {
+                  "type": "integer",
+                  "format": "int64"
+                }
               }
             }
           }

@@ -24,6 +24,7 @@ type UserStorer interface {
 	GetTotalUserCount(ctx context.Context, reqData dto.UserListReq) (totalCount int64, err error)
 	GetUserById(ctx context.Context, reqData dto.GetUserByIdReq) (user dto.GetUserByIdResp, err error)
 	GetTop10Users(ctx context.Context, quarterTimestamp int64) (users []Top10Users, err error)
+	GetGradeById(ctx context.Context, id int64) (grade Grade, err error)
 }
 
 // User - basic struct representing a User
