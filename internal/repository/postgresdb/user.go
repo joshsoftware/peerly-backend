@@ -262,3 +262,13 @@ func (us *userStore) GetUserById(ctx context.Context, reqData dto.GetUserByIdReq
 
 	return
 }
+
+func (us *userStore) GetGradeById(ctx context.Context, id int64) (grade repository.Grade, err error) {
+	getGradeById := `SELECT id, name, points FROM grades WHERE id = $1`
+	err = us.DB.Get(&grade, getGradeById, id)
+	if err != nil {
+		err = fmt.Errorf("error in getGradeById. id:%d. err:%w", id, err)
+		return
+	}
+	return
+}

@@ -335,6 +335,31 @@ func (us *service) GetUserById(ctx context.Context) (user dto.GetUserByIdResp, e
 		return
 	}
 
+  grade, err := us.userRepo.GetGradeById(ctx,user.GradeId)
+  if err!=nil{
+    logger.Errorf(err.Error())
+    err = apperrors.InternalServerError
+    return
+  }
+
+	reward_multiplier, err := us.userRepo.GetRewardMultiplier(ctx)
+	if err != nil {
+		err = apperrors.InternalServerError
+		return
+	}
+	total_reward_quota := grade.Points * reward_multiplier
+
+  user.TotalRewardQuota = int64(total_reward_quota)
+
+  now := time.Now()
+
+	nextMonth := now.AddDate(0, 1, 0)      
+	firstDayOfNextMonth := time.Date(nextMonth.Year(), nextMonth.Month(), 1, 0, 0, 0, 0, nextMonth.Location())
+
+	timestamp := firstDayOfNextMonth.Unix()
+
+  user.RefilDate = timestamp
+
 	return
 }
 
