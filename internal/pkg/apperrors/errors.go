@@ -54,6 +54,7 @@ const (
 	InternalServer              = CustomError("internal Server")
 	FailedToCreateDriver        = CustomError("failure to create driver obj")
 	MigrationFailure            = CustomError("migrate failure")
+
 )
 
 // ErrKeyNotSet - Returns error object specific to the key value passed in

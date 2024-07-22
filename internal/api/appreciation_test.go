@@ -7,12 +7,12 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/gorilla/mux"
 	"github.com/joshsoftware/peerly-backend/internal/app/appreciation/mocks"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"github.com/gorilla/mux"
 )
 
 func TestCreateAppreciationHandler(t *testing.T) {
@@ -41,9 +41,9 @@ func TestCreateAppreciationHandler(t *testing.T) {
 			name: "invalid JSON input",
 			input: dto.Appreciation{
 				Description: "Great job!",
-				CoreValueID: -1, 
+				CoreValueID: -1,
 			},
-			mockSetup: func(mockSvc *mocks.Service) {},
+			mockSetup:          func(mockSvc *mocks.Service) {},
 			expectedStatusCode: http.StatusBadRequest,
 		},
 		{
@@ -77,10 +77,9 @@ func TestCreateAppreciationHandler(t *testing.T) {
 	}
 }
 
-
 func TestGetAppreciationByIdHandler(t *testing.T) {
 	appreciationSvc := new(mocks.Service)
-	handler := getAppreciationByIdHandler(appreciationSvc)
+	handler := getAppreciationByIDHandler(appreciationSvc)
 
 	tests := []struct {
 		name               string
@@ -144,13 +143,13 @@ func TestGetAppreciationsHandler(t *testing.T) {
 		{
 			name: "successful retrieval",
 			queryParams: map[string]string{
-				"name":      "John Doe",
+				"name":       "John Doe",
 				"sort_order": "asc",
-				"page": "1",
-				"limit": "5",
+				"page":       "1",
+				"limit":      "5",
 			},
 			mockSetup: func(mockSvc *mocks.Service) {
-				mockSvc.On("GetAppreciation", mock.Anything, dto.AppreciationFilter{
+				mockSvc.On("GetAppreciations", mock.Anything, dto.AppreciationFilter{
 					Name:      "John Doe",
 					SortOrder: "asc",
 					Page:      1,
@@ -160,10 +159,10 @@ func TestGetAppreciationsHandler(t *testing.T) {
 			expectedStatusCode: http.StatusOK,
 		},
 		{
-			name:               "service error",
-			queryParams:        map[string]string{},
+			name:        "service error",
+			queryParams: map[string]string{},
 			mockSetup: func(mockSvc *mocks.Service) {
-				mockSvc.On("GetAppreciation", mock.Anything, dto.AppreciationFilter{
+				mockSvc.On("GetAppreciations", mock.Anything, dto.AppreciationFilter{
 					Name:      "",
 					SortOrder: "",
 					Page:      1,
@@ -206,10 +205,9 @@ func TestGetAppreciationsHandler(t *testing.T) {
 	}
 }
 
-
 func TestValidateAppreciationHandler(t *testing.T) {
 	appreciationSvc := new(mocks.Service)
-	handler := validateAppreciationHandler(appreciationSvc)
+	handler := deleteAppreciationHandler(appreciationSvc)
 
 	tests := []struct {
 		name               string
@@ -221,7 +219,7 @@ func TestValidateAppreciationHandler(t *testing.T) {
 			name:           "successful validation",
 			appreciationID: "1",
 			mockSetup: func(mockSvc *mocks.Service) {
-				mockSvc.On("ValidateAppreciation", mock.Anything, false, 1).Return(true, nil).Once()
+				mockSvc.On("DeleteAppreciation", mock.Anything, 1).Return(true, nil).Once()
 			},
 			expectedStatusCode: http.StatusOK,
 		},
@@ -236,7 +234,7 @@ func TestValidateAppreciationHandler(t *testing.T) {
 			name:           "service error",
 			appreciationID: "1",
 			mockSetup: func(mockSvc *mocks.Service) {
-				mockSvc.On("ValidateAppreciation", mock.Anything, false, 1).Return(false, apperrors.InternalServer).Once()
+				mockSvc.On("DeleteAppreciation", mock.Anything, 1).Return(false, apperrors.InternalServer).Once()
 			},
 			expectedStatusCode: http.StatusInternalServerError,
 		},
@@ -244,7 +242,7 @@ func TestValidateAppreciationHandler(t *testing.T) {
 			name:           "validation failed",
 			appreciationID: "1",
 			mockSetup: func(mockSvc *mocks.Service) {
-				mockSvc.On("ValidateAppreciation", mock.Anything, false, 1).Return(false, nil).Once()
+				mockSvc.On("DeleteAppreciation", mock.Anything, false, 1).Return(false, nil).Once()
 			},
 			expectedStatusCode: http.StatusInternalServerError,
 		},

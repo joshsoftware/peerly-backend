@@ -3,22 +3,23 @@ package dto
 import "github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 
 type Appreciation struct {
-	ID           int64  `json:"id"`
-	CoreValueID  int    `json:"core_value_id" `
-	Description  string `json:"description"`
-	TotalRewards int    `json:"total_rewards,omitempty"`
-	Quarter      int    `json:"quarter"`
-	Sender       int64  `json:"sender"`
-	Receiver     int64  `json:"receiver"`
-	CreatedAt    int64  `json:"created_at"`
-	UpdatedAt    int64  `json:"updated_at"`
+	ID                int64  `json:"id"`
+	CoreValueID       int    `json:"core_value_id" `
+	Description       string `json:"description"`
+	TotalRewardPoints int    `json:"total_reward_points,omitempty"`
+	Quarter           int    `json:"quarter"`
+	Sender            int64  `json:"sender"`
+	Receiver          int64  `json:"receiver"`
+	CreatedAt         int64  `json:"created_at"`
+	UpdatedAt         int64  `json:"updated_at"`
 }
 
 type AppreciationFilter struct {
+	Self      bool   `json:"Self"`
 	Name      string `json:"sender_name"`
 	SortOrder string `json:"sort_order"`
-	Page      int64  `json:"page"`
-	Limit     int64  `json:"limit"`
+	Page      int16  `json:"page"`
+	Limit     int16  `json:"limit"`
 }
 
 type ResponseAppreciation struct {
@@ -44,12 +45,9 @@ type ResponseAppreciation struct {
 
 // Pagination Object
 type Pagination struct {
-	// Next          *int64 `json:"next"`
-	// Previous      *int64 `json:"previous"`
-	// RecordPerPage int64  `json:"record_per_page"`
-	CurrentPage  int64 `json:"current_page"`
-	TotalPage    int64 `json:"page_count"`
-	TotalRecords int64 `json:"total_count"`
+	CurrentPage int16 `json:"page"`
+	TotalPage   int16 `json:"total_page"`
+	PageSize    int16 `json:"page_size"`
 }
 
 type GetAppreciationResponse struct {
@@ -57,7 +55,7 @@ type GetAppreciationResponse struct {
 	MetaData      Pagination             `json:"metadata"`
 }
 
-func (appr *Appreciation) CreateAppreciation() (err error) {
+func (appr *Appreciation) ValidateCreateAppreciation() (err error) {
 
 	if appr.CoreValueID <= 0 {
 		return apperrors.InvalidCoreValueID
