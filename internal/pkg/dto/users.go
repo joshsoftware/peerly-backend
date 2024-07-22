@@ -181,6 +181,8 @@ type GetUserByIdResp struct {
 	ProfileImgUrl      string `json:"profile_image_url" db:"profile_image_url"`
 	Designation        string `json:"designation" db:"designation"`
 	RewardQuotaBalance int64  `json:"reward_quota_balance" db:"reward_quota_balance"`
+	TotalRewardQuota   int64  `json:"total_reward_quota"`
+	RefilDate          int64  `json:"refil_date"`
 	GradeId            int64  `json:"grade_id" db:"grade_id"`
 	EmployeeId         int64  `json:"employee_id" db:"employee_id"`
 	TotalPoints        int64  `json:"total_points" db:"total_points"`
