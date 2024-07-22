@@ -33,6 +33,27 @@ func (_m *UserStorer) CreateNewUser(ctx context.Context, u dto.RegisterUser) (dt
 	return r0, r1
 }
 
+// GetGradeById provides a mock function with given fields: ctx, id
+func (_m *UserStorer) GetGradeById(ctx context.Context, id int64) (repository.Grade, error) {
+	ret := _m.Called(ctx, id)
+
+	var r0 repository.Grade
+	if rf, ok := ret.Get(0).(func(context.Context, int64) repository.Grade); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Get(0).(repository.Grade)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, int64) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetGradeByName provides a mock function with given fields: ctx, name
 func (_m *UserStorer) GetGradeByName(ctx context.Context, name string) (repository.Grade, error) {
 	ret := _m.Called(ctx, name)

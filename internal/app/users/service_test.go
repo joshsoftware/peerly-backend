@@ -375,6 +375,12 @@ func TestGetUserById(t *testing.T) {
 			userId:  2,
 			setup: func(userMock *mocks.UserStorer) {
 				userMock.On("GetUserById", mock.Anything, mock.Anything).Return(dto.GetUserByIdResp{}, nil).Once()
+				userMock.On("GetGradeById", mock.Anything, mock.Anything).Return(repository.Grade{
+					Id:     1,
+					Name:   "J1",
+					Points: 100,
+				}, nil).Once()
+				userMock.On("GetRewardMultiplier", mock.Anything).Return(10, nil).Once()
 
 			},
 			isErrorExpected: false,
