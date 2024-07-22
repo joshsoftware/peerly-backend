@@ -11,7 +11,7 @@ import (
 // Function to map AppreciationDB to AppreciationDTO
 func MapAppreciationDBToDTO(dbAppreciation repository.Appreciation) dto.Appreciation {
 
-	fmt.Println("db: ",dbAppreciation)
+	fmt.Println("db: ", dbAppreciation)
 	// fmt.Println("dto: ",)
 	return dto.Appreciation{
 		ID:           dbAppreciation.ID,
@@ -38,23 +38,27 @@ func mapRepoGetAppreciationInfoToDTOGetAppreciationInfo(info repository.Apprecia
 		senderImageURL = info.SenderImageURL.String
 	}
 
-	var dtoApprResp dto.ResponseAppreciation
+	dtoApprResp := dto.ResponseAppreciation{
+		ID:                  info.ID,
+		CoreValueName:       info.CoreValueName,
+		CoreValueDesc:       info.CoreValueDesc,
+		Description:         info.Description,
+		TotalRewardPoints:   info.TotalRewardPoints,
+		Quarter:             info.Quarter,
+		SenderFirstName:     info.SenderFirstName,
+		SenderLastName:      info.SenderLastName,
+		SenderImageURL:      senderImageURL,
+		SenderDesignation:   info.SenderDesignation,
+		ReceiverFirstName:   info.ReceiverFirstName,
+		ReceiverLastName:    info.ReceiverLastName,
+		ReceiverImageURL:    receiverImageURL,
+		ReceiverDesignation: info.ReceiverDesignation,
+		TotalRewards:        info.TotalRewards,
+		GivenRewardPoint:    info.GivenRewardPoint,
+		CreatedAt:           info.CreatedAt,
+		UpdatedAt:           info.UpdatedAt,
+	}
 
-	dtoApprResp.ID = info.ID
-	dtoApprResp.CoreValueName = info.CoreValueName
-	dtoApprResp.Description = info.Description
-	dtoApprResp.TotalRewards = info.TotalRewards
-	dtoApprResp.Quarter = info.Quarter
-	dtoApprResp.SenderFirstName = info.SenderFirstName
-	dtoApprResp.SenderLastName = info.SenderLastName
-	dtoApprResp.SenderImageURL = senderImageURL
-	dtoApprResp.SenderDesignation = info.SenderDesignation
-	dtoApprResp.ReceiverFirstName = info.ReceiverFirstName
-	dtoApprResp.ReceiverLastName = info.ReceiverLastName
-	dtoApprResp.ReceiverImageURL = receiverImageURL
-	dtoApprResp.ReceiverDesignation = info.ReceiverDesignation
-	dtoApprResp.CreatedAt = info.CreatedAt
-	dtoApprResp.UpdatedAt = info.UpdatedAt
 	return dtoApprResp
 }
 
@@ -72,13 +76,13 @@ func GetQuarter() int {
 	return -1
 }
 
-func DtoPagination (pagination repository.Pagination)dto.Pagination {
+func DtoPagination(pagination repository.Pagination) dto.Pagination {
 	var pagenationResp dto.Pagination
 	pagenationResp.CurrentPage = pagination.CurrentPage
 	// pagenationResp.Next = pagination.Next
 	// pagenationResp.Previous = pagination.Previous
 	// pagenationResp.RecordPerPage = pagination.RecordPerPage
-	pagenationResp.TotalPage =pagination.TotalPage
+	pagenationResp.TotalPage = pagination.TotalPage
 	pagenationResp.TotalRecords = pagination.TotalRecords
 	return pagenationResp
 }

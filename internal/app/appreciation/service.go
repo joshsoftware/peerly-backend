@@ -116,7 +116,14 @@ func (apprSvc *service) GetAppreciationById(ctx context.Context, appreciationId 
 }
 
 func (apprSvc *service) GetAppreciation(ctx context.Context, filter dto.AppreciationFilter) (dto.GetAppreciationResponse, error) {
-	infos, pagination, err := apprSvc.appreciationRepo.GetAppreciation(ctx, nil, filter)
+	//get logged user
+	data := ctx.Value(constants.UserId)
+	user, ok := data.(int64)
+	if !ok {
+		logger.Error("err in parsing userid from token")
+		return dto.GetAppreciationResponse{}, apperrors.InternalServer
+	}
+	infos, pagination, err := apprSvc.appreciationRepo.GetAppreciation(ctx, nil, filter, user)
 	if err != nil {
 		return dto.GetAppreciationResponse{}, err
 	}

@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
+	"github.com/Masterminds/squirrel"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
@@ -120,7 +120,7 @@ func (appr *appreciationsStore) GetAppreciationById(ctx context.Context, tx repo
 	return resAppr, nil
 }
 
-func (appr *appreciationsStore) GetAppreciation(ctx context.Context, tx repository.Transaction, filter dto.AppreciationFilter) ([]repository.AppreciationInfo, repository.Pagination, error) {
+func (appr *appreciationsStore) GetAppreciation(ctx context.Context, tx repository.Transaction, filter dto.AppreciationFilter, userID int64) ([]repository.AppreciationInfo, repository.Pagination, error) {
 
 	// query builder for counting total records
 	countQueryBuilder := sq.Select("COUNT(*)").
@@ -154,10 +154,12 @@ func (appr *appreciationsStore) GetAppreciation(ctx context.Context, tx reposito
 
 	pagination := GetPaginationMetaData(filter.Page, filter.Limit, totalRecords)
 	fmt.Println("pagination: ", pagination)
+
 	// Initialize the Squirrel query builder
 	queryBuilder := sq.Select(
 		"a.id",
 		"cv.name AS core_value_name",
+		"cv.description AS core_value_description",
 		"a.description",
 		"a.is_valid",
 		"a.total_reward_points",
@@ -172,11 +174,20 @@ func (appr *appreciationsStore) GetAppreciation(ctx context.Context, tx reposito
 		"u_receiver.designation AS receiver_designation",
 		"a.created_at",
 		"a.updated_at",
+		"COUNT(r.id) AS total_rewards",
+		fmt.Sprintf(
+			`COALESCE((
+				SELECT r2.point 
+				FROM rewards r2 
+				WHERE r2.appreciation_id = a.id AND r2.sender = %d
+			), 0) AS given_reward_point`, userID),
 	).From("appreciations a").
 		LeftJoin("users u_sender ON a.sender = u_sender.id").
 		LeftJoin("users u_receiver ON a.receiver = u_receiver.id").
 		LeftJoin("core_values cv ON a.core_value_id = cv.id").
-		Where(squirrel.Eq{"a.is_valid": true})
+		LeftJoin("rewards r ON a.id = r.appreciation_id").
+		Where(squirrel.Eq{"a.is_valid": true}).
+		GroupBy("a.id, cv.name, cv.description, u_sender.first_name, u_sender.last_name, u_sender.profile_image_url, u_sender.designation, u_receiver.first_name, u_receiver.last_name, u_receiver.profile_image_url, u_receiver.designation")
 
 	if filter.Name != "" {
 		queryBuilder = queryBuilder.Where(
@@ -203,40 +214,10 @@ func (appr *appreciationsStore) GetAppreciation(ctx context.Context, tx reposito
 	queryExecutor = appr.InitiateQueryExecutor(tx)
 	res := make([]repository.AppreciationInfo, 0)
 	err = sqlx.Select(queryExecutor, &res, sql, args...)
-	// rows, err := queryExecutor.Query(sql, args...)
 	if err != nil {
 		logger.Error("failed to execute query: ", err.Error())
 		return nil, repository.Pagination{}, apperrors.InternalServerError
 	}
-	// defer rows.Close()
-
-	// for rows.Next() {
-	// 	fmt.Println("Hello")
-	// 	var resAppr repository.AppreciationInfo
-	// 	err = rows.Scan(
-	// 		&resAppr.ID,
-	// 		&resAppr.CoreValueName,
-	// 		&resAppr.Description,
-	// 		&resAppr.IsValid,
-	// 		&resAppr.TotalRewards,
-	// 		&resAppr.Quarter,
-	// 		&resAppr.SenderFirstName,
-	// 		&resAppr.SenderLastName,
-	// 		&resAppr.SenderImageURL,
-	// 		&resAppr.SenderDesignation,
-	// 		&resAppr.ReceiverFirstName,
-	// 		&resAppr.ReceiverLastName,
-	// 		&resAppr.ReceiverImageURL,
-	// 		&resAppr.ReceiverDesignation,
-	// 		&resAppr.CreatedAt,
-	// 		&resAppr.UpdatedAt,
-	// 	)
-	// 	if err != nil {
-	// 		logger.Error("failed to scan row: ", err.Error())
-	// 		return []repository.AppreciationInfo{}, repository.Pagination{}, apperrors.InternalServerError
-	// 	}
-	// 	res = append(res, resAppr)
-	// }
 
 	return res, pagination, nil
 }
@@ -278,7 +259,6 @@ func (appr *appreciationsStore) ValidateAppreciation(ctx context.Context, tx rep
 }
 
 func (appr *appreciationsStore) IsUserPresent(ctx context.Context, tx repository.Transaction, userID int64) (bool, error) {
-	// Initialize the Squirrel query builder
 
 	// Build the SQL query
 	query, args, err := sq.Select("COUNT(*)").
