@@ -76,12 +76,68 @@ func (_m *AppreciationStorer) CreateAppreciation(ctx context.Context, tx reposit
 	return r0, r1
 }
 
-// GetAppreciation provides a mock function with given fields: ctx, tx, filter
-func (_m *AppreciationStorer) GetAppreciation(ctx context.Context, tx repository.Transaction, filter dto.AppreciationFilter) ([]repository.AppreciationInfo, repository.Pagination, error) {
+// DeleteAppreciation provides a mock function with given fields: ctx, tx, apprId
+func (_m *AppreciationStorer) DeleteAppreciation(ctx context.Context, tx repository.Transaction, apprId int32) (bool, error) {
+	ret := _m.Called(ctx, tx, apprId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteAppreciation")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, repository.Transaction, int32) (bool, error)); ok {
+		return rf(ctx, tx, apprId)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, repository.Transaction, int32) bool); ok {
+		r0 = rf(ctx, tx, apprId)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, repository.Transaction, int32) error); ok {
+		r1 = rf(ctx, tx, apprId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetAppreciationById provides a mock function with given fields: ctx, tx, appreciationId
+func (_m *AppreciationStorer) GetAppreciationById(ctx context.Context, tx repository.Transaction, appreciationId int32) (repository.AppreciationInfo, error) {
+	ret := _m.Called(ctx, tx, appreciationId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAppreciationById")
+	}
+
+	var r0 repository.AppreciationInfo
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, repository.Transaction, int32) (repository.AppreciationInfo, error)); ok {
+		return rf(ctx, tx, appreciationId)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, repository.Transaction, int32) repository.AppreciationInfo); ok {
+		r0 = rf(ctx, tx, appreciationId)
+	} else {
+		r0 = ret.Get(0).(repository.AppreciationInfo)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, repository.Transaction, int32) error); ok {
+		r1 = rf(ctx, tx, appreciationId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetAppreciations provides a mock function with given fields: ctx, tx, filter
+func (_m *AppreciationStorer) GetAppreciations(ctx context.Context, tx repository.Transaction, filter dto.AppreciationFilter) ([]repository.AppreciationInfo, repository.Pagination, error) {
 	ret := _m.Called(ctx, tx, filter)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetAppreciation")
+		panic("no return value specified for GetAppreciations")
 	}
 
 	var r0 []repository.AppreciationInfo
@@ -111,34 +167,6 @@ func (_m *AppreciationStorer) GetAppreciation(ctx context.Context, tx repository
 	}
 
 	return r0, r1, r2
-}
-
-// GetAppreciationById provides a mock function with given fields: ctx, tx, appreciationId
-func (_m *AppreciationStorer) GetAppreciationById(ctx context.Context, tx repository.Transaction, appreciationId int) (repository.AppreciationInfo, error) {
-	ret := _m.Called(ctx, tx, appreciationId)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetAppreciationById")
-	}
-
-	var r0 repository.AppreciationInfo
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, repository.Transaction, int) (repository.AppreciationInfo, error)); ok {
-		return rf(ctx, tx, appreciationId)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, repository.Transaction, int) repository.AppreciationInfo); ok {
-		r0 = rf(ctx, tx, appreciationId)
-	} else {
-		r0 = ret.Get(0).(repository.AppreciationInfo)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, repository.Transaction, int) error); ok {
-		r1 = rf(ctx, tx, appreciationId)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
 }
 
 // HandleTransaction provides a mock function with given fields: ctx, tx, isSuccess
@@ -200,34 +228,6 @@ func (_m *AppreciationStorer) IsUserPresent(ctx context.Context, tx repository.T
 
 	if rf, ok := ret.Get(1).(func(context.Context, repository.Transaction, int64) error); ok {
 		r1 = rf(ctx, tx, userID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// ValidateAppreciation provides a mock function with given fields: ctx, tx, isValid, apprId
-func (_m *AppreciationStorer) ValidateAppreciation(ctx context.Context, tx repository.Transaction, isValid bool, apprId int) (bool, error) {
-	ret := _m.Called(ctx, tx, isValid, apprId)
-
-	if len(ret) == 0 {
-		panic("no return value specified for ValidateAppreciation")
-	}
-
-	var r0 bool
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, repository.Transaction, bool, int) (bool, error)); ok {
-		return rf(ctx, tx, isValid, apprId)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, repository.Transaction, bool, int) bool); ok {
-		r0 = rf(ctx, tx, isValid, apprId)
-	} else {
-		r0 = ret.Get(0).(bool)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, repository.Transaction, bool, int) error); ok {
-		r1 = rf(ctx, tx, isValid, apprId)
 	} else {
 		r1 = ret.Error(1)
 	}

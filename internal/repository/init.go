@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/config"
@@ -20,12 +21,17 @@ import (
 	// For database migrations
 	"github.com/golang-migrate/migrate"
 	"github.com/golang-migrate/migrate/database/postgres"
+
 	// golang-migrate reads migrations from sources and applies them in correct order to a database.
 	_ "github.com/golang-migrate/migrate/source/file"
 )
 
 const (
 	dbDriver = "postgres"
+)
+
+var (
+	Sq = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
 )
 
 // InitializeDatabase initialize database and return database instance
@@ -73,7 +79,7 @@ func CreateMigrationFile(filename string) (err error) {
 		err = errors.New("filename is not provided")
 		return
 	}
-	
+
 	timeStamp := time.Now().Unix()
 	upMigrationFilePath := fmt.Sprintf("%s/%d_%s.up.sql", config.ReadEnvString(constants.MigrationFolderPath), timeStamp, filename)
 	downMigrationFilePath := fmt.Sprintf("%s/%d_%s.down.sql", config.ReadEnvString(constants.MigrationFolderPath), timeStamp, filename)

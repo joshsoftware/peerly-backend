@@ -1,4 +1,4 @@
-package config
+package testConfig
 
 import (
 	"fmt"
@@ -19,10 +19,11 @@ var (
 func Load() {
 
 	// Load environment variables from .env file
-	err := godotenv.Load()
+	err := godotenv.Load("../../../.env")
 	if err != nil {
 		panic(fmt.Sprintf("Error loading .env file: %v", err))
 	}
+
 	viper.ReadInConfig()
 	viper.AutomaticEnv()
 

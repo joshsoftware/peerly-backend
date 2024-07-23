@@ -16,48 +16,49 @@ func (e CustomError) Error() string {
 
 // Custome errors with errormessage
 const (
-	BadRequest                         = CustomError("Bad request")
-	InternalServer                     = CustomError("Internal server error")
-	FailedToCreateDriver               = CustomError("failure to create driver obj")
-	MigrationFailure                   = CustomError("migrate failure")
-	OutOfRange                         = CustomError("request value is out of range")
-	OrganizationConfigNotFound          = CustomError("organizationconfig  not found")
-	InvalidContactEmail                = CustomError("Contact email is already present")
-	InvalidDomainName                  = CustomError("Domain name is already present")
+	OrganizationConfigNotFound         = CustomError("organizationconfig  not found")
 	InvalidReferenceId                 = CustomError("Invalid reference id")
 	AttemptExceeded                    = CustomError(" 3 attempts exceeded ")
 	InvalidOTP                         = CustomError("invalid otp")
 	TimeExceeded                       = CustomError("time exceeded")
 	ErrOTPAlreadyExists                = CustomError("otp already exists")
 	ErrOTPAttemptsExceeded             = CustomError("attempts exceeded for organization")
-	InvalidId                          = CustomError("Invalid id")
 	InernalServer                      = CustomError("Failed to write organization db")
-	JSONParsingErrorReq                = CustomError("error in parsing request in json")
 	ErrRecordNotFound                  = CustomError("Database record not found")
-	InternalServerError                = CustomError("Internal server error")
-	JSONParsingErrorResp               = CustomError("error in parsing response in json")
-	InvalidCoreValueData               = CustomError("Invalid corevalue data")
-	TextFieldBlank                     = CustomError("Text field cannot be blank")
-	DescFieldBlank                     = CustomError("Description cannot be blank")
-	InvalidParentValue                 = CustomError("Invalid parent core value")
-	InvalidOrgId                       = CustomError("Invalid organisation")
-	UniqueCoreValue                    = CustomError("Choose a unique coreValue name")
-	InvalidAuthToken                   = CustomError("Invalid Auth token")
-	IntranetValidationFailed           = CustomError("Intranet Validation Failed")
-	UserNotFound                       = CustomError("User not found")
-	InvalidIntranetData                = CustomError("Invalid data recieved from intranet")
-	GradeNotFound                      = CustomError("Grade not found")
-	AppreciationNotFound               = CustomError("appreciation not found")
-	RoleUnathorized                    = CustomError("Role unauthorized")
 	OrganizationConfigAlreadyPresent   = CustomError("organization config already present")
-	PageParamNotFound                  = CustomError("Page parameter not found")
-	RepeatedUser                       = CustomError("Repeated user")
-	InvalidCoreValueID                 = CustomError("invalid corevalue id")
-	InvalidReceiverID                  = CustomError("invalid receiver id")
-	SelfAppreciationError              = CustomError("user cannot give appreciation to ourself")
 	InvalidRewardMultiplier            = CustomError("reward multiplier should greater than 1")
 	InvalidRewardQuotaRenewalFrequency = CustomError("reward renewal frequency should greater than 1")
 	InvalidTimezone                    = CustomError("enter valid timezone")
+	InvalidId                          = CustomError("invalid id")
+	InternalServerError                = CustomError("internal server error")
+	JSONParsingErrorReq                = CustomError("error in parsing request in json")
+	JSONParsingErrorResp               = CustomError("error in parsing response in json")
+	OutOfRange                         = CustomError("request value is out of range")
+	OrganizationNotFound               = CustomError("organization of given id not found")
+	RoleUnathorized                    = CustomError("Role unauthorized")
+	PageParamNotFound                  = CustomError("Page parameter not found")
+	RepeatedUser                       = CustomError("Repeated user")
+	InvalidContactEmail                = CustomError("contact email is already present")
+	InvalidDomainName                  = CustomError("domain name is already present")
+	InvalidCoreValueData               = CustomError("invalid corevalue data")
+	TextFieldBlank                     = CustomError("text field cannot be blank")
+	DescFieldBlank                     = CustomError("description cannot be blank")
+	InvalidParentValue                 = CustomError("invalid parent core value")
+	InvalidOrgId                       = CustomError("invalid organisation")
+	UniqueCoreValue                    = CustomError("choose a unique coreValue name")
+	InvalidAuthToken                   = CustomError("invalid Auth token")
+	IntranetValidationFailed           = CustomError("intranet Validation Failed")
+	UserNotFound                       = CustomError("user not found")
+	InvalidIntranetData                = CustomError("invalid data recieved from intranet")
+	GradeNotFound                      = CustomError("grade not found")
+	AppreciationNotFound               = CustomError("appreciation not found")
+	BadRequest                         = CustomError("bad request")
+	InternalServer                     = CustomError("internal Server")
+	FailedToCreateDriver               = CustomError("failure to create driver obj")
+	MigrationFailure                   = CustomError("migrate failure")
+	SelfAppreciationError              = CustomError("self-appreciation is not allowed")
+	InvalidCoreValueID                 = CustomError("invalid corevalue id")
+	InvalidReceiverID                  = CustomError("invalid receiver id")
 )
 
 // ErrKeyNotSet - Returns error object specific to the key value passed in
@@ -68,16 +69,16 @@ func ErrKeyNotSet(key string) (err error) {
 // GetHTTPStatusCode returns status code according to customerror and default returns InternalServer error
 func GetHTTPStatusCode(err error) int {
 	switch err {
-	case InternalServerError, JSONParsingErrorResp, InvalidIntranetData:
+	case InternalServerError, JSONParsingErrorResp:
 		return http.StatusInternalServerError
-	case OrganizationConfigNotFound, InvalidCoreValueData, InvalidParentValue, InvalidOrgId, GradeNotFound, AppreciationNotFound, PageParamNotFound:
+	case OrganizationConfigNotFound, OrganizationNotFound, InvalidCoreValueData, InvalidOrgId, AppreciationNotFound, PageParamNotFound:
 		return http.StatusNotFound
-	case BadRequest, InvalidId, JSONParsingErrorReq, TextFieldBlank, DescFieldBlank, UniqueCoreValue, IntranetValidationFailed, RepeatedUser, SelfAppreciationError, InvalidCoreValueID, InvalidReceiverID, InvalidRewardMultiplier, InvalidRewardQuotaRenewalFrequency, InvalidTimezone:
+	case BadRequest, InvalidId, JSONParsingErrorReq, TextFieldBlank, InvalidParentValue, DescFieldBlank, UniqueCoreValue, InvalidIntranetData, IntranetValidationFailed, RepeatedUser, SelfAppreciationError, InvalidCoreValueID, InvalidReceiverID, InvalidRewardMultiplier, InvalidRewardQuotaRenewalFrequency, InvalidTimezone, GradeNotFound:
 		return http.StatusBadRequest
-	case InvalidContactEmail, InvalidDomainName:
-		return http.StatusConflict
 	case InvalidAuthToken, RoleUnathorized:
 		return http.StatusUnauthorized
+	case InvalidContactEmail, InvalidDomainName:
+		return http.StatusConflict
 	case OrganizationConfigAlreadyPresent:
 		return http.StatusForbidden
 	default:

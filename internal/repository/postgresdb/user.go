@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"strconv"
 
+	"github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
@@ -14,82 +14,101 @@ import (
 )
 
 type userStore struct {
-	DB *sqlx.DB
+	DB             *sqlx.DB
+	UsersTable     string
+	GradesTable    string
+	RolesTable     string
+	OrgConfigTable string
 }
 
 func NewUserRepo(db *sqlx.DB) repository.UserStorer {
 	return &userStore{
-		DB: db,
+		DB:             db,
+		UsersTable:     "users",
+		GradesTable:    "grades",
+		RolesTable:     "roles",
+		OrgConfigTable: "organization_config",
 	}
 }
 
-const (
-	getUserByEmailQuery = `SELECT users.id, users.employee_id, users.first_name, users.last_name, users.email, users.profile_image_url, users.role_id, users.reward_quota_balance, users.designation, users.grade_id, grades.name FROM users JOIN grades ON grades.id = users.grade_id WHERE users.email = $1;
-`
-
-	createUser = `INSERT INTO users ( email, employee_id, first_name, last_name, profile_image_url, role_id, reward_quota_balance, grade_id, designation
-	) VALUES (
-		$1, $2, $3, $4, $5, $6, $7, $8, $9
-	) RETURNING id, employee_id, email, first_name, last_name, profile_image_url, role_id, reward_quota_balance, created_at, grade_id, designation`
-
-	getRoleByNameQuery = `SELECT id FROM roles WHERE name=$1 LIMIT 1`
-
-	getGradeId = `SELECT id, name, points FROM grades WHERE name = $1`
-
-	getRewardMultiplier = "select reward_multiplier from organization_config where id = 1"
-
-	updateUserQuery = `UPDATE users SET (first_name, last_name, profile_image_url, designation, grade_id) =
-		($1, $2, $3, $4, $5) where email = $6`
+var (
+	userColumns      = []string{"id", "employee_id", "first_name", "last_name", "email", "profile_image_url", "role_id", "reward_quota_balance", "designation", "grade_id"}
+	rolesColumns     = []string{"id"}
+	gradeColumns     = []string{"id", "name", "points"}
+	orgConfigColumns = []string{"reward_multiplier"}
 )
 
 // GetUserByEmail - Given an email address, return that user.
-func (us *userStore) GetUserByEmail(ctx context.Context, email string) (user dto.GetUserResp, err error) {
-	err = us.DB.Get(&user, getUserByEmailQuery, email)
+func (us *userStore) GetUserByEmail(ctx context.Context, email string) (user repository.User, err error) {
+
+	queryBuilder := repository.Sq.Select(userColumns...).From(us.UsersTable).Where(squirrel.Like{"email": email})
+	getUserByEmailQuery, args, err := queryBuilder.ToSql()
+	if err != nil {
+		logger.Errorf("error in generating squirrel query, err: %s", err.Error())
+		err = apperrors.InternalServerError
+		return
+	}
+
+	err = us.DB.GetContext(
+		ctx,
+		&user,
+		getUserByEmailQuery,
+		args...,
+	)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			err = apperrors.UserNotFound
 			return
+		} else {
+			// Possible that there's no rows in the result set
+			logger.Errorf("error selecting user from database by email, err: %s", err.Error())
+			err = apperrors.InternalServerError
+			return
 		}
-		// Possible that there's no rows in the result set
-		logger.WithField("err", err.Error()).Error("Error selecting user from database by email " + email)
-		err = apperrors.InternalServerError
-		return
 	}
 
 	return
 }
 
-func (us *userStore) GetRoleByName(ctx context.Context, name string) (roleId int, err error) {
-	err = us.DB.Get(&roleId, getRoleByNameQuery, name)
+func (us *userStore) GetRoleByName(ctx context.Context, name string) (roleId int64, err error) {
+
+	queryBuilder := repository.Sq.Select(rolesColumns...).From(us.RolesTable).Where(squirrel.Like{"name": name})
+
+	getRoleByNameQuery, args, err := queryBuilder.ToSql()
 	if err != nil {
-		logger.WithField("err", err.Error()).Error("Error selecting role from database in GetRoleByName for name ", name)
+		err = fmt.Errorf("error in generating squirrel query, err: %w", err)
+		return
+	}
+
+	err = us.DB.GetContext(ctx, &roleId, getRoleByNameQuery, args...)
+	if err != nil {
+		err = fmt.Errorf("error selecting role from database in GetRoleByName, grade: %s, err: %w", name, err)
 		return
 	}
 	return
 }
 
 // CreateNewUser - creates a new user in the database
-func (us *userStore) CreateNewUser(ctx context.Context, u dto.RegisterUser) (resp dto.GetUserResp, err error) {
+func (us *userStore) CreateNewUser(ctx context.Context, user dto.User) (resp repository.User, err error) {
+
+	queryBuilder := repository.Sq.Insert(us.UsersTable).Columns(userColumns[1:]...).Values(user.EmployeeId, user.FirstName, user.LastName, user.Email, user.ProfileImgUrl, user.RoleId, user.RewardQuotaBalance, user.Designation, user.GradeId).Suffix("RETURNING id, employee_id, email, first_name, last_name, profile_image_url, role_id, reward_quota_balance, created_at, grade_id, designation")
+
+	createUser, args, err := queryBuilder.ToSql()
+	if err != nil {
+		err = fmt.Errorf("error in generating squirrel query, err: %w", err)
+		return
+	}
 
 	err = us.DB.GetContext(
 		ctx,
 		&resp,
 		createUser,
-		u.User.Email,
-		u.User.EmpolyeeDetail.EmployeeId,
-		u.User.PublicProfile.FirstName,
-		u.User.PublicProfile.LastName,
-		u.User.PublicProfile.ProfileImgUrl,
-		u.RoleId,
-		u.RewardQuotaBalance,
-		u.GradeId,
-		u.User.EmpolyeeDetail.Designation.Name,
+		args...,
 	)
 
 	if err != nil {
 		// FAIL: Could not run insert query
-		logger.WithField("err", err.Error()).Error("Error inserting user into database: " + u.User.Email)
-
+		err = fmt.Errorf("error inserting user into database, email:%s, err: %w", user.Email, err)
 		return
 	}
 
@@ -97,45 +116,72 @@ func (us *userStore) CreateNewUser(ctx context.Context, u dto.RegisterUser) (res
 }
 
 func (us *userStore) GetGradeByName(ctx context.Context, name string) (grade repository.Grade, err error) {
-	err = us.DB.Get(&grade, getGradeId, name)
+
+	queryBuilder := repository.Sq.Select(gradeColumns...).From(us.GradesTable).Where(squirrel.Like{"name": name})
+	getGradeId, args, err := queryBuilder.ToSql()
+	if err != nil {
+		logger.Errorf("error in generating squirrel query, err: %s", err)
+		err = apperrors.InternalServerError
+		return
+	}
+
+	err = us.DB.GetContext(ctx, &grade, getGradeId, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			err = apperrors.GradeNotFound
 			return
 		}
-		logger.WithField("err", err.Error()).Error("Error in retriving grade id of the grade ", name)
+		logger.Errorf("error in retriving grade id, grade: %s, err: %s", name, err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
 	return
 }
 
-func (us *userStore) GetRewardMultiplier(ctx context.Context) (value int, err error) {
-	err = us.DB.Get(&value, getRewardMultiplier)
+func (us *userStore) GetRewardMultiplier(ctx context.Context) (value int64, err error) {
+
+	queryBuilder := repository.Sq.Select(orgConfigColumns...).From(us.OrgConfigTable).Where(squirrel.Eq{"id": 1})
+	getRewardMultiplier, args, err := queryBuilder.ToSql()
+	if err != nil {
+		err = fmt.Errorf("error in generating squirrel query, err: %w", err)
+		return
+	}
+
+	err = us.DB.GetContext(ctx, &value, getRewardMultiplier, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			logger.WithField("err", err.Error()).Error("No fields in organization config")
+			err = fmt.Errorf("no fields in organization config, err: %w", err)
 			return
 		}
-		logger.WithField("err", err.Error()).Error("Error in retriving reward_multiplier from organization config")
+		err = fmt.Errorf("error in retriving reward_multiplier from organization config, err: %w", err)
 		return
 	}
 	return
 }
 
-func (us *userStore) SyncData(ctx context.Context, updateData dto.UpdateUserData) (err error) {
+func (us *userStore) SyncData(ctx context.Context, updateData dto.User) (err error) {
+
+	queryBuilder := repository.Sq.Update(us.UsersTable).
+		Set("first_name", updateData.FirstName).
+		Set("last_name", updateData.LastName).
+		Set("profile_image_url", updateData.ProfileImgUrl).
+		Set("designation", updateData.Designation).
+		Set("grade_id", updateData.GradeId).
+		Where(squirrel.Eq{"email": updateData.Email})
+
+	updateUserQuery, args, err := queryBuilder.ToSql()
+	if err != nil {
+		err = fmt.Errorf("error in generating squirrel query, err: %w", err)
+		return
+	}
+
 	_, err = us.DB.ExecContext(
 		ctx,
 		updateUserQuery,
-		updateData.FirstName,
-		updateData.LastName,
-		updateData.ProfileImgUrl,
-		updateData.Designation,
-		updateData.GradeId,
-		updateData.Email,
+		args...,
 	)
 	if err != nil {
-		logger.WithField("err", err.Error()).Error("Error in data update query")
+		err = fmt.Errorf("error in data update query, err: %w", err)
 		return
 	}
 
@@ -143,38 +189,4 @@ func (us *userStore) SyncData(ctx context.Context, updateData dto.UpdateUserData
 
 	return
 
-}
-
-func (us *userStore) GetUserList(ctx context.Context, reqData dto.UserListReq) (resp []dto.GetUserListResp, err error) {
-	getUserListQuery := "Select users.employee_id, users.email, users.first_name, users.last_name, grades.name, users.designation, users.profile_image_url from users join grades on grades.id = users.grade_id "
-
-	if len(reqData.Name) >= 0 {
-		getUserListQuery += "where"
-	}
-	for i, name := range reqData.Name {
-		if i == 0 {
-			str := fmt.Sprint(" lower(first_name) like '%" + name + "%' or lower(last_name) like '%" + name + "%'")
-			getUserListQuery += str
-		} else {
-			str := fmt.Sprint(" or lower(first_name) like '%" + name + "%' or lower(last_name) like '%" + name + "%'")
-			getUserListQuery += str
-		}
-	}
-
-	str := fmt.Sprint(" limit " + strconv.Itoa(reqData.PerPage) + " offset " + strconv.Itoa(reqData.PerPage*(reqData.Page-1)+1))
-	getUserListQuery += str
-
-	err = us.DB.Select(&resp, getUserListQuery)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			logger.WithField("err", err.Error()).Error("No fields returned")
-			err = nil
-			return
-		}
-		logger.WithField("err", err.Error()).Error("Error in fetching users from database")
-		err = apperrors.InternalServerError
-		return
-	}
-
-	return
 }
