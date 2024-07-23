@@ -41,6 +41,9 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 
 	router.Handle("/users", listIntranetUsersHandler(deps.UserService)).Methods(http.MethodGet)
 
+	//report appreciation
+	router.Handle("/report_appreciation/{id:[0-9]+}", middleware.JwtAuthMiddleware(reportAppreciationHandler(deps.ReportAppreciationService), []string{constants.UserRole})).Methods(http.MethodPost).Headers(versionHeader, v1)
+
 	// No version requirement for /ping
 	router.HandleFunc("/ping", pingHandler).Methods(http.MethodGet)
 

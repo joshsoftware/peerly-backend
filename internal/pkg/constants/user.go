@@ -10,3 +10,8 @@ const IntranetAuth = "Intranet-Auth"
 const PeerlyValidationPath = "/api/peerly/v1/sessions/login"
 const GetIntranetUserDataPath = "/api/peerly/v1/users/"
 const ListIntranetUsersPath = "/api/peerly/v1/users?page=%d&per_page=%d"
+
+var PerPage = 400
+
+type UserIdCtxKey string
+type RoleCtxKey string

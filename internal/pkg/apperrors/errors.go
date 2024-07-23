@@ -16,32 +16,34 @@ func (e CustomError) Error() string {
 
 // Custome errors with errormessage
 const (
-	InvalidId                = CustomError("invalid id")
-	InternalServerError      = CustomError("internal server error")
-	JSONParsingErrorReq      = CustomError("error in parsing request in json")
-	JSONParsingErrorResp     = CustomError("error in parsing response in json")
-	OutOfRange               = CustomError("request value is out of range")
-	OrganizationNotFound     = CustomError("organization of given id not found")
-	RoleUnathorized          = CustomError("Role unauthorized")
-	PageParamNotFound        = CustomError("Page parameter not found")
-	RepeatedUser             = CustomError("Repeated user")
-	InvalidContactEmail      = CustomError("contact email is already present")
-	InvalidDomainName        = CustomError("domain name is already present")
-	InvalidCoreValueData     = CustomError("invalid corevalue data")
-	TextFieldBlank           = CustomError("text field cannot be blank")
-	DescFieldBlank           = CustomError("description cannot be blank")
-	InvalidParentValue       = CustomError("invalid parent core value")
-	InvalidOrgId             = CustomError("invalid organisation")
-	UniqueCoreValue          = CustomError("choose a unique coreValue name")
-	InvalidAuthToken         = CustomError("invalid Auth token")
-	IntranetValidationFailed = CustomError("intranet Validation Failed")
-	UserNotFound             = CustomError("user not found")
-	InvalidIntranetData      = CustomError("invalid data recieved from intranet")
-	GradeNotFound            = CustomError("grade not found")
-	BadRequest               = CustomError("bad request")
-	InternalServer           = CustomError("internal Server")
-	FailedToCreateDriver     = CustomError("failure to create driver obj")
-	MigrationFailure         = CustomError("migrate failure")
+	InvalidId                   = CustomError("invalid id")
+	InternalServerError         = CustomError("internal server error")
+	JSONParsingErrorReq         = CustomError("error in parsing request in json")
+	JSONParsingErrorResp        = CustomError("error in parsing response in json")
+	OutOfRange                  = CustomError("request value is out of range")
+	OrganizationNotFound        = CustomError("organization of given id not found")
+	RoleUnathorized             = CustomError("Role unauthorized")
+	PageParamNotFound           = CustomError("Page parameter not found")
+	RepeatedUser                = CustomError("Repeated user")
+	InvalidContactEmail         = CustomError("contact email is already present")
+	InvalidDomainName           = CustomError("domain name is already present")
+	InvalidCoreValueData        = CustomError("invalid corevalue data")
+	TextFieldBlank              = CustomError("text field cannot be blank")
+	DescFieldBlank              = CustomError("description cannot be blank")
+	InvalidParentValue          = CustomError("invalid parent core value")
+	InvalidOrgId                = CustomError("invalid organisation")
+	UniqueCoreValue             = CustomError("choose a unique coreValue name")
+	InvalidAuthToken            = CustomError("invalid Auth token")
+	IntranetValidationFailed    = CustomError("intranet Validation Failed")
+	UserNotFound                = CustomError("user not found")
+	InvalidIntranetData         = CustomError("invalid data recieved from intranet")
+	GradeNotFound               = CustomError("grade not found")
+	BadRequest                  = CustomError("bad request")
+	InternalServer              = CustomError("internal Server")
+	FailedToCreateDriver        = CustomError("failure to create driver obj")
+	MigrationFailure            = CustomError("migrate failure")
+	CannotReportOwnAppreciation = CustomError("You cannot report your own appreciations")
+	RepeatedReport              = CustomError("You cannot report an appreciation twice")
 )
 
 // ErrKeyNotSet - Returns error object specific to the key value passed in
@@ -56,7 +58,7 @@ func GetHTTPStatusCode(err error) int {
 		return http.StatusInternalServerError
 	case OrganizationNotFound, InvalidOrgId, PageParamNotFound, InvalidCoreValueData:
 		return http.StatusNotFound
-	case InvalidId, JSONParsingErrorReq, TextFieldBlank, InvalidParentValue, DescFieldBlank, UniqueCoreValue, InvalidIntranetData, GradeNotFound:
+	case InvalidId, JSONParsingErrorReq, TextFieldBlank, InvalidParentValue, DescFieldBlank, UniqueCoreValue, InvalidIntranetData, GradeNotFound, CannotReportOwnAppreciation, RepeatedReport:
 		return http.StatusBadRequest
 	case RepeatedUser:
 		return http.StatusConflict
