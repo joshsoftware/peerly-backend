@@ -85,10 +85,10 @@ type GetUserListReq struct {
 //		ProfileImg  sql.NullString `json:"profile_image_url" db:"profile_image_url"`
 //	}
 type GetUserListResp struct {
-	Id        int64  `json:"id" db:"id"`
-	Email     string `json:"email" db:"email"`
-	FirstName string `json:"first_name" db:"first_name"`
-	LastName  string `json:"last_name" db:"last_name"`
+	Id        int64  `json:"id"`
+	Email     string `json:"email"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
 }
 
 type UserListMetadata struct {

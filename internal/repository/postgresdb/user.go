@@ -194,24 +194,28 @@ func (us *userStore) SyncData(ctx context.Context, updateData dto.User) (err err
 
 func (us *userStore) GetTotalUserCount(ctx context.Context, reqData dto.UserListReq) (totalCount int64, err error) {
 
-	getUserCountQuery := "Select count(*) from users "
-
-	for i, name := range reqData.Name {
+	queryBuilder := repository.Sq.Select("count(*)").From("users")
+	conditions := []squirrel.Sqlizer{}
+	for _, name := range reqData.Name {
 		if name != "" {
-			if i == 0 {
-				getUserCountQuery += "where"
-				str := fmt.Sprint(" lower(first_name) like '%" + name + "%' or lower(last_name) like '%" + name + "%'")
-				getUserCountQuery += str
-			} else {
-				str := fmt.Sprint(" or lower(first_name) like '%" + name + "%' or lower(last_name) like '%" + name + "%'")
-				getUserCountQuery += str
-			}
+			conditions = append(conditions, squirrel.Like{"lower(first_name)": "%" + name + "%"})
+			conditions = append(conditions, squirrel.Like{"lower(last_name)": "%" + name + "%"})
 		}
+	}
+	if len(conditions) > 0 {
+		queryBuilder = queryBuilder.Where(squirrel.Or(conditions))
+	}
+
+	getUserCountQuery, args, err := queryBuilder.ToSql()
+	if err != nil {
+		logger.Errorf("error in generating squirrel query, err: %s", err)
+		err = apperrors.InternalServerError
+		return
 	}
 
 	var resp []int64
 
-	err = us.DB.Select(&resp, getUserCountQuery)
+	err = us.DB.Select(&resp, getUserCountQuery, args...)
 	if err != nil {
 		logger.WithField("err", err.Error()).Error("Error in getUserCountQuery")
 		err = apperrors.InternalServerError
