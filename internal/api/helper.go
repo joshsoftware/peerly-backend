@@ -11,7 +11,7 @@ import (
 func getPaginationParams(req *http.Request) (page int16, limit int16) {
 
 	pageStr := req.URL.Query().Get("page")
-	limitStr := req.URL.Query().Get("limit")
+	limitStr := req.URL.Query().Get("page_size")
 
 	if pageStr == "" {
 		page = 1
