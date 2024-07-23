@@ -1,9 +1,11 @@
 package constants
 
-var AuthorizationHeader string = "Authorization"
-var ClientCode = "Client-Code"
-var UserRole = "user"
-var PerPage = 400
-var UserId = "userId"
-var Role = "role"
-var IntranetAuth = "Intranet-Auth"
+const AuthorizationHeader string = "Authorization"
+const ClientCode = "Client-Code"
+const UserRole = "user"
+const DefaultPageSize = 400
+const UserId = "userId"
+const Role = "role"
+const IntranetAuth = "Intranet-Auth"
+const PeerlyValidationPath = "/api/peerly/v1/sessions/login"
+const GetIntranetUserDataPath = "/api/peerly/v1/users/" 
