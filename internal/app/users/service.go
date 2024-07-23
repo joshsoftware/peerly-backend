@@ -80,7 +80,7 @@ func (us *service) GetIntranetUserData(ctx context.Context, req dto.GetIntranetU
 	url := fmt.Sprintf("%s%s%d", config.IntranetBaseUrl(), constants.GetIntranetUserDataPath, req.UserId)
 	intranetReq, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		logger.Errorf("error in creating new validation request. err: %s", err.Error())
+		logger.Errorf("error in creating new get user request. err: %s", err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
@@ -241,10 +241,10 @@ func (us *service) RegisterUser(ctx context.Context, u dto.IntranetUserData) (us
 
 func (us *service) ListIntranetUsers(ctx context.Context, reqData dto.GetUserListReq) (data []dto.IntranetUserData, err error) {
 	client := &http.Client{}
-	url := config.IntranetBaseUrl() + fmt.Sprintf("/api/peerly/v1/users?page=%d&per_page=%d", reqData.Page, constants.DefaultPageSize)
+	url := config.IntranetBaseUrl() + fmt.Sprintf(constants.ListIntranetUsersPath, reqData.Page, constants.DefaultPageSize)
 	intranetReq, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		logger.Errorf("error in creating new validation request. err: %s", err.Error())
+		logger.Errorf("error in creating new intranet user list request. err: %s", err.Error())
 		err = apperrors.InternalServerError
 		return
 	}

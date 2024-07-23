@@ -9,7 +9,7 @@ const (
 	DBURI                  = "DB_URI"
 	IntranetClientCode     = "INTRANET_CLIENT_CODE"
 	MigrationFolderPath    = "MIGRATION_FOLDER_PATH"
-	IntanetAuthToken       = "INTRANET_AUTH_TOKEN"
+	IntranetAuthToken      = "INTRANET_AUTH_TOKEN"
 	PeerlyBaseUrl          = "PEERLY_BASE_URL"
 	IntranetBaseUrl        = "INTRANET_BASE_URL"
 )

@@ -15,7 +15,7 @@ import (
 
 func TestLoginUser(t *testing.T) {
 	userSvc := mocks.NewService(t)
-	listCoreValuesHandler := loginUser(userSvc)
+	loginUserHandler := loginUser(userSvc)
 
 	tests := []struct {
 		name               string
@@ -299,7 +299,7 @@ func TestLoginUser(t *testing.T) {
 			req.Header.Set("Intranet-Auth", test.authToken)
 
 			rr := httptest.NewRecorder()
-			handler := http.HandlerFunc(listCoreValuesHandler)
+			handler := http.HandlerFunc(loginUserHandler)
 			handler.ServeHTTP(rr, req)
 
 			fmt.Println("Error")
