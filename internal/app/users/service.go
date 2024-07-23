@@ -29,7 +29,7 @@ type Service interface {
 	LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.LoginUserResp, error)
 	RegisterUser(ctx context.Context, u dto.IntranetUserData) (user dto.User, err error)
 	ListIntranetUsers(ctx context.Context, reqData dto.GetUserListReq) (data []dto.IntranetUserData, err error)
-	GetUserList(ctx context.Context, reqData dto.UserListReq) (resp dto.UserListWithMetadata, err error)
+	ListUsers(ctx context.Context, reqData dto.UserListReq) (resp dto.UserListWithMetadata, err error)
 }
 
 func NewService(userRepo repository.UserStorer) Service {
@@ -284,7 +284,7 @@ func (us *service) ListIntranetUsers(ctx context.Context, reqData dto.GetUserLis
 	return
 }
 
-func (us *service) GetUserList(ctx context.Context, reqData dto.UserListReq) (resp dto.UserListWithMetadata, err error) {
+func (us *service) ListUsers(ctx context.Context, reqData dto.UserListReq) (resp dto.UserListWithMetadata, err error) {
 
 	var names []string
 	for _, data := range reqData.Name {
@@ -295,12 +295,21 @@ func (us *service) GetUserList(ctx context.Context, reqData dto.UserListReq) (re
 
 	totalCount, err := us.userRepo.GetTotalUserCount(ctx, reqData)
 	if err != nil {
+    logger.Errorf(err.Error())
+    err = apperrors.InternalServerError
 		return
 	}
 
-	users, err := us.userRepo.GetUserList(ctx, reqData)
+	dbResp, err := us.userRepo.ListUsers(ctx, reqData)
 	if err != nil {
 		return
+	}
+
+	var users []dto.UserListResp
+
+	for _, dbUser := range dbResp {
+		user := mapDbUserToUserListResp(dbUser)
+		users = append(users, user)
 	}
 
 	resp.UserList = users
@@ -337,7 +346,7 @@ func mapUserDbToService(dbStruct repository.User) (svcStruct dto.User) {
 	svcStruct.FirstName = dbStruct.FirstName
 	svcStruct.LastName = dbStruct.LastName
 	svcStruct.Email = dbStruct.Email
-	svcStruct.ProfileImgUrl = dbStruct.ProfileImageURL
+	svcStruct.ProfileImgUrl = dbStruct.ProfileImageURL.String
 	svcStruct.RoleId = dbStruct.RoleID
 	svcStruct.RewardQuotaBalance = dbStruct.RewardsQuotaBalance
 	svcStruct.Designation = dbStruct.Designation
@@ -354,5 +363,13 @@ func mapIntranetUserDataToSvcUser(intranetData dto.IntranetUserData) (svcData dt
 	svcData.FirstName = intranetData.PublicProfile.FirstName
 	svcData.LastName = intranetData.PublicProfile.LastName
 	svcData.Designation = intranetData.EmpolyeeDetail.Designation.Name
+	return svcData
+}
+
+func mapDbUserToUserListResp(dbStruct repository.User) (svcData dto.UserListResp) {
+	svcData.Id = dbStruct.Id
+	svcData.FirstName = dbStruct.FirstName
+	svcData.LastName = dbStruct.LastName
+	svcData.Email = dbStruct.Email
 	return svcData
 }

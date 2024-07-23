@@ -132,7 +132,7 @@ func registerUser(userSvc user.Service) http.HandlerFunc {
 	}
 }
 
-func getUsersHandler(userSvc user.Service) http.HandlerFunc {
+func listUsersHandler(userSvc user.Service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		page := req.URL.Query().Get("page")
 		if page == "" {
@@ -154,11 +154,11 @@ func getUsersHandler(userSvc user.Service) http.HandlerFunc {
 			Page:    int64(pageInt),
 			PerPage: int64(perPageInt),
 		}
-		resp, err := userSvc.GetUserList(req.Context(), userListReq)
+		resp, err := userSvc.ListUsers(req.Context(), userListReq)
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
-		dto.SuccessRepsonse(rw, http.StatusOK, "Intranet users listed", resp)
+		dto.SuccessRepsonse(rw, http.StatusOK, "Peerly users listed", resp)
 	}
 }

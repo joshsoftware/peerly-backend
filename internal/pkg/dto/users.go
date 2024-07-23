@@ -74,17 +74,7 @@ type GetUserListReq struct {
 	Page      int64
 }
 
-//	type GetUserListRespDB struct {
-//		Id          int64          `json:"id" db:"id"`
-//		EmployeeId  string         `json:"employee_id" db:"employee_id"`
-//		Email       string         `json:"email" db:"email"`
-//		FirstName   string         `json:"first_name" db:"first_name"`
-//		LastName    string         `json:"last_name" db:"last_name"`
-//		Grade       string         `json:"grade" db:"name"`
-//		Designation string         `json:"designation" db:"designation"`
-//		ProfileImg  sql.NullString `json:"profile_image_url" db:"profile_image_url"`
-//	}
-type GetUserListResp struct {
+type UserListResp struct {
 	Id        int64  `json:"id"`
 	Email     string `json:"email"`
 	FirstName string `json:"first_name"`
@@ -98,8 +88,8 @@ type UserListMetadata struct {
 }
 
 type UserListWithMetadata struct {
-	UserList []GetUserListResp `json:"user_list"`
-	MetaData UserListMetadata  `json:"metadata"`
+	UserList []UserListResp   `json:"user_list"`
+	MetaData UserListMetadata `json:"metadata"`
 }
 
 type GetUserListRespData struct {
