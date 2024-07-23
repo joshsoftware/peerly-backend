@@ -19,7 +19,7 @@ type AppreciationFilter struct {
 	Name      string `json:"sender_name"`
 	SortOrder string `json:"sort_order"`
 	Page      int16  `json:"page"`
-	Limit     int16  `json:"limit"`
+	Limit     int16  `json:"page_size"`
 }
 
 type ResponseAppreciation struct {
