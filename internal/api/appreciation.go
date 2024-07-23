@@ -67,7 +67,6 @@ func getAppreciationsHandler(appreciationSvc appreciation.Service) http.HandlerF
 
 		var filter dto.AppreciationFilter
 
-		// Extract query parameters or body fields
 		filter.Name = req.URL.Query().Get("name")
 		filter.SortOrder = req.URL.Query().Get("sort_order")
 
@@ -77,7 +76,7 @@ func getAppreciationsHandler(appreciationSvc appreciation.Service) http.HandlerF
 		filter.Limit = limit
 		filter.Page = page
 		filter.Self = getSelfParam(req)
-		// Call your appreciationService to fetch appreciations based on filter
+
 		appreciations, err := appreciationSvc.GetAppreciations(req.Context(), filter)
 		if err != nil {
 			logger.Error(fmt.Sprintf("err : %v", err))

@@ -38,10 +38,12 @@ type AppreciationInfo struct {
 	IsValid             bool           `db:"is_valid"`
 	TotalRewardPoints   int            `db:"total_reward_points"`
 	Quarter             string         `db:"quarter"`
+	SenderID			int64			`db:"sender_id"`
 	SenderFirstName     string         `db:"sender_first_name"`
 	SenderLastName      string         `db:"sender_last_name"`
 	SenderImageURL      sql.NullString `db:"sender_image_url"`
 	SenderDesignation   string         `db:"sender_designation"`
+	ReceiverID			int64			`db:"receiver_id"`
 	ReceiverFirstName   string         `db:"receiver_first_name"`
 	ReceiverLastName    string         `db:"receiver_last_name"`
 	ReceiverImageURL    sql.NullString `db:"receiver_image_url"`

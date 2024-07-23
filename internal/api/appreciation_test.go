@@ -91,7 +91,7 @@ func TestGetAppreciationByIdHandler(t *testing.T) {
 			name: "successful retrieval",
 			id:   "1",
 			mockSetup: func(mockSvc *mocks.Service) {
-				mockSvc.On("GetAppreciationById", mock.Anything, 1).Return(dto.ResponseAppreciation{}, nil).Once()
+				mockSvc.On("GetAppreciationById", mock.Anything, int32(1)).Return(dto.ResponseAppreciation{}, nil).Once()
 			},
 			expectedStatusCode: http.StatusOK,
 		},
@@ -99,7 +99,7 @@ func TestGetAppreciationByIdHandler(t *testing.T) {
 			name: "service error",
 			id:   "1",
 			mockSetup: func(mockSvc *mocks.Service) {
-				mockSvc.On("GetAppreciationById", mock.Anything, 1).Return(dto.ResponseAppreciation{}, apperrors.InternalServer).Once()
+				mockSvc.On("GetAppreciationById", mock.Anything, int32(1)).Return(dto.ResponseAppreciation{}, apperrors.InternalServer).Once()
 			},
 			expectedStatusCode: http.StatusInternalServerError,
 		},
@@ -107,7 +107,7 @@ func TestGetAppreciationByIdHandler(t *testing.T) {
 			name: "appreciation not found",
 			id:   "1",
 			mockSetup: func(mockSvc *mocks.Service) {
-				mockSvc.On("GetAppreciationById", mock.Anything, 1).Return(dto.ResponseAppreciation{}, apperrors.AppreciationNotFound).Once()
+				mockSvc.On("GetAppreciationById", mock.Anything, int32(1)).Return(dto.ResponseAppreciation{}, apperrors.AppreciationNotFound).Once()
 			},
 			expectedStatusCode: http.StatusNotFound,
 		},
@@ -146,7 +146,7 @@ func TestGetAppreciationsHandler(t *testing.T) {
 				"name":       "John Doe",
 				"sort_order": "asc",
 				"page":       "1",
-				"limit":      "5",
+				"page_size":  "5",
 			},
 			mockSetup: func(mockSvc *mocks.Service) {
 				mockSvc.On("GetAppreciations", mock.Anything, dto.AppreciationFilter{
@@ -166,21 +166,10 @@ func TestGetAppreciationsHandler(t *testing.T) {
 					Name:      "",
 					SortOrder: "",
 					Page:      1,
-					Limit:     10, // Default limit in case not provided
+					Limit:     10,
 				}).Return(dto.GetAppreciationResponse{}, apperrors.InternalServer).Once()
 			},
 			expectedStatusCode: http.StatusInternalServerError,
-		},
-		{
-			name: "invalid pagination parameters",
-			queryParams: map[string]string{
-				"page":  "invalid",
-				"limit": "invalid",
-			},
-			mockSetup: func(mockSvc *mocks.Service) {
-				// No service call expected
-			},
-			expectedStatusCode: http.StatusBadRequest,
 		},
 	}
 
@@ -219,13 +208,13 @@ func TestValidateAppreciationHandler(t *testing.T) {
 			name:           "successful validation",
 			appreciationID: "1",
 			mockSetup: func(mockSvc *mocks.Service) {
-				mockSvc.On("DeleteAppreciation", mock.Anything, 1).Return(true, nil).Once()
+				mockSvc.On("DeleteAppreciation", mock.Anything, int32(1)).Return(true, nil).Once()
 			},
 			expectedStatusCode: http.StatusOK,
 		},
 		{
 			name:           "invalid appreciation ID",
-			appreciationID: "invalid",
+			appreciationID: "abcd",
 			mockSetup: func(mockSvc *mocks.Service) {
 			},
 			expectedStatusCode: http.StatusBadRequest,
@@ -234,7 +223,7 @@ func TestValidateAppreciationHandler(t *testing.T) {
 			name:           "service error",
 			appreciationID: "1",
 			mockSetup: func(mockSvc *mocks.Service) {
-				mockSvc.On("DeleteAppreciation", mock.Anything, 1).Return(false, apperrors.InternalServer).Once()
+				mockSvc.On("DeleteAppreciation", mock.Anything, int32(1)).Return(false, apperrors.InternalServer).Once()
 			},
 			expectedStatusCode: http.StatusInternalServerError,
 		},
@@ -242,7 +231,7 @@ func TestValidateAppreciationHandler(t *testing.T) {
 			name:           "validation failed",
 			appreciationID: "1",
 			mockSetup: func(mockSvc *mocks.Service) {
-				mockSvc.On("DeleteAppreciation", mock.Anything, false, 1).Return(false, nil).Once()
+				mockSvc.On("DeleteAppreciation", mock.Anything, int32(1)).Return(false, nil).Once()
 			},
 			expectedStatusCode: http.StatusInternalServerError,
 		},

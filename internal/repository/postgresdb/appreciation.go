@@ -79,10 +79,12 @@ func (appr *appreciationsStore) GetAppreciationById(ctx context.Context, tx repo
 		"a.is_valid",
 		"a.total_reward_points",
 		"a.quarter",
+		"u_sender.id AS sender_id",
 		"u_sender.first_name AS sender_first_name",
 		"u_sender.last_name AS sender_last_name",
 		"u_sender.profile_image_url AS sender_image_url",
 		"u_sender.designation AS sender_designation",
+		"u_receiver.id AS receiver_id",
 		"u_receiver.first_name AS receiver_first_name",
 		"u_receiver.last_name AS receiver_last_name",
 		"u_receiver.profile_image_url AS receiver_image_url",
@@ -105,10 +107,7 @@ func (appr *appreciationsStore) GetAppreciationById(ctx context.Context, tx repo
 			squirrel.Eq{"a.id": apprId},
 			squirrel.Eq{"a.is_valid": true},
 		}).
-		GroupBy("a.id", "cv.name", "a.description", "a.is_valid", "a.total_reward_points", "a.quarter",
-			"u_sender.first_name", "u_sender.last_name", "u_sender.profile_image_url", "u_sender.designation",
-			"u_receiver.first_name", "u_receiver.last_name", "u_receiver.profile_image_url", "u_receiver.designation",
-			"a.created_at", "a.updated_at").
+		GroupBy("a.id","cv.name","u_sender.id","u_receiver.id").
 		ToSql()
 
 	if err != nil {
@@ -188,10 +187,12 @@ func (appr *appreciationsStore) GetAppreciations(ctx context.Context, tx reposit
 		"a.is_valid",
 		"a.total_reward_points",
 		"a.quarter",
+		"u_sender.id AS sender_id",
 		"u_sender.first_name AS sender_first_name",
 		"u_sender.last_name AS sender_last_name",
 		"u_sender.profile_image_url AS sender_image_url",
 		"u_sender.designation AS sender_designation",
+		"u_receiver.id AS receiver_id",
 		"u_receiver.first_name AS receiver_first_name",
 		"u_receiver.last_name AS receiver_last_name",
 		"u_receiver.profile_image_url AS receiver_image_url",
@@ -211,7 +212,7 @@ func (appr *appreciationsStore) GetAppreciations(ctx context.Context, tx reposit
 		LeftJoin("core_values cv ON a.core_value_id = cv.id").
 		LeftJoin("rewards r ON a.id = r.appreciation_id").
 		Where(squirrel.Eq{"a.is_valid": true}).
-		GroupBy("a.id, cv.name, cv.description, u_sender.first_name, u_sender.last_name, u_sender.profile_image_url, u_sender.designation, u_receiver.first_name, u_receiver.last_name, u_receiver.profile_image_url, u_receiver.designation")
+		GroupBy("a.id","cv.name","cv.description","u_sender.id","u_receiver.id")
 
 	if filter.Name != "" {
 		lowerNameFilter := fmt.Sprintf("%%%s%%", strings.ToLower(filter.Name))

@@ -1,6 +1,10 @@
 package dto
 
-import "github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
+import (
+	"strings"
+
+	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
+)
 
 type Appreciation struct {
 	ID                int64  `json:"id"`
@@ -57,6 +61,8 @@ type GetAppreciationResponse struct {
 
 func (appr *Appreciation) ValidateCreateAppreciation() (err error) {
 
+	appr.Description = strings.TrimSpace(appr.Description)
+	
 	if appr.CoreValueID <= 0 {
 		return apperrors.InvalidCoreValueID
 	}

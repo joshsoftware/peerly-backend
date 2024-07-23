@@ -43,7 +43,7 @@ const (
 	InternalServer           = CustomError("internal Server")
 	FailedToCreateDriver     = CustomError("failure to create driver obj")
 	MigrationFailure         = CustomError("migrate failure")
-	SelfAppreciationError    = CustomError("user cannot give appreciation to ourself")
+	SelfAppreciationError    = CustomError("self-appreciation is not allowed")
 	InvalidCoreValueID       = CustomError("invalid corevalue id")
 	InvalidReceiverID        = CustomError("invalid receiver id")
 )

@@ -2,10 +2,12 @@ package appreciation
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
+	"github.com/joshsoftware/peerly-backend/internal/pkg/utils"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
 	logger "github.com/sirupsen/logrus"
 )
@@ -33,7 +35,7 @@ func NewService(appreciationRepo repository.AppreciationStorer, coreValuesRepo r
 func (apprSvc *service) CreateAppreciation(ctx context.Context, apprecication dto.Appreciation) (dto.Appreciation, error) {
 
 	//add quarter
-	apprecication.Quarter = GetQuarter()
+	apprecication.Quarter = utils.GetQuarter()
 
 	//add sender
 	data := ctx.Value(constants.UserId)
@@ -44,6 +46,7 @@ func (apprSvc *service) CreateAppreciation(ctx context.Context, apprecication dt
 	}
 	usrChk, err := apprSvc.appreciationRepo.IsUserPresent(ctx, nil, sender)
 	if err != nil {
+		logger.Error(fmt.Sprintf("err: %v",err))
 		return dto.Appreciation{}, err
 	}
 
@@ -80,12 +83,14 @@ func (apprSvc *service) CreateAppreciation(ctx context.Context, apprecication dt
 	//check is corevalue present in database
 	_, err = apprSvc.corevaluesRespo.GetCoreValue(ctx, int64(apprecication.CoreValueID))
 	if err != nil {
+		logger.Error(fmt.Sprintf("err: %v",err))
 		return dto.Appreciation{}, err
 	}
 
 	//check is receiver present in database
 	chk, err := apprSvc.appreciationRepo.IsUserPresent(ctx, tx, apprecication.Receiver)
 	if err != nil {
+		logger.Error(fmt.Sprintf("err: %v",err))
 		return dto.Appreciation{}, err
 	}
 	if !chk {
@@ -99,6 +104,7 @@ func (apprSvc *service) CreateAppreciation(ctx context.Context, apprecication dt
 
 	appr, err := apprSvc.appreciationRepo.CreateAppreciation(ctx, tx, apprecication)
 	if err != nil {
+		logger.Error(fmt.Sprintf("err: %v",err))
 		return dto.Appreciation{}, err
 	}
 
@@ -109,6 +115,7 @@ func (apprSvc *service) GetAppreciationById(ctx context.Context, appreciationId 
 
 	resAppr, err := apprSvc.appreciationRepo.GetAppreciationById(ctx, nil, appreciationId)
 	if err != nil {
+		logger.Error(fmt.Sprintf("err: %v",err))
 		return dto.ResponseAppreciation{}, err
 	}
 
@@ -119,6 +126,7 @@ func (apprSvc *service) GetAppreciations(ctx context.Context, filter dto.Appreci
 
 	infos, pagination, err := apprSvc.appreciationRepo.GetAppreciations(ctx, nil, filter)
 	if err != nil {
+		logger.Error(fmt.Sprintf("err: %v",err))
 		return dto.GetAppreciationResponse{}, err
 	}
 
@@ -127,7 +135,7 @@ func (apprSvc *service) GetAppreciations(ctx context.Context, filter dto.Appreci
 		response := mapRepoGetAppreciationInfoToDTOGetAppreciationInfo(info)
 		responses = append(responses, response)
 	}
-	paginationResp := DtoPagination(pagination)
+	paginationResp := dtoPagination(pagination)
 	return dto.GetAppreciationResponse{Appreciations: responses, MetaData: paginationResp}, nil
 }
 
