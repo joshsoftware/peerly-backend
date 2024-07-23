@@ -22,6 +22,9 @@ const (
 	JSONParsingErrorResp     = CustomError("error in parsing response in json")
 	OutOfRange               = CustomError("request value is out of range")
 	OrganizationNotFound     = CustomError("organization of given id not found")
+	RoleUnathorized          = CustomError("Role unauthorized")
+	PageParamNotFound        = CustomError("Page parameter not found")
+	RepeatedUser             = CustomError("Repeated user")
 	InvalidContactEmail      = CustomError("contact email is already present")
 	InvalidDomainName        = CustomError("domain name is already present")
 	InvalidCoreValueData     = CustomError("invalid corevalue data")
@@ -49,16 +52,19 @@ func ErrKeyNotSet(key string) (err error) {
 // GetHTTPStatusCode returns status code according to customerror and default returns InternalServer error
 func GetHTTPStatusCode(err error) int {
 	switch err {
-	case InternalServerError, JSONParsingErrorResp, InvalidIntranetData:
+	case InternalServerError, JSONParsingErrorResp:
 		return http.StatusInternalServerError
-	case OrganizationNotFound, InvalidOrgId, GradeNotFound:
+	case OrganizationNotFound, InvalidOrgId, PageParamNotFound, InvalidCoreValueData:
 		return http.StatusNotFound
-	case InvalidId, JSONParsingErrorReq, TextFieldBlank, InvalidCoreValueData, InvalidParentValue, DescFieldBlank, UniqueCoreValue:
+	case InvalidId, JSONParsingErrorReq, TextFieldBlank, InvalidParentValue, DescFieldBlank, UniqueCoreValue, InvalidIntranetData, GradeNotFound:
 		return http.StatusBadRequest
-	case InvalidAuthToken, IntranetValidationFailed:
+	case RepeatedUser:
+		return http.StatusConflict
+	case InvalidAuthToken, IntranetValidationFailed, RoleUnathorized:
 		return http.StatusUnauthorized
 	case InvalidContactEmail, InvalidDomainName:
 		return http.StatusConflict
+
 	default:
 		return http.StatusInternalServerError
 	}
