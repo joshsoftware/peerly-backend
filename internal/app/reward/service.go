@@ -2,6 +2,7 @@ package reward
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
@@ -39,9 +40,10 @@ func (rwrdSvc *service) GiveReward(ctx context.Context, rewardReq dto.Reward) (d
 
 	appr, err := rwrdSvc.appreciationRepo.GetAppreciationById(ctx, nil, int32(rewardReq.AppreciationId))
 	if err != nil {
+		logger.Error("appreciationbyid: ",err.Error())
 		return dto.Reward{}, err
 	}
-
+	fmt.Println("HIi")
 	if appr.SenderId == sender {
 		return dto.Reward{},apperrors.SelfAppreciationRewardError
 	}

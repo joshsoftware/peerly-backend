@@ -110,8 +110,10 @@ func (appr *appreciationsStore) GetAppreciationById(ctx context.Context, tx repo
 		GroupBy("a.id", "cv.name", "a.description", "a.is_valid", "a.total_reward_points", "a.quarter",
 			"u_sender.first_name", "u_sender.last_name", "u_sender.profile_image_url", "u_sender.designation",
 			"u_receiver.first_name", "u_receiver.last_name", "u_receiver.profile_image_url", "u_receiver.designation",
-			"a.created_at", "a.updated_at").
+			"a.created_at", "a.updated_at","u_sender.id","u_receiver.id").
 		ToSql()
+
+		// GroupBy("a.id, cv.name, cv.description, u_sender.first_name, u_sender.last_name, u_sender.profile_image_url, u_sender.designation, u_receiver.first_name, u_receiver.last_name, u_receiver.profile_image_url, u_receiver.designation")
 
 	if err != nil {
 		logger.Error(fmt.Sprintf("error in generating squirrel query, err: %v", err))
@@ -127,7 +129,7 @@ func (appr *appreciationsStore) GetAppreciationById(ctx context.Context, tx repo
 			logger.Warn(fmt.Sprintf("no appreciation found with id: %d", apprId))
 			return repository.AppreciationInfo{}, apperrors.AppreciationNotFound
 		}
-		logger.Error(fmt.Sprintf("failed to execute query: %v", err))
+		logger.Error(fmt.Sprintf("failed to execute query 3: %v", err))
 		return repository.AppreciationInfo{}, apperrors.InternalServer
 	}
 	return resAppr, nil

@@ -74,8 +74,8 @@ func (rwrd *rewardStore) IsUserRewardForAppreciationPresent(ctx context.Context,
 	var count int
 	// Execute the query
 	err = queryExecutor.QueryRowx(query, args...).Scan(&count)
-	if err != nil {
-		logger.Error("failed to execute query: ", err.Error())
+	if err != nil {		
+		logger.Error("failed to execute query 1: ", err.Error())
 		return false, apperrors.InternalServer
 	}
 	fmt.Println("count: ", count)
@@ -140,7 +140,7 @@ func (rwrd *rewardStore) UserHasRewardQuota(ctx context.Context, tx repository.T
 	// Execute the query
 	err := queryExecutor.QueryRowx(query, args...).Scan(&count)
 	if err != nil {
-		logger.Error("failed to execute query: ", err.Error())
+		logger.Error("failed to execute query 2: ", err.Error())
 		return false, apperrors.InternalServer
 	}
 	fmt.Println("count: ", count)
