@@ -295,8 +295,8 @@ func (us *service) ListUsers(ctx context.Context, reqData dto.UserListReq) (resp
 
 	totalCount, err := us.userRepo.GetTotalUserCount(ctx, reqData)
 	if err != nil {
-    logger.Errorf(err.Error())
-    err = apperrors.InternalServerError
+		logger.Errorf(err.Error())
+		err = apperrors.InternalServerError
 		return
 	}
 

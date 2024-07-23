@@ -215,7 +215,7 @@ func (us *userStore) GetTotalUserCount(ctx context.Context, reqData dto.UserList
 
 	err = us.DB.Select(&resp, getUserCountQuery, args...)
 	if err != nil {
-    err = fmt.Errorf("error in getUserCountQuery, err:%w", err)
+		err = fmt.Errorf("error in getUserCountQuery, err:%w", err)
 		return
 	}
 
@@ -250,7 +250,7 @@ func (us *userStore) ListUsers(ctx context.Context, reqData dto.UserListReq) (re
 	err = us.DB.Select(&resp, listUsersQuery, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
-      logger.Errorf("no fields returned, err:%s",err.Error())
+			logger.Errorf("no fields returned, err:%s", err.Error())
 			err = nil
 			return
 		}

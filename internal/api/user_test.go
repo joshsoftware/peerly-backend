@@ -311,9 +311,9 @@ func TestLoginUser(t *testing.T) {
 	}
 }
 
-func TestGetUserHandler(t *testing.T) {
+func TestListUsersHandler(t *testing.T) {
 	userSvc := mocks.NewService(t)
-	getUsersHandler := getUsersHandler(userSvc)
+	listUsersHandler := listUsersHandler(userSvc)
 
 	tests := []struct {
 		name               string
@@ -331,7 +331,7 @@ func TestGetUserHandler(t *testing.T) {
 			per_page:  "10",
 			paramName: "sharyu%20marwadi",
 			setup: func(mockSvc *mocks.Service) {
-				mockSvc.On("GetUserList", mock.Anything, mock.Anything).Return(dto.UserListWithMetadata{}, nil).Once()
+				mockSvc.On("ListUsers", mock.Anything, mock.Anything).Return(dto.UserListWithMetadata{}, nil).Once()
 			},
 			expectedStatusCode: http.StatusOK,
 		},
@@ -342,7 +342,7 @@ func TestGetUserHandler(t *testing.T) {
 			per_page:  "10",
 			paramName: "sharyu%20marwadi",
 			setup: func(mockSvc *mocks.Service) {
-				mockSvc.On("GetUserList", mock.Anything, mock.Anything).Return(dto.UserListWithMetadata{}, apperrors.InternalServerError).Once()
+				mockSvc.On("ListUsers", mock.Anything, mock.Anything).Return(dto.UserListWithMetadata{}, apperrors.InternalServerError).Once()
 			},
 			expectedStatusCode: http.StatusInternalServerError,
 		},
@@ -377,7 +377,7 @@ func TestGetUserHandler(t *testing.T) {
 			req.Header.Set("Authorization", test.authToken)
 
 			rr := httptest.NewRecorder()
-			handler := http.HandlerFunc(getUsersHandler)
+			handler := http.HandlerFunc(listUsersHandler)
 			handler.ServeHTTP(rr, req)
 
 			fmt.Println("Error")
