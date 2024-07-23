@@ -59,7 +59,7 @@ func loginUser(userSvc user.Service) http.HandlerFunc {
 	}
 }
 
-func getIntranetUserListHandler(userSvc user.Service) http.HandlerFunc {
+func listIntranetUsersHandler(userSvc user.Service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
 
 		authToken := req.Header.Get(constants.IntranetAuth)
@@ -71,6 +71,7 @@ func getIntranetUserListHandler(userSvc user.Service) http.HandlerFunc {
 
 		page := req.URL.Query().Get("page")
 		if page == "" {
+      logger.Error("page query parameter is required")
 			err := apperrors.PageParamNotFound
 			dto.ErrorRepsonse(rw, err)
 			return
@@ -79,6 +80,9 @@ func getIntranetUserListHandler(userSvc user.Service) http.HandlerFunc {
 		pageInt, err := strconv.ParseInt(page, 10, 64)
 		if err != nil {
 			logger.Errorf("error page string to int64 conversion. err:%s ", err.Error())
+      err = apperrors.InternalServerError
+			dto.ErrorRepsonse(rw, err)
+      return
 		}
 
 		ctx := req.Context()

@@ -94,7 +94,7 @@ func IntranetClientCode() string {
 }
 
 func IntranetAuthToken() string {
-	return (ReadEnvString(constants.IntanetAuthToken))
+	return (ReadEnvString(constants.IntranetAuthToken))
 }
 
 func PeerlyBaseUrl() string {

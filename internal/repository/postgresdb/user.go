@@ -181,7 +181,7 @@ func (us *userStore) SyncData(ctx context.Context, updateData dto.User) (err err
 		args...,
 	)
 	if err != nil {
-		err = fmt.Errorf("rrror in data update query, err: %w", err)
+		err = fmt.Errorf("error in data update query, err: %w", err)
 		return
 	}
 
