@@ -25,6 +25,7 @@ func getPaginationParams(req *http.Request) (page int16, limit int16) {
 		if pageInt64 < 1 {
 			pageInt64 = 1
 		}
+		page = int16(pageInt64)
 	}
 
 	if limitStr == "" {
