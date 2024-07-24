@@ -102,9 +102,9 @@ func LoadUserScript() error {
 		}
 		if resp.StatusCode != http.StatusOK {
 			switch resp.StatusCode {
-			case http.StatusBadRequest:
+			case http.StatusConflict:
 				fmt.Println("User already exists!")
-			case http.StatusNotFound:
+			case http.StatusBadRequest:
 				fmt.Println("Incomplete user details")
 			default:
 				fmt.Println("Error statuscode: ", resp.StatusCode)
