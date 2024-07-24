@@ -25,7 +25,7 @@ func TestListCoreValues(t *testing.T) {
 			name:    "Success for list corevalues",
 			context: context.Background(),
 			setup: func(coreValueMock *mocks.CoreValueStorer) {
-				coreValueMock.On("ListCoreValues", mock.Anything).Return([]dto.ListCoreValuesResp{}, nil).Once()
+				coreValueMock.On("ListCoreValues", mock.Anything).Return([]dto.CoreValue{}, nil).Once()
 			},
 			isErrorExpected: false,
 		},
@@ -33,7 +33,7 @@ func TestListCoreValues(t *testing.T) {
 			name:    "Error in list corevalues",
 			context: context.Background(),
 			setup: func(coreValueMock *mocks.CoreValueStorer) {
-				coreValueMock.On("ListCoreValues", mock.Anything).Return([]dto.ListCoreValuesResp{}, apperrors.InternalServerError).Once()
+				coreValueMock.On("ListCoreValues", mock.Anything).Return([]dto.CoreValue{}, apperrors.InternalServerError).Once()
 			},
 			isErrorExpected: true,
 		},
@@ -69,7 +69,7 @@ func TestGetCoreValue(t *testing.T) {
 			context:     context.Background(),
 			coreValueId: "1",
 			setup: func(coreValueMock *mocks.CoreValueStorer) {
-				coreValueMock.On("GetCoreValue", mock.Anything, mock.Anything).Return(dto.GetCoreValueResp{}, nil).Once()
+				coreValueMock.On("GetCoreValue", mock.Anything, mock.Anything).Return(dto.CoreValue{}, nil).Once()
 			},
 			isErrorExpected: false,
 		},
@@ -78,7 +78,7 @@ func TestGetCoreValue(t *testing.T) {
 			context:     context.Background(),
 			coreValueId: "0",
 			setup: func(coreValueMock *mocks.CoreValueStorer) {
-				coreValueMock.On("GetCoreValue", mock.Anything, mock.Anything).Return(dto.GetCoreValueResp{}, apperrors.InvalidCoreValueData).Once()
+				coreValueMock.On("GetCoreValue", mock.Anything, mock.Anything).Return(dto.CoreValue{}, apperrors.InvalidCoreValueData).Once()
 			},
 			isErrorExpected: true,
 		},
@@ -121,7 +121,7 @@ func TestCreateCoreValue(t *testing.T) {
 			},
 			setup: func(coreValueMock *mocks.CoreValueStorer) {
 				coreValueMock.On("CheckUniqueCoreVal", mock.Anything, mock.Anything).Return(true, nil).Once()
-				coreValueMock.On("CreateCoreValue", mock.Anything, mock.Anything, mock.Anything).Return(dto.CreateCoreValueResp{}, nil).Once()
+				coreValueMock.On("CreateCoreValue", mock.Anything, mock.Anything, mock.Anything).Return(dto.CoreValue{}, nil).Once()
 			},
 			isErrorExpected: false,
 		},
@@ -151,7 +151,7 @@ func TestCreateCoreValue(t *testing.T) {
 			},
 			setup: func(coreValueMock *mocks.CoreValueStorer) {
 				coreValueMock.On("CheckUniqueCoreVal", mock.Anything, mock.Anything).Return(true, nil).Once()
-				coreValueMock.On("CreateCoreValue", mock.Anything, mock.Anything, mock.Anything).Return(dto.CreateCoreValueResp{}, apperrors.InternalServerError).Once()
+				coreValueMock.On("CreateCoreValue", mock.Anything, mock.Anything, mock.Anything).Return(dto.CoreValue{}, apperrors.InternalServerError).Once()
 			},
 			isErrorExpected: true,
 		},
@@ -162,7 +162,7 @@ func TestCreateCoreValue(t *testing.T) {
 			test.setup(coreValueRepo)
 
 			// test service
-			_, err := service.CreateCoreValue(test.context, test.userId, test.coreValue)
+			_, err := service.CreateCoreValue(test.context, test.coreValue)
 
 			if (err != nil) != test.isErrorExpected {
 				t.Errorf("Test Failed, expected error to be %v, but got err %v", test.isErrorExpected, err != nil)
@@ -192,9 +192,9 @@ func TestUpdateCoreValue(t *testing.T) {
 				Description: "updated description",
 			},
 			setup: func(coreValueMock *mocks.CoreValueStorer) {
-				coreValueMock.On("GetCoreValue", mock.Anything, mock.Anything, mock.Anything).Return(dto.GetCoreValueResp{}, nil).Once()
+				coreValueMock.On("GetCoreValue", mock.Anything, mock.Anything, mock.Anything).Return(dto.CoreValue{}, nil).Once()
 				coreValueMock.On("CheckUniqueCoreVal", mock.Anything, mock.Anything).Return(true, nil).Once()
-				coreValueMock.On("UpdateCoreValue", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(dto.UpdateCoreValuesResp{}, nil).Once()
+				coreValueMock.On("UpdateCoreValue", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(dto.CoreValue{}, nil).Once()
 
 			},
 			isErrorExpected: false,
@@ -208,7 +208,7 @@ func TestUpdateCoreValue(t *testing.T) {
 				Description: "updated description",
 			},
 			setup: func(coreValueMock *mocks.CoreValueStorer) {
-				coreValueMock.On("GetCoreValue", mock.Anything, mock.Anything, mock.Anything).Return(dto.GetCoreValueResp{}, apperrors.InvalidCoreValueData).Once()
+				coreValueMock.On("GetCoreValue", mock.Anything, mock.Anything, mock.Anything).Return(dto.CoreValue{}, apperrors.InvalidCoreValueData).Once()
 			},
 			isErrorExpected: true,
 		},
@@ -221,9 +221,9 @@ func TestUpdateCoreValue(t *testing.T) {
 				Description: "updated description",
 			},
 			setup: func(coreValueMock *mocks.CoreValueStorer) {
-				coreValueMock.On("GetCoreValue", mock.Anything, mock.Anything, mock.Anything).Return(dto.GetCoreValueResp{}, nil).Once()
+				coreValueMock.On("GetCoreValue", mock.Anything, mock.Anything, mock.Anything).Return(dto.CoreValue{}, nil).Once()
 				coreValueMock.On("CheckUniqueCoreVal", mock.Anything, mock.Anything).Return(true, nil).Once()
-				coreValueMock.On("UpdateCoreValue", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(dto.UpdateCoreValuesResp{}, apperrors.InternalServerError).Once()
+				coreValueMock.On("UpdateCoreValue", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(dto.CoreValue{}, apperrors.InternalServerError).Once()
 
 			},
 			isErrorExpected: true,

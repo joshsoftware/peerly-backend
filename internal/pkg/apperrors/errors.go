@@ -18,30 +18,30 @@ func (e CustomError) Error() string {
 const (
 	CannotReportOwnAppreciation = CustomError("You cannot report your own appreciations")
 	RepeatedReport              = CustomError("You cannot report an appreciation twice")
-	InvalidId                   = CustomError("Invalid id")
-	InternalServerError         = CustomError("Internal server error")
+	InvalidId                   = CustomError("invalid id")
+	InternalServerError         = CustomError("internal server error")
 	JSONParsingErrorReq         = CustomError("error in parsing request in json")
 	JSONParsingErrorResp        = CustomError("error in parsing response in json")
 	OutOfRange                  = CustomError("request value is out of range")
 	OrganizationNotFound        = CustomError("organization of given id not found")
-	InvalidContactEmail         = CustomError("Contact email is already present")
-	InvalidDomainName           = CustomError("Domain name is already present")
-	InvalidCoreValueData        = CustomError("Invalid corevalue data")
-	TextFieldBlank              = CustomError("Text field cannot be blank")
-	DescFieldBlank              = CustomError("Description cannot be blank")
-	InvalidParentValue          = CustomError("Invalid parent core value")
-	InvalidOrgId                = CustomError("Invalid organisation")
-	UniqueCoreValue             = CustomError("Choose a unique coreValue name")
-	InvalidAuthToken            = CustomError("Invalid Auth token")
-	IntranetValidationFailed    = CustomError("Intranet Validation Failed")
-	UserNotFound                = CustomError("User not found")
-	InvalidIntranetData         = CustomError("Invalid data recieved from intranet")
-	GradeNotFound               = CustomError("Grade not found")
 	RoleUnathorized             = CustomError("Role unauthorized")
 	PageParamNotFound           = CustomError("Page parameter not found")
 	RepeatedUser                = CustomError("Repeated user")
-	BadRequest                  = CustomError("Bad request")
-	InternalServer              = CustomError("Internal Server")
+	InvalidContactEmail         = CustomError("contact email is already present")
+	InvalidDomainName           = CustomError("domain name is already present")
+	InvalidCoreValueData        = CustomError("invalid corevalue data")
+	TextFieldBlank              = CustomError("text field cannot be blank")
+	DescFieldBlank              = CustomError("description cannot be blank")
+	InvalidParentValue          = CustomError("invalid parent core value")
+	InvalidOrgId                = CustomError("invalid organisation")
+	UniqueCoreValue             = CustomError("choose a unique coreValue name")
+	InvalidAuthToken            = CustomError("invalid Auth token")
+	IntranetValidationFailed    = CustomError("intranet Validation Failed")
+	UserNotFound                = CustomError("user not found")
+	InvalidIntranetData         = CustomError("invalid data recieved from intranet")
+	GradeNotFound               = CustomError("grade not found")
+	BadRequest                  = CustomError("bad request")
+	InternalServer              = CustomError("internal Server")
 	FailedToCreateDriver        = CustomError("failure to create driver obj")
 	MigrationFailure            = CustomError("migrate failure")
 )
@@ -54,16 +54,18 @@ func ErrKeyNotSet(key string) (err error) {
 // GetHTTPStatusCode returns status code according to customerror and default returns InternalServer error
 func GetHTTPStatusCode(err error) int {
 	switch err {
-	case InternalServerError, JSONParsingErrorResp, InvalidIntranetData:
+	case InternalServerError, JSONParsingErrorResp:
 		return http.StatusInternalServerError
-	case OrganizationNotFound, InvalidCoreValueData, InvalidParentValue, InvalidOrgId, GradeNotFound, PageParamNotFound:
+	case OrganizationNotFound, InvalidOrgId, PageParamNotFound, InvalidCoreValueData:
 		return http.StatusNotFound
-	case InvalidId, JSONParsingErrorReq, TextFieldBlank, DescFieldBlank, UniqueCoreValue, IntranetValidationFailed, RepeatedUser, CannotReportOwnAppreciation, RepeatedReport:
+	case InvalidId, JSONParsingErrorReq, TextFieldBlank, InvalidParentValue, DescFieldBlank, UniqueCoreValue, InvalidIntranetData, GradeNotFound, CannotReportOwnAppreciation, RepeatedReport:
 		return http.StatusBadRequest
+	case RepeatedUser:
+		return http.StatusConflict
+	case InvalidAuthToken, IntranetValidationFailed, RoleUnathorized:
+		return http.StatusUnauthorized
 	case InvalidContactEmail, InvalidDomainName:
 		return http.StatusConflict
-	case InvalidAuthToken, RoleUnathorized:
-		return http.StatusUnauthorized
 
 	default:
 		return http.StatusInternalServerError

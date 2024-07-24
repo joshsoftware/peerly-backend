@@ -87,7 +87,7 @@ func TestLoginUser(t *testing.T) {
 					Data: dto.IntranetValidateApiData{},
 				}, apperrors.IntranetValidationFailed).Once()
 			},
-			expectedStatusCode: http.StatusBadRequest,
+			expectedStatusCode: http.StatusUnauthorized,
 		},
 		{
 			name:      "Intranet get user api faliure",
@@ -173,7 +173,7 @@ func TestLoginUser(t *testing.T) {
 					},
 				}, nil).Once()
 			},
-			expectedStatusCode: http.StatusInternalServerError,
+			expectedStatusCode: http.StatusBadRequest,
 		},
 		{
 			name:      "Error for invalid last name",
@@ -201,7 +201,7 @@ func TestLoginUser(t *testing.T) {
 					},
 				}, nil).Once()
 			},
-			expectedStatusCode: http.StatusInternalServerError,
+			expectedStatusCode: http.StatusBadRequest,
 		},
 		{
 			name:      "Error for invalid designation",
@@ -227,7 +227,7 @@ func TestLoginUser(t *testing.T) {
 					},
 				}, nil).Once()
 			},
-			expectedStatusCode: http.StatusInternalServerError,
+			expectedStatusCode: http.StatusBadRequest,
 		},
 		{
 			name:      "Error for invalid email",
@@ -255,7 +255,7 @@ func TestLoginUser(t *testing.T) {
 					},
 				}, nil).Once()
 			},
-			expectedStatusCode: http.StatusInternalServerError,
+			expectedStatusCode: http.StatusBadRequest,
 		},
 		{
 			name:      "Error for invalid grade",
@@ -283,7 +283,7 @@ func TestLoginUser(t *testing.T) {
 					},
 				}, nil).Once()
 			},
-			expectedStatusCode: http.StatusInternalServerError,
+			expectedStatusCode: http.StatusBadRequest,
 		},
 	}
 
@@ -291,7 +291,7 @@ func TestLoginUser(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			test.setup(userSvc)
 
-			req, err := http.NewRequest("POST", "/user/login", bytes.NewBuffer([]byte("")))
+			req, err := http.NewRequest(http.MethodPost, "/user/login", bytes.NewBuffer([]byte("")))
 			if err != nil {
 				t.Fatal(err)
 				return
@@ -311,9 +311,9 @@ func TestLoginUser(t *testing.T) {
 	}
 }
 
-func TestGetUserHandler(t *testing.T) {
+func TestListUsersHandler(t *testing.T) {
 	userSvc := mocks.NewService(t)
-	getUserHandler := getUserHandler(userSvc)
+	listUsersHandler := listUsersHandler(userSvc)
 
 	tests := []struct {
 		name               string
@@ -331,18 +331,30 @@ func TestGetUserHandler(t *testing.T) {
 			per_page:  "10",
 			paramName: "sharyu%20marwadi",
 			setup: func(mockSvc *mocks.Service) {
-				mockSvc.On("GetUserList", mock.Anything, mock.Anything).Return([]dto.GetUserListResp{}, nil).Once()
+				mockSvc.On("ListUsers", mock.Anything, mock.Anything).Return(dto.UserListWithMetadata{}, nil).Once()
 			},
 			expectedStatusCode: http.StatusOK,
 		},
-		// {
-		// 	name:               "Empty page for get user list",
-		// 	authToken:          "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjo2fQ.XaYo0qdBCdDh1-nEeuUSdTbtp0enWFIySKnw-oQpTBg",
-		// 	page:               "",
-		// 	per_page:           "10",
-		// 	paramName:          "sharyu%20marwadi",
-		// 	expectedStatusCode: http.StatusNotFound,
-		// },
+		{
+			name:      "Internal server error",
+			authToken: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjo2fQ.XaYo0qdBCdDh1-nEeuUSdTbtp0enWFIySKnw-oQpTBg",
+			page:      "1",
+			per_page:  "10",
+			paramName: "sharyu%20marwadi",
+			setup: func(mockSvc *mocks.Service) {
+				mockSvc.On("ListUsers", mock.Anything, mock.Anything).Return(dto.UserListWithMetadata{}, apperrors.InternalServerError).Once()
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name:               "Page param not found",
+			authToken:          "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjo2fQ.XaYo0qdBCdDh1-nEeuUSdTbtp0enWFIySKnw-oQpTBg",
+			page:               "",
+			per_page:           "10",
+			paramName:          "sharyu%20marwadi",
+			setup:              func(mockSvc *mocks.Service) {},
+			expectedStatusCode: http.StatusNotFound,
+		},
 	}
 
 	for _, test := range tests {
@@ -354,18 +366,18 @@ func TestGetUserHandler(t *testing.T) {
 				t.Fatal(err)
 				return
 			}
-			// if test.page == "" {
-			// 	req, err = http.NewRequest("GET", fmt.Sprintf("/users/all?name=%s&per_page=%s", test.name, test.per_page), bytes.NewBuffer([]byte("")))
-			// 	if err != nil {
-			// 		t.Fatal(err)
-			// 		return
-			// 	}
-			// }
+			if test.page == "" {
+				req, err = http.NewRequest("GET", fmt.Sprintf("/users/all?name=%s&per_page=%s", test.name, test.per_page), bytes.NewBuffer([]byte("")))
+				if err != nil {
+					t.Fatal(err)
+					return
+				}
+			}
 
 			req.Header.Set("Authorization", test.authToken)
 
 			rr := httptest.NewRecorder()
-			handler := http.HandlerFunc(getUserHandler)
+			handler := http.HandlerFunc(listUsersHandler)
 			handler.ServeHTTP(rr, req)
 
 			fmt.Println("Error")
