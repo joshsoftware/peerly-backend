@@ -75,3 +75,15 @@ func (rs *service) ReportAppreciation(ctx context.Context, reqData dto.ReportApp
 
 	return
 }
+
+func (rs *service) ListReportedAppreciations(ctx context.Context) (err error) {
+	appreciations, err := rs.reportAppreciationRepo.ListReportedAppreciations(ctx)
+	if err != nil {
+		logger.Error(err.Error())
+		err = apperrors.InternalServerError
+		return
+	}
+
+
+	return
+}

@@ -11,6 +11,7 @@ type ReportAppreciationStorer interface {
 	GetSenderAndReceiver(ctx context.Context, reqData dto.ReportAppreciationReq) (resp dto.GetSenderAndReceiverResp, err error)
 	CheckDuplicateReport(ctx context.Context, reqData dto.ReportAppreciationReq) (isDupliate bool, err error)
 	CheckAppreciation(ctx context.Context, reqData dto.ReportAppreciationReq) (doesExist bool, err error)
+	ListReportedAppreciations(ctx context.Context) (reportedAppreciations []ListReportedAppreciations, err error)
 }
 
 type Resolution struct {
@@ -23,4 +24,19 @@ type Resolution struct {
 	ModeratorComment string `json:"moderator_comment" db:"moderator_comment"`
 	ModeratedBy      int64  `json:"moderated_by" db:"moderated_by"`
 	ModeratedAt      int64  `json:"moderated_at" db:"moderated_at"`
+}
+
+type ListReportedAppreciations struct {
+	Id                int64  `db:"id"`
+	Appreciation_id   int64  `db:"appreciation_id"`
+	AppreciationDesc  string `db:"appreciation_description"`
+	TotalRewardPoints int64  `db:"total_reward_points"`
+	Quarter           int64  `db:"quarter"`
+	CoreValueName     string `db:"core_value_name"`
+	CoreValueDesc     string `db:"core_value_description"`
+	Sender            int64  `db:"sender"`
+	Receiver          int64  `db:"receiver"`
+	ReportingComment  string `db:"reporting_comment"`
+	ReportedBy        int64  `db:"reported_by"`
+	ReportedAt        int64  `db:"reported_at"`
 }

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
@@ -99,7 +100,16 @@ func (rs *reportAppreciationStore) ReportAppreciation(ctx context.Context, repor
 	return
 }
 
-// insert into appreciations
-// (core_value_id, description, is_valid, quarter, sender, receiver)
-// values
-// (2, 'desc', true, 1, 1153, 1154);
+func (rs *reportAppreciationStore) ListReportedAppreciations(ctx context.Context) (reportedAppreciations []repository.ListReportedAppreciations, err error) {
+	query := `select resolutions.id, appreciations.id as appreciation_id, core_values.name as core_value_name, core_values.description as core_value_description, appreciations.description as appreciation_description, appreciations.total_reward_points, appreciations.quarter, appreciations.sender, appreciations.receiver, resolutions.reporting_comment, resolutions.reported_by, resolutions.reported_at from resolutions join appreciations on resolutions.appreciation_id = appreciations.id join core_values on appreciations.core_value_id = core_values.id group by resolutions.id, appreciations.id, core_values.id`
+	err = rs.DB.SelectContext(
+		ctx,
+		&reportedAppreciations,
+		query,
+	)
+	if err != nil {
+		err = fmt.Errorf("error in retriving reported appriciations, err:%w", err)
+		return
+	}
+	return
+}
