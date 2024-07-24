@@ -39,7 +39,7 @@ func (appr *appreciationsStore) CreateAppreciation(ctx context.Context, tx repos
 
 	queryExecutor := appr.InitiateQueryExecutor(tx)
 
-	insertQuery, args, err := sq.
+	insertQuery, args, err := repository.Sq.
 		Insert(appr.TableAppreciations).Columns(AppreciationColumns[1:]...).
 		Values(appreciation.CoreValueID, appreciation.Description, appreciation.Quarter, appreciation.Sender, appreciation.Receiver).
 		Suffix("RETURNING id,core_value_id, description,total_reward_points,quarter,sender,receiver,created_at,updated_at").
@@ -72,7 +72,7 @@ func (appr *appreciationsStore) GetAppreciationById(ctx context.Context, tx repo
 	}
 
 	// Build the SQL query
-	query, args, err := sq.Select(
+	query, args, err := repository.Sq.Select(
 		"a.id",
 		"cv.name AS core_value_name",
 		"a.description",
@@ -145,7 +145,7 @@ func (appr *appreciationsStore) GetAppreciations(ctx context.Context, tx reposit
 	}
 
 	// query builder for counting total records
-	countQueryBuilder := sq.Select("COUNT(*)").
+	countQueryBuilder := repository.Sq.Select("COUNT(*)").
 		From("appreciations a").
 		LeftJoin("users u_sender ON a.sender = u_sender.id").
 		LeftJoin("users u_receiver ON a.receiver = u_receiver.id").
@@ -159,7 +159,7 @@ func (appr *appreciationsStore) GetAppreciations(ctx context.Context, tx reposit
 			lowerNameFilter, lowerNameFilter,
 		)
 	}
-	
+
 	if filter.Self {
 		countQueryBuilder = countQueryBuilder.Where(squirrel.Or{
 			squirrel.Eq{"a.sender": userID},
@@ -182,7 +182,7 @@ func (appr *appreciationsStore) GetAppreciations(ctx context.Context, tx reposit
 
 	pagination := getPaginationMetaData(filter.Page, filter.Limit, totalRecords)
 	// Initialize the Squirrel query builder
-	queryBuilder := sq.Select(
+	queryBuilder := repository.Sq.Select(
 		"a.id",
 		"cv.name AS core_value_name",
 		"cv.description AS core_value_description",
@@ -231,7 +231,6 @@ func (appr *appreciationsStore) GetAppreciations(ctx context.Context, tx reposit
 		})
 	}
 
-
 	if filter.SortOrder != "" {
 		queryBuilder = queryBuilder.OrderBy(fmt.Sprintf("a.created_at %s", filter.SortOrder))
 	}
@@ -258,7 +257,7 @@ func (appr *appreciationsStore) GetAppreciations(ctx context.Context, tx reposit
 }
 
 func (appr *appreciationsStore) DeleteAppreciation(ctx context.Context, tx repository.Transaction, apprId int32) (bool, error) {
-	query, args, err := sq.Update("appreciations").
+	query, args, err := repository.Sq.Update("appreciations").
 		Set("is_valid", false).
 		Where(squirrel.And{
 			squirrel.Eq{"id": apprId},
@@ -296,7 +295,7 @@ func (appr *appreciationsStore) DeleteAppreciation(ctx context.Context, tx repos
 func (appr *appreciationsStore) IsUserPresent(ctx context.Context, tx repository.Transaction, userID int64) (bool, error) {
 
 	// Build the SQL query
-	query, args, err := sq.Select("COUNT(*)").
+	query, args, err := repository.Sq.Select("COUNT(*)").
 		From("users").
 		Where(squirrel.Eq{"id": userID}).
 		ToSql()

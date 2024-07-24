@@ -54,7 +54,6 @@ const (
 	InternalServer              = CustomError("internal Server")
 	FailedToCreateDriver        = CustomError("failure to create driver obj")
 	MigrationFailure            = CustomError("migrate failure")
-
 )
 
 // ErrKeyNotSet - Returns error object specific to the key value passed in
@@ -67,11 +66,11 @@ func GetHTTPStatusCode(err error) int {
 	switch err {
 	case InternalServerError, JSONParsingErrorResp:
 		return http.StatusInternalServerError
-	case OrganizationNotFound, InvalidOrgId, GradeNotFound, AppreciationNotFound, PageParamNotFound, InvalidIntranetData:
+	case OrganizationNotFound, InvalidOrgId, AppreciationNotFound, PageParamNotFound:
 		return http.StatusNotFound
-	case BadRequest, InvalidId, JSONParsingErrorReq, TextFieldBlank, InvalidCoreValueData, InvalidParentValue, DescFieldBlank, UniqueCoreValue, RepeatedUser, SelfAppreciationError, CannotReportOwnAppreciation, RepeatedReport, InvalidCoreValueID, InvalidReceiverID, InvalidRewardPoint:
+	case BadRequest, InvalidId, JSONParsingErrorReq, TextFieldBlank, InvalidCoreValueData, InvalidParentValue, DescFieldBlank, UniqueCoreValue, SelfAppreciationError, CannotReportOwnAppreciation, RepeatedReport, InvalidCoreValueID, InvalidReceiverID, InvalidRewardPoint, InvalidIntranetData, GradeNotFound:
 		return http.StatusBadRequest
-	case InvalidContactEmail, InvalidDomainName, UserAlreadyPresent, RewardAlreadyPresent:
+	case InvalidContactEmail, InvalidDomainName, UserAlreadyPresent, RewardAlreadyPresent, RepeatedUser:
 		return http.StatusConflict
 	case InvalidAuthToken, RoleUnathorized, IntranetValidationFailed:
 		return http.StatusUnauthorized
