@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/joshsoftware/peerly-backend/internal/api/validation"
 	user "github.com/joshsoftware/peerly-backend/internal/app/users"
@@ -131,6 +132,52 @@ func registerUser(userSvc user.Service) http.HandlerFunc {
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
+
 		dto.SuccessRepsonse(rw, http.StatusOK, "User registered successfully", resp)
+	}
+}
+
+func listUsersHandler(userSvc user.Service) http.HandlerFunc {
+	return func(rw http.ResponseWriter, req *http.Request) {
+		page := req.URL.Query().Get("page")
+		if page == "" {
+			err := apperrors.PageParamNotFound
+			dto.ErrorRepsonse(rw, err)
+			return
+		}
+		pageInt, _ := strconv.Atoi(page)
+		perPage := req.URL.Query().Get("per_page")
+		var perPageInt int
+		if perPage == "" {
+			perPageInt = constants.DefaultPageSize
+		} else {
+			perPageInt, _ = strconv.Atoi(perPage)
+		}
+		names := strings.Split(req.URL.Query().Get("name"), " ")
+		userListReq := dto.UserListReq{
+			Name:    names,
+			Page:    int64(pageInt),
+			PerPage: int64(perPageInt),
+		}
+		resp, err := userSvc.ListUsers(req.Context(), userListReq)
+		if err != nil {
+			dto.ErrorRepsonse(rw, err)
+			return
+		}
+		dto.SuccessRepsonse(rw, http.StatusOK, "Peerly users listed", resp)
+	}
+}
+
+func getUserByIdHandler(userSvc user.Service) http.HandlerFunc {
+	return func(rw http.ResponseWriter, req *http.Request) {
+
+		resp, err := userSvc.GetUserById(req.Context())
+		if err != nil {
+			dto.ErrorRepsonse(rw, err)
+			return
+		}
+
+		dto.SuccessRepsonse(rw, 200, "User fetched successfully", resp)
+
 	}
 }

@@ -33,6 +33,27 @@ func (_m *UserStorer) CreateNewUser(ctx context.Context, user dto.User) (reposit
 	return r0, r1
 }
 
+// GetGradeById provides a mock function with given fields: ctx, id
+func (_m *UserStorer) GetGradeById(ctx context.Context, id int64) (repository.Grade, error) {
+	ret := _m.Called(ctx, id)
+
+	var r0 repository.Grade
+	if rf, ok := ret.Get(0).(func(context.Context, int64) repository.Grade); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Get(0).(repository.Grade)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, int64) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetGradeByName provides a mock function with given fields: ctx, name
 func (_m *UserStorer) GetGradeByName(ctx context.Context, name string) (repository.Grade, error) {
 	ret := _m.Called(ctx, name)
@@ -110,6 +131,50 @@ func (_m *UserStorer) GetUserByEmail(ctx context.Context, email string) (reposit
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, email)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetUserById provides a mock function with given fields: ctx, reqData
+func (_m *UserStorer) GetUserById(ctx context.Context, reqData dto.GetUserByIdReq) (dto.GetUserByIdResp, error) {
+	ret := _m.Called(ctx, reqData)
+
+	var r0 dto.GetUserByIdResp
+	if rf, ok := ret.Get(0).(func(context.Context, dto.GetUserByIdReq) dto.GetUserByIdResp); ok {
+		r0 = rf(ctx, reqData)
+	} else {
+		r0 = ret.Get(0).(dto.GetUserByIdResp)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, dto.GetUserByIdReq) error); ok {
+		r1 = rf(ctx, reqData)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListUsers provides a mock function with given fields: ctx, reqData
+func (_m *UserStorer) ListUsers(ctx context.Context, reqData dto.UserListReq) ([]repository.User, error) {
+	ret := _m.Called(ctx, reqData)
+
+	var r0 []repository.User
+	if rf, ok := ret.Get(0).(func(context.Context, dto.UserListReq) []repository.User); ok {
+		r0 = rf(ctx, reqData)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]repository.User)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, dto.UserListReq) error); ok {
+		r1 = rf(ctx, reqData)
 	} else {
 		r1 = ret.Error(1)
 	}

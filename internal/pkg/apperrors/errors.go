@@ -16,6 +16,8 @@ func (e CustomError) Error() string {
 
 // Custome errors with errormessage
 const (
+	CannotReportOwnAppreciation = CustomError("You cannot report your own appreciations")
+	RepeatedReport              = CustomError("You cannot report an appreciation twice")
 	InvalidId                   = CustomError("invalid id")
 	InternalServerError         = CustomError("internal server error")
 	JSONParsingErrorReq         = CustomError("error in parsing request in json")
@@ -42,8 +44,6 @@ const (
 	InternalServer              = CustomError("internal Server")
 	FailedToCreateDriver        = CustomError("failure to create driver obj")
 	MigrationFailure            = CustomError("migrate failure")
-	CannotReportOwnAppreciation = CustomError("You cannot report your own appreciations")
-	RepeatedReport              = CustomError("You cannot report an appreciation twice")
 )
 
 // ErrKeyNotSet - Returns error object specific to the key value passed in

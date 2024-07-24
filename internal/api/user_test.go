@@ -310,3 +310,142 @@ func TestLoginUser(t *testing.T) {
 		})
 	}
 }
+
+func TestListUsersHandler(t *testing.T) {
+	userSvc := mocks.NewService(t)
+	listUsersHandler := listUsersHandler(userSvc)
+
+	tests := []struct {
+		name               string
+		authToken          string
+		page               string
+		per_page           string
+		paramName          string
+		setup              func(mock *mocks.Service)
+		expectedStatusCode int
+	}{
+		{
+			name:      "Success for get user list",
+			authToken: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjo2fQ.XaYo0qdBCdDh1-nEeuUSdTbtp0enWFIySKnw-oQpTBg",
+			page:      "1",
+			per_page:  "10",
+			paramName: "sharyu%20marwadi",
+			setup: func(mockSvc *mocks.Service) {
+				mockSvc.On("ListUsers", mock.Anything, mock.Anything).Return(dto.UserListWithMetadata{}, nil).Once()
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+		{
+			name:      "Internal server error",
+			authToken: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjo2fQ.XaYo0qdBCdDh1-nEeuUSdTbtp0enWFIySKnw-oQpTBg",
+			page:      "1",
+			per_page:  "10",
+			paramName: "sharyu%20marwadi",
+			setup: func(mockSvc *mocks.Service) {
+				mockSvc.On("ListUsers", mock.Anything, mock.Anything).Return(dto.UserListWithMetadata{}, apperrors.InternalServerError).Once()
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name:               "Page param not found",
+			authToken:          "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjo2fQ.XaYo0qdBCdDh1-nEeuUSdTbtp0enWFIySKnw-oQpTBg",
+			page:               "",
+			per_page:           "10",
+			paramName:          "sharyu%20marwadi",
+			setup:              func(mockSvc *mocks.Service) {},
+			expectedStatusCode: http.StatusNotFound,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			test.setup(userSvc)
+
+			req, err := http.NewRequest("GET", fmt.Sprintf("/users/all?name=%s&page=%s&per_page=%s", test.name, test.page, test.per_page), bytes.NewBuffer([]byte("")))
+			if err != nil {
+				t.Fatal(err)
+				return
+			}
+			if test.page == "" {
+				req, err = http.NewRequest("GET", fmt.Sprintf("/users/all?name=%s&per_page=%s", test.name, test.per_page), bytes.NewBuffer([]byte("")))
+				if err != nil {
+					t.Fatal(err)
+					return
+				}
+			}
+
+			req.Header.Set("Authorization", test.authToken)
+
+			rr := httptest.NewRecorder()
+			handler := http.HandlerFunc(listUsersHandler)
+			handler.ServeHTTP(rr, req)
+
+			fmt.Println("Error")
+
+			if rr.Result().StatusCode != test.expectedStatusCode {
+				t.Errorf("Expected %d but got %d", test.expectedStatusCode, rr.Result().StatusCode)
+			}
+		})
+	}
+}
+
+func TestGetUserByIdHandler(t *testing.T) {
+	userSvc := mocks.NewService(t)
+	getUserById := getUserByIdHandler(userSvc)
+
+	tests := []struct {
+		name               string
+		authToken          string
+		setup              func(mock *mocks.Service)
+		expectedStatusCode int
+	}{
+		{
+			name:      "Success for get user by id",
+			authToken: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjo2fQ.XaYo0qdBCdDh1-nEeuUSdTbtp0enWFIySKnw-oQpTBg",
+			setup: func(mockSvc *mocks.Service) {
+				mockSvc.On("GetUserById", mock.Anything).Return(dto.GetUserByIdResp{}, nil).Once()
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+		{
+			name:      "Faliure for get user by id",
+			authToken: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjo2fQ.XaYo0qdBCdDh1-nEeuUSdTbtp0enWFIySKnw-oQpTBg",
+			setup: func(mockSvc *mocks.Service) {
+				mockSvc.On("GetUserById", mock.Anything).Return(dto.GetUserByIdResp{}, apperrors.InvalidId).Once()
+			},
+			expectedStatusCode: http.StatusBadRequest,
+		},
+		{
+			name:      "Faliure for get user by id",
+			authToken: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjo2fQ.XaYo0qdBCdDh1-nEeuUSdTbtp0enWFIySKnw-oQpTBg",
+			setup: func(mockSvc *mocks.Service) {
+				mockSvc.On("GetUserById", mock.Anything).Return(dto.GetUserByIdResp{}, apperrors.InternalServerError).Once()
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			test.setup(userSvc)
+
+			req, err := http.NewRequest("GET", "/user_profile", bytes.NewBuffer([]byte("")))
+			if err != nil {
+				t.Fatal(err)
+				return
+			}
+
+			req.Header.Set("Authorization", test.authToken)
+
+			rr := httptest.NewRecorder()
+			handler := http.HandlerFunc(getUserById)
+			handler.ServeHTTP(rr, req)
+
+			fmt.Println("Error")
+
+			if rr.Result().StatusCode != test.expectedStatusCode {
+				t.Errorf("Expected %d but got %d", test.expectedStatusCode, rr.Result().StatusCode)
+			}
+		})
+	}
+}

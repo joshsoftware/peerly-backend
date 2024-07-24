@@ -14,25 +14,29 @@ type UserStorer interface {
 	GetGradeByName(ctx context.Context, name string) (grade Grade, err error)
 	GetRewardMultiplier(ctx context.Context) (value int64, err error)
 	SyncData(ctx context.Context, updateData dto.User) (err error)
+	ListUsers(ctx context.Context, reqData dto.UserListReq) (resp []User, err error)
+	GetTotalUserCount(ctx context.Context, reqData dto.UserListReq) (totalCount int64, err error)
+	GetUserById(ctx context.Context, reqData dto.GetUserByIdReq) (user dto.GetUserByIdResp, err error)
+	GetGradeById(ctx context.Context, id int64) (grade Grade, err error)
 }
 
 // User - basic struct representing a User
 type User struct {
-	Id                  int64         `db:"id"`
-	EmployeeId          string        `db:"employee_id"`
-	FirstName           string        `db:"first_name"`
-	LastName            string        `db:"last_name"`
-	Email               string        `db:"email"`
-	ProfileImageURL     string        `db:"profile_image_url"`
-	GradeId             int64         `db:"grade_id"`
-	Designation         string        `db:"designation"`
-	RoleID              int64         `db:"role_id"`
-	RewardsQuotaBalance int64         `db:"reward_quota_balance"`
-	Status              int64         `db:"status"`
-	SoftDelete          bool          `db:"soft_delete"`
-	SoftDeleteBy        sql.NullInt64 `db:"soft_delete_by"`
-	SoftDeleteOn        sql.NullTime  `db:"soft_delete_on"`
-	CreatedAt           int64         `db:"created_at"`
+	Id                  int64          `db:"id"`
+	EmployeeId          string         `db:"employee_id"`
+	FirstName           string         `db:"first_name"`
+	LastName            string         `db:"last_name"`
+	Email               string         `db:"email"`
+	ProfileImageURL     sql.NullString `db:"profile_image_url"`
+	GradeId             int64          `db:"grade_id"`
+	Designation         string         `db:"designation"`
+	RoleID              int64          `db:"role_id"`
+	RewardsQuotaBalance int64          `db:"reward_quota_balance"`
+	Status              int64          `db:"status"`
+	SoftDelete          bool           `db:"soft_delete"`
+	SoftDeleteBy        sql.NullInt64  `db:"soft_delete_by"`
+	SoftDeleteOn        sql.NullTime   `db:"soft_delete_on"`
+	CreatedAt           int64          `db:"created_at"`
 }
 
 type Role struct {

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strings"
 
 	"net/http"
 	"time"
@@ -28,6 +29,8 @@ type Service interface {
 	LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.LoginUserResp, error)
 	RegisterUser(ctx context.Context, u dto.IntranetUserData) (user dto.User, err error)
 	ListIntranetUsers(ctx context.Context, reqData dto.GetUserListReq) (data []dto.IntranetUserData, err error)
+	ListUsers(ctx context.Context, reqData dto.UserListReq) (resp dto.UserListWithMetadata, err error)
+	GetUserById(ctx context.Context) (user dto.GetUserByIdResp, err error)
 }
 
 func NewService(userRepo repository.UserStorer) Service {
@@ -282,6 +285,42 @@ func (us *service) ListIntranetUsers(ctx context.Context, reqData dto.GetUserLis
 	return
 }
 
+func (us *service) ListUsers(ctx context.Context, reqData dto.UserListReq) (resp dto.UserListWithMetadata, err error) {
+
+	var names []string
+	for _, data := range reqData.Name {
+		names = append(names, strings.ToLower(data))
+	}
+
+	reqData.Name = names
+
+	totalCount, err := us.userRepo.GetTotalUserCount(ctx, reqData)
+	if err != nil {
+		logger.Errorf(err.Error())
+		err = apperrors.InternalServerError
+		return
+	}
+
+	dbResp, err := us.userRepo.ListUsers(ctx, reqData)
+	if err != nil {
+		return
+	}
+
+	var users []dto.UserListResp
+
+	for _, dbUser := range dbResp {
+		user := mapDbUserToUserListResp(dbUser)
+		users = append(users, user)
+	}
+
+	resp.UserList = users
+	resp.MetaData.TotalCount = totalCount
+	resp.MetaData.CurrentPage = reqData.Page
+	resp.MetaData.PageCount = reqData.PerPage
+
+	return
+}
+
 func (us *service) syncData(ctx context.Context, intranetUserData dto.IntranetUserData, peerlyUserData dto.User) (syncNeeded bool, dataToBeUpdated dto.User, err error) {
 	syncNeeded = false
 	grade, err := us.userRepo.GetGradeByName(ctx, intranetUserData.EmpolyeeDetail.Grade)
@@ -308,7 +347,7 @@ func mapUserDbToService(dbStruct repository.User) (svcStruct dto.User) {
 	svcStruct.FirstName = dbStruct.FirstName
 	svcStruct.LastName = dbStruct.LastName
 	svcStruct.Email = dbStruct.Email
-	svcStruct.ProfileImgUrl = dbStruct.ProfileImageURL
+	svcStruct.ProfileImgUrl = dbStruct.ProfileImageURL.String
 	svcStruct.RoleId = dbStruct.RoleID
 	svcStruct.RewardQuotaBalance = dbStruct.RewardsQuotaBalance
 	svcStruct.Designation = dbStruct.Designation
@@ -326,4 +365,70 @@ func mapIntranetUserDataToSvcUser(intranetData dto.IntranetUserData) (svcData dt
 	svcData.LastName = intranetData.PublicProfile.LastName
 	svcData.Designation = intranetData.EmpolyeeDetail.Designation.Name
 	return svcData
+}
+
+func mapDbUserToUserListResp(dbStruct repository.User) (svcData dto.UserListResp) {
+	svcData.Id = dbStruct.Id
+	svcData.FirstName = dbStruct.FirstName
+	svcData.LastName = dbStruct.LastName
+	svcData.Email = dbStruct.Email
+	return svcData
+}
+
+func (us *service) GetUserById(ctx context.Context) (user dto.GetUserByIdResp, err error) {
+
+	id := ctx.Value(constants.UserId)
+	fmt.Printf("userId: %T", id)
+	userId, ok := id.(int64)
+	if !ok {
+		logger.Error("Error in typecasting user id")
+		err = apperrors.InternalServerError
+		return
+	}
+
+	quaterTimeStamp := GetQuarterStartUnixTime()
+
+	reqData := dto.GetUserByIdReq{
+		UserId:          userId,
+		QuaterTimeStamp: quaterTimeStamp,
+	}
+
+	user, err = us.userRepo.GetUserById(ctx, reqData)
+	if err != nil {
+		return
+	}
+
+	grade, err := us.userRepo.GetGradeById(ctx, user.GradeId)
+	if err != nil {
+		logger.Errorf(err.Error())
+		err = apperrors.InternalServerError
+		return
+	}
+
+	reward_multiplier, err := us.userRepo.GetRewardMultiplier(ctx)
+	if err != nil {
+		err = apperrors.InternalServerError
+		return
+	}
+	total_reward_quota := grade.Points * reward_multiplier
+
+	user.TotalRewardQuota = int64(total_reward_quota)
+
+	now := time.Now()
+
+	nextMonth := now.AddDate(0, 1, 0)
+	firstDayOfNextMonth := time.Date(nextMonth.Year(), nextMonth.Month(), 1, 0, 0, 0, 0, nextMonth.Location())
+
+	timestamp := firstDayOfNextMonth.Unix()
+
+	user.RefilDate = timestamp
+
+	return
+}
+
+func GetQuarterStartUnixTime() int64 {
+	// Example function to get the Unix timestamp of the start of the quarter
+	now := time.Now()
+	quarterStart := time.Date(now.Year(), (now.Month()-1)/3*3+1, 1, 0, 0, 0, 0, time.UTC)
+	return quarterStart.Unix() * 1000 // convert to milliseconds
 }

@@ -32,6 +32,27 @@ func (_m *Service) GetIntranetUserData(ctx context.Context, req dto.GetIntranetU
 	return r0, r1
 }
 
+// GetUserById provides a mock function with given fields: ctx
+func (_m *Service) GetUserById(ctx context.Context) (dto.GetUserByIdResp, error) {
+	ret := _m.Called(ctx)
+
+	var r0 dto.GetUserByIdResp
+	if rf, ok := ret.Get(0).(func(context.Context) dto.GetUserByIdResp); ok {
+		r0 = rf(ctx)
+	} else {
+		r0 = ret.Get(0).(dto.GetUserByIdResp)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ListIntranetUsers provides a mock function with given fields: ctx, reqData
 func (_m *Service) ListIntranetUsers(ctx context.Context, reqData dto.GetUserListReq) ([]dto.IntranetUserData, error) {
 	ret := _m.Called(ctx, reqData)
@@ -47,6 +68,27 @@ func (_m *Service) ListIntranetUsers(ctx context.Context, reqData dto.GetUserLis
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, dto.GetUserListReq) error); ok {
+		r1 = rf(ctx, reqData)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListUsers provides a mock function with given fields: ctx, reqData
+func (_m *Service) ListUsers(ctx context.Context, reqData dto.UserListReq) (dto.UserListWithMetadata, error) {
+	ret := _m.Called(ctx, reqData)
+
+	var r0 dto.UserListWithMetadata
+	if rf, ok := ret.Get(0).(func(context.Context, dto.UserListReq) dto.UserListWithMetadata); ok {
+		r0 = rf(ctx, reqData)
+	} else {
+		r0 = ret.Get(0).(dto.UserListWithMetadata)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, dto.UserListReq) error); ok {
 		r1 = rf(ctx, reqData)
 	} else {
 		r1 = ret.Error(1)
