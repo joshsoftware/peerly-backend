@@ -32,29 +32,8 @@ func (_m *Service) GetIntranetUserData(ctx context.Context, req dto.GetIntranetU
 	return r0, r1
 }
 
-// GetUserList provides a mock function with given fields: ctx, reqData
-func (_m *Service) GetUserList(ctx context.Context, reqData dto.UserListReq) (dto.UserListWithMetadata, error) {
-	ret := _m.Called(ctx, reqData)
-
-	var r0 dto.UserListWithMetadata
-	if rf, ok := ret.Get(0).(func(context.Context, dto.UserListReq) dto.UserListWithMetadata); ok {
-		r0 = rf(ctx, reqData)
-	} else {
-		r0 = ret.Get(0).(dto.UserListWithMetadata)
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, dto.UserListReq) error); ok {
-		r1 = rf(ctx, reqData)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetUserListIntranet provides a mock function with given fields: ctx, reqData
-func (_m *Service) GetUserListIntranet(ctx context.Context, reqData dto.GetUserListReq) ([]dto.IntranetUserData, error) {
+// ListIntranetUsers provides a mock function with given fields: ctx, reqData
+func (_m *Service) ListIntranetUsers(ctx context.Context, reqData dto.GetUserListReq) ([]dto.IntranetUserData, error) {
 	ret := _m.Called(ctx, reqData)
 
 	var r0 []dto.IntranetUserData
@@ -68,6 +47,27 @@ func (_m *Service) GetUserListIntranet(ctx context.Context, reqData dto.GetUserL
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, dto.GetUserListReq) error); ok {
+		r1 = rf(ctx, reqData)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListUsers provides a mock function with given fields: ctx, reqData
+func (_m *Service) ListUsers(ctx context.Context, reqData dto.UserListReq) (dto.UserListWithMetadata, error) {
+	ret := _m.Called(ctx, reqData)
+
+	var r0 dto.UserListWithMetadata
+	if rf, ok := ret.Get(0).(func(context.Context, dto.UserListReq) dto.UserListWithMetadata); ok {
+		r0 = rf(ctx, reqData)
+	} else {
+		r0 = ret.Get(0).(dto.UserListWithMetadata)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, dto.UserListReq) error); ok {
 		r1 = rf(ctx, reqData)
 	} else {
 		r1 = ret.Error(1)
@@ -98,14 +98,14 @@ func (_m *Service) LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.L
 }
 
 // RegisterUser provides a mock function with given fields: ctx, u
-func (_m *Service) RegisterUser(ctx context.Context, u dto.IntranetUserData) (dto.GetUserResp, error) {
+func (_m *Service) RegisterUser(ctx context.Context, u dto.IntranetUserData) (dto.User, error) {
 	ret := _m.Called(ctx, u)
 
-	var r0 dto.GetUserResp
-	if rf, ok := ret.Get(0).(func(context.Context, dto.IntranetUserData) dto.GetUserResp); ok {
+	var r0 dto.User
+	if rf, ok := ret.Get(0).(func(context.Context, dto.IntranetUserData) dto.User); ok {
 		r0 = rf(ctx, u)
 	} else {
-		r0 = ret.Get(0).(dto.GetUserResp)
+		r0 = ret.Get(0).(dto.User)
 	}
 
 	var r1 error

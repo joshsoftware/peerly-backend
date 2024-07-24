@@ -16,27 +16,20 @@ type UserStorer struct {
 	mock.Mock
 }
 
-// CreateNewUser provides a mock function with given fields: ctx, u
-func (_m *UserStorer) CreateNewUser(ctx context.Context, u dto.RegisterUser) (dto.GetUserResp, error) {
-	ret := _m.Called(ctx, u)
+// CreateNewUser provides a mock function with given fields: ctx, user
+func (_m *UserStorer) CreateNewUser(ctx context.Context, user dto.User) (repository.User, error) {
+	ret := _m.Called(ctx, user)
 
-	if len(ret) == 0 {
-		panic("no return value specified for CreateNewUser")
-	}
-
-	var r0 dto.GetUserResp
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, dto.RegisterUser) (dto.GetUserResp, error)); ok {
-		return rf(ctx, u)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, dto.RegisterUser) dto.GetUserResp); ok {
-		r0 = rf(ctx, u)
+	var r0 repository.User
+	if rf, ok := ret.Get(0).(func(context.Context, dto.User) repository.User); ok {
+		r0 = rf(ctx, user)
 	} else {
-		r0 = ret.Get(0).(dto.GetUserResp)
+		r0 = ret.Get(0).(repository.User)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, dto.RegisterUser) error); ok {
-		r1 = rf(ctx, u)
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, dto.User) error); ok {
+		r1 = rf(ctx, user)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -73,22 +66,14 @@ func (_m *UserStorer) GetGradeByName(ctx context.Context, name string) (reposito
 }
 
 // GetRewardMultiplier provides a mock function with given fields: ctx
-func (_m *UserStorer) GetRewardMultiplier(ctx context.Context) (int, error) {
+func (_m *UserStorer) GetRewardMultiplier(ctx context.Context) (int64, error) {
 	ret := _m.Called(ctx)
 
-	if len(ret) == 0 {
-		panic("no return value specified for GetRewardMultiplier")
-	}
-
-	var r0 int
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context) (int, error)); ok {
-		return rf(ctx)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context) int); ok {
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(context.Context) int64); ok {
 		r0 = rf(ctx)
 	} else {
-		r0 = ret.Get(0).(int)
+		r0 = ret.Get(0).(int64)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
@@ -101,22 +86,14 @@ func (_m *UserStorer) GetRewardMultiplier(ctx context.Context) (int, error) {
 }
 
 // GetRoleByName provides a mock function with given fields: ctx, name
-func (_m *UserStorer) GetRoleByName(ctx context.Context, name string) (int, error) {
+func (_m *UserStorer) GetRoleByName(ctx context.Context, name string) (int64, error) {
 	ret := _m.Called(ctx, name)
 
-	if len(ret) == 0 {
-		panic("no return value specified for GetRoleByName")
-	}
-
-	var r0 int
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (int, error)); ok {
-		return rf(ctx, name)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) int); ok {
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(context.Context, string) int64); ok {
 		r0 = rf(ctx, name)
 	} else {
-		r0 = ret.Get(0).(int)
+		r0 = ret.Get(0).(int64)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
@@ -150,22 +127,14 @@ func (_m *UserStorer) GetTotalUserCount(ctx context.Context, reqData dto.UserLis
 }
 
 // GetUserByEmail provides a mock function with given fields: ctx, email
-func (_m *UserStorer) GetUserByEmail(ctx context.Context, email string) (dto.GetUserResp, error) {
+func (_m *UserStorer) GetUserByEmail(ctx context.Context, email string) (repository.User, error) {
 	ret := _m.Called(ctx, email)
 
-	if len(ret) == 0 {
-		panic("no return value specified for GetUserByEmail")
-	}
-
-	var r0 dto.GetUserResp
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (dto.GetUserResp, error)); ok {
-		return rf(ctx, email)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) dto.GetUserResp); ok {
+	var r0 repository.User
+	if rf, ok := ret.Get(0).(func(context.Context, string) repository.User); ok {
 		r0 = rf(ctx, email)
 	} else {
-		r0 = ret.Get(0).(dto.GetUserResp)
+		r0 = ret.Get(0).(repository.User)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
@@ -177,24 +146,16 @@ func (_m *UserStorer) GetUserByEmail(ctx context.Context, email string) (dto.Get
 	return r0, r1
 }
 
-// GetUserList provides a mock function with given fields: ctx, reqData
-func (_m *UserStorer) GetUserList(ctx context.Context, reqData dto.UserListReq) ([]dto.GetUserListResp, error) {
+// ListUsers provides a mock function with given fields: ctx, reqData
+func (_m *UserStorer) ListUsers(ctx context.Context, reqData dto.UserListReq) ([]repository.User, error) {
 	ret := _m.Called(ctx, reqData)
 
-	if len(ret) == 0 {
-		panic("no return value specified for GetUserList")
-	}
-
-	var r0 []dto.GetUserListResp
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, dto.UserListReq) ([]dto.GetUserListResp, error)); ok {
-		return rf(ctx, reqData)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, dto.UserListReq) []dto.GetUserListResp); ok {
+	var r0 []repository.User
+	if rf, ok := ret.Get(0).(func(context.Context, dto.UserListReq) []repository.User); ok {
 		r0 = rf(ctx, reqData)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]dto.GetUserListResp)
+			r0 = ret.Get(0).([]repository.User)
 		}
 	}
 
@@ -208,7 +169,7 @@ func (_m *UserStorer) GetUserList(ctx context.Context, reqData dto.UserListReq) 
 }
 
 // SyncData provides a mock function with given fields: ctx, updateData
-func (_m *UserStorer) SyncData(ctx context.Context, updateData dto.UpdateUserData) error {
+func (_m *UserStorer) SyncData(ctx context.Context, updateData dto.User) error {
 	ret := _m.Called(ctx, updateData)
 
 	if len(ret) == 0 {
@@ -216,7 +177,7 @@ func (_m *UserStorer) SyncData(ctx context.Context, updateData dto.UpdateUserDat
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, dto.UpdateUserData) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, dto.User) error); ok {
 		r0 = rf(ctx, updateData)
 	} else {
 		r0 = ret.Error(0)
