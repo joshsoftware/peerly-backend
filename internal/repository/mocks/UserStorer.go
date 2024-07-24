@@ -36,7 +36,7 @@ func (_m *UserStorer) BeginTx(ctx context.Context) (repository.Transaction, erro
 	return r0, r1
 }
 
-// CreateNewUser provides a mock function with given fields: ctx, u
+// CreateNewUser provides a mock function with given fields: ctx, user
 func (_m *UserStorer) CreateNewUser(ctx context.Context, user dto.User) (repository.User, error) {
 	ret := _m.Called(ctx, user)
 
@@ -73,6 +73,27 @@ func (_m *UserStorer) GetActiveUserList(ctx context.Context, tx repository.Trans
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, repository.Transaction) error); ok {
 		r1 = rf(ctx, tx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetGradeById provides a mock function with given fields: ctx, id
+func (_m *UserStorer) GetGradeById(ctx context.Context, id int64) (repository.Grade, error) {
+	ret := _m.Called(ctx, id)
+
+	var r0 repository.Grade
+	if rf, ok := ret.Get(0).(func(context.Context, int64) repository.Grade); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Get(0).(repository.Grade)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, int64) error); ok {
+		r1 = rf(ctx, id)
 	} else {
 		r1 = ret.Error(1)
 	}
