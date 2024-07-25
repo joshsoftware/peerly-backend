@@ -41,6 +41,17 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 
 	router.Handle("/users", listIntranetUsersHandler(deps.UserService)).Methods(http.MethodGet)
 
+	//badge
+	router.Handle("/badges",middleware.JwtAuthMiddleware(createBadgeHandler(deps.BadgeService), []string{constants.UserRole})).Methods(http.MethodPost).Headers(versionHeader, v1)
+	
+	router.Handle("/badges",middleware.JwtAuthMiddleware(listBadgesHandler(deps.BadgeService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
+
+	router.Handle("/badges/{id:[0-9]+}",middleware.JwtAuthMiddleware(getBadgeHandler(deps.BadgeService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
+
+	router.Handle("/badges/{id:[0-9]+}",middleware.JwtAuthMiddleware(deleteBadgeHandler(deps.BadgeService), []string{constants.UserRole})).Methods(http.MethodDelete).Headers(versionHeader, v1)
+	
+	router.Handle("/badges/{id:[0-9]+}",middleware.JwtAuthMiddleware(updateBadgeHandler(deps.BadgeService), []string{constants.UserRole})).Methods(http.MethodPatch).Headers(versionHeader, v1)
+
 	// No version requirement for /ping
 	router.HandleFunc("/ping", pingHandler).Methods(http.MethodGet)
 

@@ -1,0 +1,471 @@
+openapi: 3.0.3
+info:
+  title: Swagger Peerly
+  description: |-
+    Peer to peer appreciations
+  version: 1.0.11
+servers:
+  - url: http://localhost:33001/
+tags:
+  - name: Badges
+    description: Badge CRUD
+
+paths:
+
+  /badges/{id}:
+    put:
+      tags:
+        - Badges
+      summary: Update an existing badge
+      description: Update an existing badge by Id
+      operationId: updateBadge
+      parameters:
+        - name: id
+          in: path
+          description: ID of badge
+          required: true
+          schema:
+            type: integer
+            format: int8
+          example: 32
+        - in: header
+          name: Accept-Version
+          required: true
+          description: Defines the media type and version of the API endpoint
+          schema:
+            enum:
+              - 'application/vnd.peerly.v1'
+            type: string
+      requestBody:
+        description: Update an existing badge
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateBadge'
+        required: true
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BadgeUpdateSuccessResponse' 
+        '400':
+          description: Invalid input 
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                example-1:
+                  summary: Invalid Id
+                  value:
+                   success: false
+                   message: "invalid  id"
+                   status: 400
+                   data: null
+                example-2:
+                  summary: Invalid reward points
+                  value:
+                    success: false
+                    message: "invalid reward points"
+                    status: 400
+                    data: null
+        '404':
+          description: Badge id not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                example-1:
+                  summary: Badge id not found
+                  value:
+                   success: false
+                   message: "badge not found"
+                   status: 404
+                   data: null
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                example-1:
+                  summary: Internal server error
+                  value:
+                   success: false
+                   message: "Internal server error"
+                   status: 500
+                   data: null
+          
+    get:
+      tags:
+        - Badges
+      summary: Get badge
+      description: Get an badge by Id
+      operationId: getBadge
+      parameters:
+        - name: id
+          in: path
+          description: ID of badge
+          required: true
+          schema:
+            type: integer
+            format: int8
+          example: 32
+        - in: header
+          name: Accept-Version
+          required: true
+          description: Defines the media type and version of the API endpoint
+          schema:
+            enum:
+              - 'application/vnd.peerly.v1'
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BadgeSuccessResponse'          
+        '404':
+          description: Badge id not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                example-1:
+                  summary: Badge id not found
+                  value:
+                   success: false
+                   message: "badge not found"
+                   status: 404
+                   data: null
+
+        '409':
+          description: Conflict in data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                example-1:
+                  summary: Badge name already exists
+                  value:
+                   success: false
+                   message: "badge name already exists"
+                   status: 409
+                   data: null
+                example-2:
+                  summary: Badge reward points already exists
+                  value:
+                   success: false
+                   message: "badge reward points already exists"
+                   status: 409
+                   data: null
+
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                example-1:
+                  summary: Internal server error
+                  value:
+                   success: false
+                   message: "Internal server error"
+                   status: 500
+                   data: null
+                  
+    delete:
+      tags:
+        - Badges
+      summary: Delete badge
+      description: delete an badge by Id
+      operationId: deleteBadge
+      parameters:
+        - name: id
+          in: path
+          description: ID of badge
+          required: true
+          schema:
+            type: integer
+            format: int8
+          example: 32
+        - in: header
+          name: Accept-Version
+          required: true
+          description: Defines the media type and version of the API endpoint
+          schema:
+            enum:
+              - 'application/vnd.peerly.v1'
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BadgeDeleteSuccessResponse'          
+        '404':
+          description: Badge id not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                example-1:
+                  summary: Badge id not found
+                  value:
+                   success: false
+                   message: "badge not found"
+                   status: 404
+                   data: null
+
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                example-1:
+                  summary: Internal server error
+                  value:
+                   success: false
+                   message: "Internal server error"
+                   status: 500
+                   data: null
+                  
+  /badges:
+    post:
+      tags:
+        - Badges
+      summary: Create an new badge
+      description: Create an new badge 
+      operationId: createBadge
+      requestBody:
+        description: Create an new badge
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBadge'
+        required: true
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BadgeCreateSuccessResponse'          
+
+        '409':
+          description: Conflict in data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                example-1:
+                  summary: Badge name already exists
+                  value:
+                   success: false
+                   message: "badge name already exists"
+                   status: 409
+                   data: null
+                example-2:
+                  summary: Badge reward points already exists
+                  value:
+                   success: false
+                   message: "badge reward points already exists"
+                   status: 409
+                   data: null
+
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                example-1:
+                  summary: Internal server error
+                  value:
+                   success: false
+                   message: "Internal server error"
+                   status: 500
+                   data: null
+    get:
+      tags:
+        - Badges
+      summary: List all badges 
+      description: List all the badges
+      operationId: listBadges
+      parameters:
+        - in: header
+          name: Accept-Version
+          required: true
+          description: Defines the media type and version of the API endpoint
+          schema:
+            enum:
+              - 'application/vnd.peerly.v1'
+            type: string
+
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ListBadgeSuccessResponse'          
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                example-1:
+                  summary: Internal server error
+                  value:
+                   success: false
+                   message: "Internal server error"
+                   status: 500
+                   data: null
+
+components:
+  schemas:
+    SuccessResponse:
+      type: object
+      properties:
+        success: 
+          type: boolean
+          example: true
+        message:
+          type: string
+        status_code:
+          type: string
+        data:
+          type: object
+
+    ErrorResponse:
+      type: object
+      properties:
+        success: 
+          type: boolean
+        message:
+          type: string
+        status_code:
+          type: string
+        data:
+          type: object
+
+    UpdateBadge:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Gold
+        reward_points:
+          type: integer
+          example: 100
+    
+    CreateBadge:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Gold
+        reward_points:
+          type: integer
+          example: 100
+          
+    BadgeResp:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int8
+        name:
+          type: string
+          example: Gold
+        reward_points:
+          type: integer
+          example: 100
+
+    ListBadgeSuccessResponse:
+      type: object
+      properties:
+        success:
+          example: true
+        message:
+          example: "badge fetched successfully"
+        status_code:
+          example: 200
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/BadgeResp'
+
+    BadgeSuccessResponse:
+      type: object
+      properties:
+        success:
+          example: true
+        message:
+          example: "badge fetched successfully"
+        status_code:
+          example: 200
+        data:
+          $ref: '#/components/schemas/BadgeResp'
+
+    BadgeUpdateSuccessResponse:
+      type: object
+      properties:
+        success:
+          example: true
+        message:
+          example: "Appreciation data got successfully"
+        status_code:
+          example: 200
+        data:
+          $ref: '#/components/schemas/BadgeResp'
+
+    BadgeCreateSuccessResponse:
+      type: object
+      properties:
+        success:
+          example: true
+        message:
+          example: "Badge created successfully"
+        status_code:
+          example: 200
+        data:
+          $ref: '#/components/schemas/BadgeResp'
+
+    BadgeDeleteSuccessResponse:
+      type: object
+      properties:
+        success:
+          example: true
+        message:
+          example: "Badge deleted successfully"
+        status_code:
+          example: 200
+        data: 
+          example: null
