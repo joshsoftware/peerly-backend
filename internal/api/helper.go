@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -13,31 +12,37 @@ func getPaginationParams(req *http.Request) (page int16, limit int16) {
 	pageStr := req.URL.Query().Get("page")
 	limitStr := req.URL.Query().Get("page_size")
 
-	if pageStr == "" {
-		page = 1
-	} else {
+	// if pageStr == "" {
+	// 	page = 1
+	// } else {
+	// 	pageInt64, err := strconv.ParseInt(pageStr, 10, 32)
+	// 	if err != nil {
+	// 		logger.Errorf("err: %v",err)
+	// 		page = 1
+	// 	}
+
+	// 	if pageInt64 < 1 {
+	// 		pageInt64 = 1
+	// 	}
+	// 	page = int16(pageInt64)
+	// }
+
+	page = 1
+	if pageStr != "" {
 		pageInt64, err := strconv.ParseInt(pageStr, 10, 32)
 		if err != nil {
-			logger.Error(fmt.Sprintf("err: %v",err))
-			page = 1 
+			logger.Errorf("err: %v", err)
+		}else if pageInt64 > 0 {
+			page = int16(pageInt64)
 		}
-
-		if pageInt64 < 1 {
-			pageInt64 = 1
-		}
-		page = int16(pageInt64)
 	}
 
-	if limitStr == "" {
-		limit = 10
-	} else {
-		limitInt64, err := strconv.ParseInt(limitStr, 10, 16)
-		if err != nil  {
-			logger.Error(fmt.Sprintf("err: %v",err))
-			limit = 10
-		}
-		if limitInt64 < 1 {
-			limitInt64 = 10
+	limit = 10
+
+	if limitStr != "" {
+		limitInt64, err := strconv.ParseInt(limitStr, 10, 32)
+		if err != nil {
+			logger.Errorf("err: %v", err)
 		}else if limitInt64 > 1000 {
 			limitInt64 = 1000
 		}
@@ -46,16 +51,17 @@ func getPaginationParams(req *http.Request) (page int16, limit int16) {
 
 	return page, limit
 }
-func getSelfParam(req *http.Request) (bool) {
+func getSelfParam(req *http.Request) bool {
 	paramStr := req.URL.Query().Get("self")
 	if paramStr == "" {
 		return false
 	}
-	
+
 	boolValue, err := strconv.ParseBool(paramStr)
 	if err != nil {
+		logger.Errorf("err: %v", err)
 		return false
 	}
-	
+
 	return boolValue
 }

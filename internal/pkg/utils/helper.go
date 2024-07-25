@@ -27,7 +27,7 @@ func VarsStringToInt(inp string, label string) (result int64, err error) {
 }
 
 // GetQuarter returns financial quarter
-func GetQuarter() int {
+func GetQuarter() int8 {
 	month := int(time.Now().Month())
 	if month >= 1 && month <= 3 {
 		return 4
