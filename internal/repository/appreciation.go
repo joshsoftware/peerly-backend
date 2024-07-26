@@ -37,7 +37,7 @@ type AppreciationInfo struct {
 	Description         string         `db:"description"`
 	IsValid             bool           `db:"is_valid"`
 	TotalRewardPoints   int32          `db:"total_reward_points"`
-	Quarter             string         `db:"quarter"`
+	Quarter             int8         `db:"quarter"`
 	SenderID            int64          `db:"sender_id"`
 	SenderFirstName     string         `db:"sender_first_name"`
 	SenderLastName      string         `db:"sender_last_name"`

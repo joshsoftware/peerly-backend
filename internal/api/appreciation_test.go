@@ -34,9 +34,14 @@ func TestCreateAppreciationHandler(t *testing.T) {
 			},
 			mockSetup: func(mockSvc *mocks.Service) {
 				mockSvc.On("CreateAppreciation", mock.Anything, dto.Appreciation{
+					ID:1,
 					Description: "Great job!",
 					CoreValueID: 5,
+					TotalRewardPoints: 0,
+					Quarter: 2,
 					Receiver:    2,
+					CreatedAt: 1721631405219,
+					UpdatedAt: 1721631405219,
 				}).Return(dto.Appreciation{}, nil).Once()
 			},
 			expectedStatusCode: http.StatusCreated,
@@ -99,7 +104,26 @@ func TestGetAppreciationByIdHandler(t *testing.T) {
 			name: "successful retrieval",
 			id:   "1",
 			mockSetup: func(mockSvc *mocks.Service) {
-				mockSvc.On("GetAppreciationById", mock.Anything, int32(1)).Return(dto.ResponseAppreciation{}, nil).Once()
+				mockSvc.On("GetAppreciationById", mock.Anything, int32(1)).Return(dto.ResponseAppreciation{
+					ID:1,
+					Description: "Great job!",
+					CoreValueName: "Trust",
+					CoreValueDesc: "We foster trust by being transparent,reliable, and accountable in all our actions.",
+					TotalRewardPoints: 0,
+					Quarter: 2,
+					SenderFirstName: "John",
+					SenderLastName : "Doe",
+					SenderImageURL    :"example.com",
+					SenderDesignation : "Software Engineer",
+					ReceiverFirstName  : "Rohit",
+					ReceiverLastName   : "Patil",
+					ReceiverImageURL   : "example.com",
+					ReceiverDesignation : "senior software engineer",
+					TotalRewards        : 5,
+					GivenRewardPoint    : 2,
+					CreatedAt: 1721631405219,
+					UpdatedAt: 1721631405219,
+				}, nil).Once()
 			},
 			expectedStatusCode: http.StatusOK,
 		},
@@ -162,7 +186,36 @@ func TestGetAppreciationsHandler(t *testing.T) {
 					SortOrder: "asc",
 					Page:      1,
 					Limit:     5,
-				}).Return(dto.GetAppreciationResponse{}, nil).Once()
+				}).Return(dto.GetAppreciationResponse{
+					Appreciations: []dto.ResponseAppreciation{
+						{
+							ID:1,
+							Description: "Great job!",
+							CoreValueName: "Trust",
+							CoreValueDesc: "We foster trust by being transparent,reliable, and accountable in all our actions.",
+							TotalRewardPoints: 0,
+							Quarter: 2,
+							SenderFirstName: "John",
+							SenderLastName : "Doe",
+							SenderImageURL    :"example.com",
+							SenderDesignation : "Software Engineer",
+							ReceiverFirstName  : "Rohit",
+							ReceiverLastName   : "Patil",
+							ReceiverImageURL   : "example.com",
+							ReceiverDesignation : "senior software engineer",
+							TotalRewards        : 5,
+							GivenRewardPoint    : 2,
+							CreatedAt: 1721631405219,
+							UpdatedAt: 1721631405219,
+						},
+					},
+					MetaData: dto.Pagination{
+						CurrentPage: 1,
+						TotalPage: 2,
+						PageSize: 5,
+						TotalRecords: 12,
+					},
+				}, nil).Once()
 			},
 			expectedStatusCode: http.StatusOK,
 		},
