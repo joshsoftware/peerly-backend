@@ -26,7 +26,7 @@ type AppreciationFilter struct {
 	Limit     int16  `json:"page_size"`
 }
 
-type ResponseAppreciation struct {
+type AppreciationResponse struct {
 	ID                  int64  `json:"id"`
 	CoreValueName       string `json:"core_value_name"`
 	CoreValueDesc       string `json:"core_value_description"`
@@ -55,8 +55,8 @@ type Pagination struct {
 	TotalRecords int32 `json:"total_records"`
 }
 
-type GetAppreciationResponse struct {
-	Appreciations []ResponseAppreciation `json:"appreciations"`
+type ListAppreciationsResponse struct {
+	Appreciations []AppreciationResponse `json:"appreciations"`
 	MetaData      Pagination             `json:"metadata"`
 }
 

@@ -34,15 +34,19 @@ func TestCreateAppreciationHandler(t *testing.T) {
 			},
 			mockSetup: func(mockSvc *mocks.Service) {
 				mockSvc.On("CreateAppreciation", mock.Anything, dto.Appreciation{
-					ID:1,
 					Description: "Great job!",
 					CoreValueID: 5,
-					TotalRewardPoints: 0,
-					Quarter: 2,
 					Receiver:    2,
-					CreatedAt: 1721631405219,
-					UpdatedAt: 1721631405219,
-				}).Return(dto.Appreciation{}, nil).Once()
+				}).Return(dto.Appreciation{
+					ID:                1,
+					Description:       "Great job!",
+					CoreValueID:       5,
+					TotalRewardPoints: 0,
+					Quarter:           2,
+					Receiver:          2,
+					CreatedAt:         1721631405219,
+					UpdatedAt:         1721631405219,
+				}, nil).Once()
 			},
 			expectedStatusCode: http.StatusCreated,
 		},
@@ -104,25 +108,25 @@ func TestGetAppreciationByIdHandler(t *testing.T) {
 			name: "successful retrieval",
 			id:   "1",
 			mockSetup: func(mockSvc *mocks.Service) {
-				mockSvc.On("GetAppreciationById", mock.Anything, int32(1)).Return(dto.ResponseAppreciation{
-					ID:1,
-					Description: "Great job!",
-					CoreValueName: "Trust",
-					CoreValueDesc: "We foster trust by being transparent,reliable, and accountable in all our actions.",
-					TotalRewardPoints: 0,
-					Quarter: 2,
-					SenderFirstName: "John",
-					SenderLastName : "Doe",
-					SenderImageURL    :"example.com",
-					SenderDesignation : "Software Engineer",
-					ReceiverFirstName  : "Rohit",
-					ReceiverLastName   : "Patil",
-					ReceiverImageURL   : "example.com",
-					ReceiverDesignation : "senior software engineer",
-					TotalRewards        : 5,
-					GivenRewardPoint    : 2,
-					CreatedAt: 1721631405219,
-					UpdatedAt: 1721631405219,
+				mockSvc.On("GetAppreciationById", mock.Anything, int32(1)).Return(dto.AppreciationResponse{
+					ID:                  1,
+					Description:         "Great job!",
+					CoreValueName:       "Trust",
+					CoreValueDesc:       "We foster trust by being transparent,reliable, and accountable in all our actions.",
+					TotalRewardPoints:   0,
+					Quarter:             2,
+					SenderFirstName:     "John",
+					SenderLastName:      "Doe",
+					SenderImageURL:      "example.com",
+					SenderDesignation:   "Software Engineer",
+					ReceiverFirstName:   "Rohit",
+					ReceiverLastName:    "Patil",
+					ReceiverImageURL:    "example.com",
+					ReceiverDesignation: "senior software engineer",
+					TotalRewards:        5,
+					GivenRewardPoint:    2,
+					CreatedAt:           1721631405219,
+					UpdatedAt:           1721631405219,
 				}, nil).Once()
 			},
 			expectedStatusCode: http.StatusOK,
@@ -131,7 +135,7 @@ func TestGetAppreciationByIdHandler(t *testing.T) {
 			name: "service error",
 			id:   "1",
 			mockSetup: func(mockSvc *mocks.Service) {
-				mockSvc.On("GetAppreciationById", mock.Anything, int32(1)).Return(dto.ResponseAppreciation{}, apperrors.InternalServer).Once()
+				mockSvc.On("GetAppreciationById", mock.Anything, int32(1)).Return(dto.AppreciationResponse{}, apperrors.InternalServer).Once()
 			},
 			expectedStatusCode: http.StatusInternalServerError,
 		},
@@ -139,7 +143,7 @@ func TestGetAppreciationByIdHandler(t *testing.T) {
 			name: "appreciation not found",
 			id:   "1",
 			mockSetup: func(mockSvc *mocks.Service) {
-				mockSvc.On("GetAppreciationById", mock.Anything, int32(1)).Return(dto.ResponseAppreciation{}, apperrors.AppreciationNotFound).Once()
+				mockSvc.On("GetAppreciationById", mock.Anything, int32(1)).Return(dto.AppreciationResponse{}, apperrors.AppreciationNotFound).Once()
 			},
 			expectedStatusCode: http.StatusNotFound,
 		},
@@ -162,7 +166,7 @@ func TestGetAppreciationByIdHandler(t *testing.T) {
 	}
 }
 
-func TestGetAppreciationsHandler(t *testing.T) {
+func TestListAppreciationsHandler(t *testing.T) {
 	appreciationSvc := new(mocks.Service)
 	handler := listAppreciationsHandler(appreciationSvc)
 
@@ -184,35 +188,36 @@ func TestGetAppreciationsHandler(t *testing.T) {
 				mockSvc.On("ListAppreciations", mock.Anything, dto.AppreciationFilter{
 					Name:      "John Doe",
 					SortOrder: "asc",
+					Self:      false,
 					Page:      1,
 					Limit:     5,
-				}).Return(dto.GetAppreciationResponse{
-					Appreciations: []dto.ResponseAppreciation{
+				}).Return(dto.ListAppreciationsResponse{
+					Appreciations: []dto.AppreciationResponse{
 						{
-							ID:1,
-							Description: "Great job!",
-							CoreValueName: "Trust",
-							CoreValueDesc: "We foster trust by being transparent,reliable, and accountable in all our actions.",
-							TotalRewardPoints: 0,
-							Quarter: 2,
-							SenderFirstName: "John",
-							SenderLastName : "Doe",
-							SenderImageURL    :"example.com",
-							SenderDesignation : "Software Engineer",
-							ReceiverFirstName  : "Rohit",
-							ReceiverLastName   : "Patil",
-							ReceiverImageURL   : "example.com",
-							ReceiverDesignation : "senior software engineer",
-							TotalRewards        : 5,
-							GivenRewardPoint    : 2,
-							CreatedAt: 1721631405219,
-							UpdatedAt: 1721631405219,
+							ID:                  1,
+							Description:         "Great job!",
+							CoreValueName:       "Trust",
+							CoreValueDesc:       "We foster trust by being transparent,reliable, and accountable in all our actions.",
+							TotalRewardPoints:   0,
+							Quarter:             2,
+							SenderFirstName:     "John",
+							SenderLastName:      "Doe",
+							SenderImageURL:      "example.com",
+							SenderDesignation:   "Software Engineer",
+							ReceiverFirstName:   "Rohit",
+							ReceiverLastName:    "Patil",
+							ReceiverImageURL:    "example.com",
+							ReceiverDesignation: "senior software engineer",
+							TotalRewards:        5,
+							GivenRewardPoint:    2,
+							CreatedAt:           1721631405219,
+							UpdatedAt:           1721631405219,
 						},
 					},
 					MetaData: dto.Pagination{
-						CurrentPage: 1,
-						TotalPage: 2,
-						PageSize: 5,
+						CurrentPage:  1,
+						TotalPage:    2,
+						PageSize:     5,
 						TotalRecords: 12,
 					},
 				}, nil).Once()
@@ -221,14 +226,20 @@ func TestGetAppreciationsHandler(t *testing.T) {
 		},
 		{
 			name:        "service error",
-			queryParams: map[string]string{},
+			queryParams: map[string]string{
+				"name":       "John Doe",
+				"sort_order": "asc",
+				"page":       "1",
+				"page_size":  "10",
+			},
 			mockSetup: func(mockSvc *mocks.Service) {
-				mockSvc.On("GetAppreciations", mock.Anything, dto.AppreciationFilter{
-					Name:      "",
-					SortOrder: "",
+				mockSvc.On("ListAppreciations", mock.Anything, dto.AppreciationFilter{
+					Name:      "John Doe",
+					SortOrder: "asc",
+					Self:      false,
 					Page:      1,
 					Limit:     10,
-				}).Return(dto.GetAppreciationResponse{}, apperrors.InternalServer).Once()
+				}).Return(dto.ListAppreciationsResponse{}, apperrors.InternalServer).Once()
 			},
 			expectedStatusCode: http.StatusInternalServerError,
 		},

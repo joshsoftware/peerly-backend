@@ -38,10 +38,9 @@ func TestCreateAppreciation(t *testing.T) {
 			},
 			setup: func(apprMock *mocks.AppreciationStorer, coreValueRepo *mocks.CoreValueStorer) {
 				tx := &sql.Tx{}
+				apprMock.On("IsUserPresent", mock.Anything, nil, int64(2)).Return(true, nil).Once()
 				apprMock.On("BeginTx", mock.Anything).Return(tx, nil).Once()
-				apprMock.On("IsUserPresent", mock.Anything, nil, int64(1)).Return(true, nil).Once()
 				coreValueRepo.On("GetCoreValue", mock.Anything, int64(1)).Return(repository.CoreValue{ID: 1}, nil).Once()
-				apprMock.On("IsUserPresent", mock.Anything, tx, int64(2)).Return(true, nil).Once()
 				apprMock.On("CreateAppreciation", mock.Anything, tx, mock.Anything).Return(repository.Appreciation{ID: 1}, nil).Once()
 				apprMock.On("HandleTransaction", mock.Anything, tx, true).Return(nil).Once()
 			},
@@ -58,8 +57,8 @@ func TestCreateAppreciation(t *testing.T) {
 			},
 			setup: func(apprMock *mocks.AppreciationStorer, coreValueRepo *mocks.CoreValueStorer) {
 				tx := &sql.Tx{}
+				apprMock.On("IsUserPresent", mock.Anything, nil, int64(2)).Return(true, nil).Once()
 				apprMock.On("BeginTx", mock.Anything).Return(tx, nil).Once()
-				apprMock.On("IsUserPresent", mock.Anything, nil, int64(1)).Return(true, nil).Once()
 				coreValueRepo.On("GetCoreValue", mock.Anything, int64(1)).Return(repository.CoreValue{}, apperrors.InvalidCoreValueData).Once()
 				apprMock.On("HandleTransaction", mock.Anything, tx, false).Return(apperrors.InvalidCoreValueData).Once()
 			},
@@ -77,17 +76,15 @@ func TestCreateAppreciation(t *testing.T) {
 			},
 			setup: func(apprMock *mocks.AppreciationStorer, coreValueRepo *mocks.CoreValueStorer) {
 				tx := &sql.Tx{}
+				apprMock.On("IsUserPresent", mock.Anything, nil, int64(2)).Return(false, apperrors.UserNotFound).Once() // Ensure correct transaction context
 				apprMock.On("BeginTx", mock.Anything).Return(tx, nil).Once()
-				apprMock.On("IsUserPresent", mock.Anything, nil, int64(1)).Return(true, nil).Once() // Mock sender presence check
 				coreValueRepo.On("GetCoreValue", mock.Anything, int64(1)).Return(repository.CoreValue{}, nil).Once()
-				apprMock.On("IsUserPresent", mock.Anything, tx, int64(2)).Return(false, apperrors.UserNotFound).Once() // Ensure correct transaction context
 				apprMock.On("HandleTransaction", mock.Anything, tx, false).Return(nil).Once()
 			},
 			isErrorExpected: true,
 			expectedResult:  dto.Appreciation{},
 			expectedError:   apperrors.UserNotFound,
 		},
-
 		{
 			name:    "transaction failure",
 			context: context.WithValue(context.Background(), constants.UserId, int64(1)),
@@ -136,7 +133,7 @@ func TestGetAppreciationById(t *testing.T) {
 		appreciationId  int32
 		setup           func(apprMock *mocks.AppreciationStorer)
 		isErrorExpected bool
-		expectedResult  dto.ResponseAppreciation
+		expectedResult  dto.AppreciationResponse
 		expectedError   error
 	}{
 		{
@@ -144,13 +141,13 @@ func TestGetAppreciationById(t *testing.T) {
 			context:        context.WithValue(context.Background(), constants.UserId, int64(1)),
 			appreciationId: 1,
 			setup: func(apprMock *mocks.AppreciationStorer) {
-				apprMock.On("GetAppreciationById", mock.Anything, mock.Anything, int32(1)).Return(repository.AppreciationInfo{
+				apprMock.On("GetAppreciationById", mock.Anything, mock.Anything, int32(1)).Return(repository.AppreciationResponse{
 					ID:                  1,
 					CoreValueName:       "Integrity",
 					Description:         "Great work",
 					IsValid:             true,
 					TotalRewards:        100,
-					Quarter:             1,
+					Quarter:             2,
 					SenderFirstName:     "John",
 					SenderLastName:      "Doe",
 					SenderImageURL:      sql.NullString{String: "image_url", Valid: true},
@@ -164,7 +161,7 @@ func TestGetAppreciationById(t *testing.T) {
 				}, nil).Once()
 			},
 			isErrorExpected: false,
-			expectedResult: dto.ResponseAppreciation{
+			expectedResult: dto.AppreciationResponse{
 				ID:                  1,
 				CoreValueName:       "Integrity",
 				Description:         "Great work",
@@ -188,10 +185,10 @@ func TestGetAppreciationById(t *testing.T) {
 			context:        context.WithValue(context.Background(), constants.UserId, int64(1)),
 			appreciationId: 1,
 			setup: func(apprMock *mocks.AppreciationStorer) {
-				apprMock.On("GetAppreciationById", mock.Anything, mock.Anything, int32(1)).Return(repository.AppreciationInfo{}, apperrors.AppreciationNotFound).Once()
+				apprMock.On("GetAppreciationById", mock.Anything, mock.Anything, int32(1)).Return(repository.AppreciationResponse{}, apperrors.AppreciationNotFound).Once()
 			},
 			isErrorExpected: true,
-			expectedResult:  dto.ResponseAppreciation{},
+			expectedResult:  dto.AppreciationResponse{},
 			expectedError:   apperrors.AppreciationNotFound,
 		},
 		{
@@ -199,10 +196,10 @@ func TestGetAppreciationById(t *testing.T) {
 			context:        context.WithValue(context.Background(), constants.UserId, int64(1)),
 			appreciationId: 1,
 			setup: func(apprMock *mocks.AppreciationStorer) {
-				apprMock.On("GetAppreciationById", mock.Anything, mock.Anything, int32(1)).Return(repository.AppreciationInfo{}, errors.New("database error"))
+				apprMock.On("GetAppreciationById", mock.Anything, mock.Anything, int32(1)).Return(repository.AppreciationResponse{}, errors.New("database error"))
 			},
 			isErrorExpected: true,
-			expectedResult:  dto.ResponseAppreciation{},
+			expectedResult:  dto.AppreciationResponse{},
 			expectedError:   errors.New("database error"),
 		},
 	}

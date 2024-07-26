@@ -11,8 +11,8 @@ type AppreciationStorer interface {
 	RepositoryTransaction
 
 	CreateAppreciation(ctx context.Context, tx Transaction, appreciation dto.Appreciation) (Appreciation, error)
-	GetAppreciationById(ctx context.Context, tx Transaction, appreciationId int32) (AppreciationInfo, error)
-	ListAppreciations(ctx context.Context, tx Transaction, filter dto.AppreciationFilter) ([]AppreciationInfo, Pagination, error)
+	GetAppreciationById(ctx context.Context, tx Transaction, appreciationId int32) (AppreciationResponse, error)
+	ListAppreciations(ctx context.Context, tx Transaction, filter dto.AppreciationFilter) ([]AppreciationResponse, Pagination, error)
 	DeleteAppreciation(ctx context.Context, tx Transaction, apprId int32) error
 	IsUserPresent(ctx context.Context, tx Transaction, userID int64) (bool, error)
 }
@@ -30,7 +30,7 @@ type Appreciation struct {
 	UpdatedAt         int64  `db:"updated_at"`
 }
 
-type AppreciationInfo struct {
+type AppreciationResponse struct {
 	ID                  int64          `db:"id"`
 	CoreValueName       string         `db:"core_value_name"`
 	CoreValueDesc       string         `db:"core_value_description"`

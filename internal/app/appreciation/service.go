@@ -19,8 +19,8 @@ type service struct {
 // Service contains all
 type Service interface {
 	CreateAppreciation(ctx context.Context, appreciation dto.Appreciation) (dto.Appreciation, error)
-	GetAppreciationById(ctx context.Context, appreciationId int32) (dto.ResponseAppreciation, error)
-	ListAppreciations(ctx context.Context, filter dto.AppreciationFilter) (dto.GetAppreciationResponse, error)
+	GetAppreciationById(ctx context.Context, appreciationId int32) (dto.AppreciationResponse, error)
+	ListAppreciations(ctx context.Context, filter dto.AppreciationFilter) (dto.ListAppreciationsResponse, error)
 	DeleteAppreciation(ctx context.Context, apprId int32) error
 }
 
@@ -100,31 +100,31 @@ func (apprSvc *service) CreateAppreciation(ctx context.Context, appreciation dto
 	return mapAppreciationDBToDTO(appr), nil
 }
 
-func (apprSvc *service) GetAppreciationById(ctx context.Context, appreciationId int32) (dto.ResponseAppreciation, error) {
+func (apprSvc *service) GetAppreciationById(ctx context.Context, appreciationId int32) (dto.AppreciationResponse, error) {
 
 	resAppr, err := apprSvc.appreciationRepo.GetAppreciationById(ctx, nil, appreciationId)
 	if err != nil {
 		logger.Errorf("err: %v", err)
-		return dto.ResponseAppreciation{}, err
+		return dto.AppreciationResponse{}, err
 	}
 
 	return mapRepoGetAppreciationInfoToDTOGetAppreciationInfo(resAppr), nil
 }
 
-func (apprSvc *service) ListAppreciations(ctx context.Context, filter dto.AppreciationFilter) (dto.GetAppreciationResponse, error) {
+func (apprSvc *service) ListAppreciations(ctx context.Context, filter dto.AppreciationFilter) (dto.ListAppreciationsResponse, error) {
 
 	infos, pagination, err := apprSvc.appreciationRepo.ListAppreciations(ctx, nil, filter)
 	if err != nil {
 		logger.Errorf("err: %v", err)
-		return dto.GetAppreciationResponse{}, err
+		return dto.ListAppreciationsResponse{}, err
 	}
 
-	responses := make([]dto.ResponseAppreciation, 0)
+	responses := make([]dto.AppreciationResponse, 0)
 	for _, info := range infos {
 		responses = append(responses, mapRepoGetAppreciationInfoToDTOGetAppreciationInfo(info))
 	}
 	paginationResp := dtoPagination(pagination)
-	return dto.GetAppreciationResponse{Appreciations: responses, MetaData: paginationResp}, nil
+	return dto.ListAppreciationsResponse{Appreciations: responses, MetaData: paginationResp}, nil
 }
 
 func (apprSvc *service) DeleteAppreciation(ctx context.Context, apprId int32) error {

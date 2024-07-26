@@ -95,22 +95,22 @@ func (_m *AppreciationStorer) DeleteAppreciation(ctx context.Context, tx reposit
 }
 
 // GetAppreciationById provides a mock function with given fields: ctx, tx, appreciationId
-func (_m *AppreciationStorer) GetAppreciationById(ctx context.Context, tx repository.Transaction, appreciationId int32) (repository.AppreciationInfo, error) {
+func (_m *AppreciationStorer) GetAppreciationById(ctx context.Context, tx repository.Transaction, appreciationId int32) (repository.AppreciationResponse, error) {
 	ret := _m.Called(ctx, tx, appreciationId)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetAppreciationById")
 	}
 
-	var r0 repository.AppreciationInfo
+	var r0 repository.AppreciationResponse
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, repository.Transaction, int32) (repository.AppreciationInfo, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, repository.Transaction, int32) (repository.AppreciationResponse, error)); ok {
 		return rf(ctx, tx, appreciationId)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, repository.Transaction, int32) repository.AppreciationInfo); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, repository.Transaction, int32) repository.AppreciationResponse); ok {
 		r0 = rf(ctx, tx, appreciationId)
 	} else {
-		r0 = ret.Get(0).(repository.AppreciationInfo)
+		r0 = ret.Get(0).(repository.AppreciationResponse)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, repository.Transaction, int32) error); ok {
@@ -189,24 +189,24 @@ func (_m *AppreciationStorer) IsUserPresent(ctx context.Context, tx repository.T
 }
 
 // ListAppreciations provides a mock function with given fields: ctx, tx, filter
-func (_m *AppreciationStorer) ListAppreciations(ctx context.Context, tx repository.Transaction, filter dto.AppreciationFilter) ([]repository.AppreciationInfo, repository.Pagination, error) {
+func (_m *AppreciationStorer) ListAppreciations(ctx context.Context, tx repository.Transaction, filter dto.AppreciationFilter) ([]repository.AppreciationResponse, repository.Pagination, error) {
 	ret := _m.Called(ctx, tx, filter)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListAppreciations")
 	}
 
-	var r0 []repository.AppreciationInfo
+	var r0 []repository.AppreciationResponse
 	var r1 repository.Pagination
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, repository.Transaction, dto.AppreciationFilter) ([]repository.AppreciationInfo, repository.Pagination, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, repository.Transaction, dto.AppreciationFilter) ([]repository.AppreciationResponse, repository.Pagination, error)); ok {
 		return rf(ctx, tx, filter)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, repository.Transaction, dto.AppreciationFilter) []repository.AppreciationInfo); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, repository.Transaction, dto.AppreciationFilter) []repository.AppreciationResponse); ok {
 		r0 = rf(ctx, tx, filter)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]repository.AppreciationInfo)
+			r0 = ret.Get(0).([]repository.AppreciationResponse)
 		}
 	}
 
