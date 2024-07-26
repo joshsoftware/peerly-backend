@@ -8,10 +8,10 @@ import (
 
 type Appreciation struct {
 	ID                int64  `json:"id"`
-	CoreValueID       int64    `json:"core_value_id" `
+	CoreValueID       int64  `json:"core_value_id" `
 	Description       string `json:"description"`
-	TotalRewardPoints int32    `json:"total_reward_points,omitempty"`
-	Quarter           int8    `json:"quarter"`
+	TotalRewardPoints int32  `json:"total_reward_points,omitempty"`
+	Quarter           int8   `json:"quarter"`
 	Sender            int64  `json:"sender"`
 	Receiver          int64  `json:"receiver"`
 	CreatedAt         int64  `json:"created_at"`
@@ -27,11 +27,11 @@ type AppreciationFilter struct {
 }
 
 type ResponseAppreciation struct {
-	ID                  int64    `json:"id"`
+	ID                  int64  `json:"id"`
 	CoreValueName       string `json:"core_value_name"`
 	CoreValueDesc       string `json:"core_value_description"`
 	Description         string `json:"description"`
-	TotalRewardPoints   int32    `json:"total_reward_points"`
+	TotalRewardPoints   int32  `json:"total_reward_points"`
 	Quarter             string `json:"quarter"`
 	SenderFirstName     string `json:"sender_first_name"`
 	SenderLastName      string `json:"sender_last_name"`
@@ -41,17 +41,18 @@ type ResponseAppreciation struct {
 	ReceiverLastName    string `json:"receiver_last_name"`
 	ReceiverImageURL    string `json:"receiver_image_url"`
 	ReceiverDesignation string `json:"receiver_designation"`
-	TotalRewards        int32    `json:"total_rewards"`
-	GivenRewardPoint    int8    `json:"given_reward_point"`
+	TotalRewards        int32  `json:"total_rewards"`
+	GivenRewardPoint    int8   `json:"given_reward_point"`
 	CreatedAt           int64  `json:"created_at"`
 	UpdatedAt           int64  `json:"updated_at"`
 }
 
 // Pagination Object
 type Pagination struct {
-	CurrentPage int16 `json:"page"`
-	TotalPage   int16 `json:"total_page"`
-	PageSize    int16 `json:"page_size"`
+	CurrentPage  int16 `json:"page"`
+	TotalPage    int16 `json:"total_page"`
+	PageSize     int16 `json:"page_size"`
+	TotalRecords int32 `json:"total_records"`
 }
 
 type GetAppreciationResponse struct {
@@ -62,7 +63,7 @@ type GetAppreciationResponse struct {
 func (appr *Appreciation) ValidateCreateAppreciation() (err error) {
 
 	appr.Description = strings.TrimSpace(appr.Description)
-	
+
 	if appr.CoreValueID <= 0 {
 		return apperrors.InvalidCoreValueID
 	}

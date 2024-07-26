@@ -62,5 +62,6 @@ func dtoPagination(pagination repository.Pagination) dto.Pagination {
 		CurrentPage: pagination.CurrentPage,
 		TotalPage:   pagination.TotalPage,
 		PageSize:    pagination.RecordPerPage,
+		TotalRecords: pagination.TotalRecords,
 	}
 }
