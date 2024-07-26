@@ -61,4 +61,5 @@ type Pagination struct {
 	RecordPerPage int16
 	CurrentPage   int16
 	TotalPage     int16
+	TotalRecords  int32
 }

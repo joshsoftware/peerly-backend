@@ -45,9 +45,10 @@ type ResponseAppreciation struct {
 
 // Pagination Object
 type Pagination struct {
-	CurrentPage int16 `json:"page"`
-	TotalPage   int16 `json:"total_page"`
-	PageSize    int16 `json:"page_size"`
+	CurrentPage  int16 `json:"page"`
+	TotalPage    int16 `json:"total_page"`
+	PageSize     int16 `json:"page_size"`
+	TotalRecords int32 `json:"total_records"`
 }
 
 type GetAppreciationResponse struct {

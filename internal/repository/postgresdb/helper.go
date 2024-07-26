@@ -15,6 +15,7 @@ func getPaginationMetaData(page int16, limit int16, totalRecords int32) reposito
 	pagination.TotalPage = int16(totalPages)
 	pagination.CurrentPage = page
 	pagination.RecordPerPage = limit
+	pagination.TotalRecords =  totalRecords
 	return pagination
 }
 
