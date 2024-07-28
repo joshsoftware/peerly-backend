@@ -28,10 +28,10 @@ type appreciationsStore struct {
 func NewAppreciationRepo(db *sqlx.DB) repository.AppreciationStorer {
 	return &appreciationsStore{
 		BaseRepository:     BaseRepository{db},
-		TableAppreciations: "appreciations",
-		TableRewards:       "rewards",
-		TableUsers:         "users",
-		TableCoreValues:    "core_values",
+		TableAppreciations: constants.Appreciations,
+		TableRewards:       constants.Rewards,
+		TableUsers:         constants.Users,
+		TableCoreValues:    constants.CoreValues,
 	}
 }
 
@@ -39,27 +39,27 @@ func (appr *appreciationsStore) CreateAppreciation(ctx context.Context, tx repos
 
 	queryExecutor := appr.InitiateQueryExecutor(tx)
 
-	insertQuery, args, err := sq.
+	insertQuery, args, err := repository.Sq.
 		Insert(appr.TableAppreciations).Columns(AppreciationColumns[1:]...).
 		Values(appreciation.CoreValueID, appreciation.Description, appreciation.Quarter, appreciation.Sender, appreciation.Receiver).
 		Suffix("RETURNING id,core_value_id, description,total_reward_points,quarter,sender,receiver,created_at,updated_at").
 		ToSql()
 	if err != nil {
-		logger.Error(fmt.Sprintf("error in generating squirrel query, err: %v", err))
+		logger.Errorf("error in generating squirrel query, err: %v", err)
 		return repository.Appreciation{}, apperrors.InternalServerError
 	}
 
 	var resAppr repository.Appreciation
 	err = queryExecutor.QueryRowx(insertQuery, args...).StructScan(&resAppr)
 	if err != nil {
-		logger.Error(fmt.Sprintf("Error executing create appreciation insert query: %v", err))
+		logger.Errorf("Error executing create appreciation insert query: %v", err)
 		return repository.Appreciation{}, apperrors.InternalServer
 	}
 
 	return resAppr, nil
 }
 
-func (appr *appreciationsStore) GetAppreciationById(ctx context.Context, tx repository.Transaction, apprId int32) (repository.AppreciationInfo, error) {
+func (appr *appreciationsStore) GetAppreciationById(ctx context.Context, tx repository.Transaction, apprId int32) (repository.AppreciationResponse, error) {
 
 	queryExecutor := appr.InitiateQueryExecutor(tx)
 
@@ -68,11 +68,11 @@ func (appr *appreciationsStore) GetAppreciationById(ctx context.Context, tx repo
 	userID, ok := data.(int64)
 	if !ok {
 		logger.Error("err in parsing userID from token")
-		return repository.AppreciationInfo{}, apperrors.InternalServer
+		return repository.AppreciationResponse{}, apperrors.InternalServer
 	}
 
 	// Build the SQL query
-	query, args, err := sq.Select(
+	query, args, err := repository.Sq.Select(
 		"a.id",
 		"cv.name AS core_value_name",
 		"a.description",
@@ -107,29 +107,29 @@ func (appr *appreciationsStore) GetAppreciationById(ctx context.Context, tx repo
 			squirrel.Eq{"a.id": apprId},
 			squirrel.Eq{"a.is_valid": true},
 		}).
-		GroupBy("a.id","cv.name","u_sender.id","u_receiver.id").
+		GroupBy("a.id", "cv.name", "u_sender.id", "u_receiver.id").
 		ToSql()
 
 	if err != nil {
-		logger.Error(fmt.Sprintf("error in generating squirrel query, err: %v", err))
-		return repository.AppreciationInfo{}, apperrors.InternalServer
+		logger.Errorf("error in generating squirrel query, err: %v", err)
+		return repository.AppreciationResponse{}, apperrors.InternalServer
 	}
 
-	var resAppr repository.AppreciationInfo
+	var resAppr repository.AppreciationResponse
 
 	// Execute the query
 	err = queryExecutor.QueryRowx(query, args...).StructScan(&resAppr)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			logger.Warn(fmt.Sprintf("no appreciation found with id: %d", apprId))
-			return repository.AppreciationInfo{}, apperrors.AppreciationNotFound
+			return repository.AppreciationResponse{}, apperrors.AppreciationNotFound
 		}
-		logger.Error(fmt.Sprintf("failed to execute query: %v", err))
-		return repository.AppreciationInfo{}, apperrors.InternalServer
+		logger.Errorf("failed to execute query: %v", err)
+		return repository.AppreciationResponse{}, apperrors.InternalServer
 	}
 	return resAppr, nil
 }
-func (appr *appreciationsStore) GetAppreciations(ctx context.Context, tx repository.Transaction, filter dto.AppreciationFilter) ([]repository.AppreciationInfo, repository.Pagination, error) {
+func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx repository.Transaction, filter dto.AppreciationFilter) ([]repository.AppreciationResponse, repository.Pagination, error) {
 
 	queryExecutor := appr.InitiateQueryExecutor(tx)
 
@@ -138,48 +138,50 @@ func (appr *appreciationsStore) GetAppreciations(ctx context.Context, tx reposit
 	userID, ok := data.(int64)
 	if !ok {
 		logger.Error("err in parsing userID from token")
-		return []repository.AppreciationInfo{}, repository.Pagination{}, apperrors.InternalServerError
+		return []repository.AppreciationResponse{}, repository.Pagination{}, apperrors.InternalServerError
 	}
 
 	// query builder for counting total records
-	countQueryBuilder := sq.Select("COUNT(*)").
+	queryBuilder := repository.Sq.Select("COUNT(*)").
 		From("appreciations a").
 		LeftJoin("users u_sender ON a.sender = u_sender.id").
 		LeftJoin("users u_receiver ON a.receiver = u_receiver.id").
 		LeftJoin("core_values cv ON a.core_value_id = cv.id").
 		Where(squirrel.Eq{"a.is_valid": true})
+
 	if filter.Name != "" {
 		lowerNameFilter := fmt.Sprintf("%%%s%%", strings.ToLower(filter.Name))
-		countQueryBuilder = countQueryBuilder.Where(
+		queryBuilder = queryBuilder.Where(
 			"(LOWER(CONCAT(u_sender.first_name, ' ', u_sender.last_name)) LIKE ? OR "+
 				"LOWER(CONCAT(u_receiver.first_name, ' ', u_receiver.last_name)) LIKE ?)",
 			lowerNameFilter, lowerNameFilter,
 		)
 	}
-	
+
 	if filter.Self {
-		countQueryBuilder = countQueryBuilder.Where(squirrel.Or{
+		queryBuilder = queryBuilder.Where(squirrel.Or{
 			squirrel.Eq{"a.sender": userID},
 			squirrel.Eq{"a.receiver": userID},
 		})
 	}
 
-	countSql, countArgs, err := countQueryBuilder.ToSql()
+	countSql, countArgs, err := queryBuilder.ToSql()
 	if err != nil {
 		logger.Error("failed to build count query: ", err.Error())
-		return []repository.AppreciationInfo{}, repository.Pagination{}, apperrors.InternalServerError
+		return []repository.AppreciationResponse{}, repository.Pagination{}, apperrors.InternalServerError
 	}
 
 	var totalRecords int32
 	err = queryExecutor.QueryRowx(countSql, countArgs...).Scan(&totalRecords)
 	if err != nil {
 		logger.Error("failed to execute count query: ", err.Error())
-		return []repository.AppreciationInfo{}, repository.Pagination{}, apperrors.InternalServerError
+		return []repository.AppreciationResponse{}, repository.Pagination{}, apperrors.InternalServerError
 	}
 
 	pagination := getPaginationMetaData(filter.Page, filter.Limit, totalRecords)
-	// Initialize the Squirrel query builder
-	queryBuilder := sq.Select(
+	
+	queryBuilder = queryBuilder.RemoveColumns()
+	queryBuilder = queryBuilder.Columns(
 		"a.id",
 		"cv.name AS core_value_name",
 		"cv.description AS core_value_description",
@@ -206,30 +208,9 @@ func (appr *appreciationsStore) GetAppreciations(ctx context.Context, tx reposit
 				FROM rewards r2 
 				WHERE r2.appreciation_id = a.id AND r2.sender = %d
 			), 0) AS given_reward_point`, userID),
-	).From("appreciations a").
-		LeftJoin("users u_sender ON a.sender = u_sender.id").
-		LeftJoin("users u_receiver ON a.receiver = u_receiver.id").
-		LeftJoin("core_values cv ON a.core_value_id = cv.id").
+	).
 		LeftJoin("rewards r ON a.id = r.appreciation_id").
-		Where(squirrel.Eq{"a.is_valid": true}).
-		GroupBy("a.id","cv.name","cv.description","u_sender.id","u_receiver.id")
-
-	if filter.Name != "" {
-		lowerNameFilter := fmt.Sprintf("%%%s%%", strings.ToLower(filter.Name))
-		queryBuilder = queryBuilder.Where(
-			"(LOWER(CONCAT(u_sender.first_name, ' ', u_sender.last_name)) LIKE ? OR "+
-				"LOWER(CONCAT(u_receiver.first_name, ' ', u_receiver.last_name)) LIKE ?)",
-			lowerNameFilter, lowerNameFilter,
-		)
-	}
-
-	if filter.Self {
-		queryBuilder = queryBuilder.Where(squirrel.Or{
-			squirrel.Eq{"a.sender": userID},
-			squirrel.Eq{"a.receiver": userID},
-		})
-	}
-
+		GroupBy("a.id", "cv.name", "cv.description", "u_sender.id", "u_receiver.id")
 
 	if filter.SortOrder != "" {
 		queryBuilder = queryBuilder.OrderBy(fmt.Sprintf("a.created_at %s", filter.SortOrder))
@@ -246,7 +227,7 @@ func (appr *appreciationsStore) GetAppreciations(ctx context.Context, tx reposit
 	}
 
 	queryExecutor = appr.InitiateQueryExecutor(tx)
-	res := make([]repository.AppreciationInfo, 0)
+	res := make([]repository.AppreciationResponse, 0)
 	err = sqlx.Select(queryExecutor, &res, sql, args...)
 	if err != nil {
 		logger.Error("failed to execute query: ", err.Error())
@@ -256,8 +237,8 @@ func (appr *appreciationsStore) GetAppreciations(ctx context.Context, tx reposit
 	return res, pagination, nil
 }
 
-func (appr *appreciationsStore) DeleteAppreciation(ctx context.Context, tx repository.Transaction, apprId int32) (bool, error) {
-	query, args, err := sq.Update("appreciations").
+func (appr *appreciationsStore) DeleteAppreciation(ctx context.Context, tx repository.Transaction, apprId int32) error {
+	query, args, err := repository.Sq.Update("appreciations").
 		Set("is_valid", false).
 		Where(squirrel.And{
 			squirrel.Eq{"id": apprId},
@@ -267,7 +248,7 @@ func (appr *appreciationsStore) DeleteAppreciation(ctx context.Context, tx repos
 
 	if err != nil {
 		logger.Error("Error building SQL: ", err.Error())
-		return false, apperrors.InternalServer
+		return apperrors.InternalServer
 	}
 
 	queryExecutor := appr.InitiateQueryExecutor(tx)
@@ -275,27 +256,27 @@ func (appr *appreciationsStore) DeleteAppreciation(ctx context.Context, tx repos
 	result, err := queryExecutor.Exec(query, args...)
 	if err != nil {
 		logger.Error("Error executing SQL: ", err.Error())
-		return false, apperrors.InternalServer
+		return apperrors.InternalServer
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		logger.Error("Error getting rows affected: ", err.Error())
-		return false, apperrors.InternalServer
+		return apperrors.InternalServer
 	}
 
 	if rowsAffected == 0 {
 		logger.Warn("No rows affected")
-		return false, apperrors.AppreciationNotFound
+		return apperrors.AppreciationNotFound
 	}
 
-	return true, nil
+	return nil
 }
 
 func (appr *appreciationsStore) IsUserPresent(ctx context.Context, tx repository.Transaction, userID int64) (bool, error) {
 
 	// Build the SQL query
-	query, args, err := sq.Select("COUNT(*)").
+	query, args, err := repository.Sq.Select("COUNT(*)").
 		From("users").
 		Where(squirrel.Eq{"id": userID}).
 		ToSql()

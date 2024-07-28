@@ -2,7 +2,6 @@ package appreciation
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
@@ -19,10 +18,10 @@ type service struct {
 
 // Service contains all
 type Service interface {
-	CreateAppreciation(ctx context.Context, apprecication dto.Appreciation) (dto.Appreciation, error)
-	GetAppreciationById(ctx context.Context, appreciationId int32) (dto.ResponseAppreciation, error)
-	GetAppreciations(ctx context.Context, filter dto.AppreciationFilter) (dto.GetAppreciationResponse, error)
-	DeleteAppreciation(ctx context.Context, apprId int32) (bool, error)
+	CreateAppreciation(ctx context.Context, appreciation dto.Appreciation) (dto.Appreciation, error)
+	GetAppreciationById(ctx context.Context, appreciationId int32) (dto.AppreciationResponse, error)
+	ListAppreciations(ctx context.Context, filter dto.AppreciationFilter) (dto.ListAppreciationsResponse, error)
+	DeleteAppreciation(ctx context.Context, apprId int32) error
 }
 
 func NewService(appreciationRepo repository.AppreciationStorer, coreValuesRepo repository.CoreValueStorer) Service {
@@ -32,10 +31,10 @@ func NewService(appreciationRepo repository.AppreciationStorer, coreValuesRepo r
 	}
 }
 
-func (apprSvc *service) CreateAppreciation(ctx context.Context, apprecication dto.Appreciation) (dto.Appreciation, error) {
+func (apprSvc *service) CreateAppreciation(ctx context.Context, appreciation dto.Appreciation) (dto.Appreciation, error) {
 
 	//add quarter
-	apprecication.Quarter = utils.GetQuarter()
+	appreciation.Quarter = utils.GetQuarter()
 
 	//add sender
 	data := ctx.Value(constants.UserId)
@@ -44,17 +43,17 @@ func (apprSvc *service) CreateAppreciation(ctx context.Context, apprecication dt
 		logger.Error("err in parsing userid from token")
 		return dto.Appreciation{}, apperrors.InternalServer
 	}
-	usrChk, err := apprSvc.appreciationRepo.IsUserPresent(ctx, nil, sender)
+
+	//check is receiver present in database
+	chk, err := apprSvc.appreciationRepo.IsUserPresent(ctx, nil, appreciation.Receiver)
 	if err != nil {
-		logger.Error(fmt.Sprintf("err: %v",err))
+		logger.Errorf("err: %v", err)
 		return dto.Appreciation{}, err
 	}
-
-	if !usrChk {
+	if !chk {
 		return dto.Appreciation{}, apperrors.UserNotFound
 	}
-
-	apprecication.Sender = sender
+	appreciation.Sender = sender
 
 	//initializing database transaction
 	tx, err := apprSvc.appreciationRepo.BeginTx(ctx)
@@ -81,64 +80,53 @@ func (apprSvc *service) CreateAppreciation(ctx context.Context, apprecication dt
 	}()
 
 	//check is corevalue present in database
-	_, err = apprSvc.corevaluesRespo.GetCoreValue(ctx, int64(apprecication.CoreValueID))
+	_, err = apprSvc.corevaluesRespo.GetCoreValue(ctx, int64(appreciation.CoreValueID))
 	if err != nil {
-		logger.Error(fmt.Sprintf("err: %v",err))
+		logger.Errorf("err: %v", err)
 		return dto.Appreciation{}, err
-	}
-
-	//check is receiver present in database
-	chk, err := apprSvc.appreciationRepo.IsUserPresent(ctx, tx, apprecication.Receiver)
-	if err != nil {
-		logger.Error(fmt.Sprintf("err: %v",err))
-		return dto.Appreciation{}, err
-	}
-	if !chk {
-		return dto.Appreciation{}, apperrors.UserNotFound
 	}
 
 	// check self appreciation
-	if apprecication.Receiver == sender {
+	if appreciation.Receiver == sender {
 		return dto.Appreciation{}, apperrors.SelfAppreciationError
 	}
 
-	appr, err := apprSvc.appreciationRepo.CreateAppreciation(ctx, tx, apprecication)
+	appr, err := apprSvc.appreciationRepo.CreateAppreciation(ctx, tx, appreciation)
 	if err != nil {
-		logger.Error(fmt.Sprintf("err: %v",err))
+		logger.Errorf("err: %v", err)
 		return dto.Appreciation{}, err
 	}
 
 	return mapAppreciationDBToDTO(appr), nil
 }
 
-func (apprSvc *service) GetAppreciationById(ctx context.Context, appreciationId int32) (dto.ResponseAppreciation, error) {
+func (apprSvc *service) GetAppreciationById(ctx context.Context, appreciationId int32) (dto.AppreciationResponse, error) {
 
 	resAppr, err := apprSvc.appreciationRepo.GetAppreciationById(ctx, nil, appreciationId)
 	if err != nil {
-		logger.Error(fmt.Sprintf("err: %v",err))
-		return dto.ResponseAppreciation{}, err
+		logger.Errorf("err: %v", err)
+		return dto.AppreciationResponse{}, err
 	}
 
 	return mapRepoGetAppreciationInfoToDTOGetAppreciationInfo(resAppr), nil
 }
 
-func (apprSvc *service) GetAppreciations(ctx context.Context, filter dto.AppreciationFilter) (dto.GetAppreciationResponse, error) {
+func (apprSvc *service) ListAppreciations(ctx context.Context, filter dto.AppreciationFilter) (dto.ListAppreciationsResponse, error) {
 
-	infos, pagination, err := apprSvc.appreciationRepo.GetAppreciations(ctx, nil, filter)
+	infos, pagination, err := apprSvc.appreciationRepo.ListAppreciations(ctx, nil, filter)
 	if err != nil {
-		logger.Error(fmt.Sprintf("err: %v",err))
-		return dto.GetAppreciationResponse{}, err
+		logger.Errorf("err: %v", err)
+		return dto.ListAppreciationsResponse{}, err
 	}
 
-	responses := make([]dto.ResponseAppreciation, 0)
+	responses := make([]dto.AppreciationResponse, 0)
 	for _, info := range infos {
-		response := mapRepoGetAppreciationInfoToDTOGetAppreciationInfo(info)
-		responses = append(responses, response)
+		responses = append(responses, mapRepoGetAppreciationInfoToDTOGetAppreciationInfo(info))
 	}
 	paginationResp := dtoPagination(pagination)
-	return dto.GetAppreciationResponse{Appreciations: responses, MetaData: paginationResp}, nil
+	return dto.ListAppreciationsResponse{Appreciations: responses, MetaData: paginationResp}, nil
 }
 
-func (apprSvc *service) DeleteAppreciation(ctx context.Context, apprId int32) (bool, error) {
-	return apprSvc.appreciationRepo.DeleteAppreciation(ctx, nil,apprId)
+func (apprSvc *service) DeleteAppreciation(ctx context.Context, apprId int32) error {
+	return apprSvc.appreciationRepo.DeleteAppreciation(ctx, nil, apprId)
 }

@@ -20,19 +20,12 @@ func mapAppreciationDBToDTO(dbAppreciation repository.Appreciation) dto.Apprecia
 	}
 }
 
-func mapRepoGetAppreciationInfoToDTOGetAppreciationInfo(info repository.AppreciationInfo) dto.ResponseAppreciation {
+func mapRepoGetAppreciationInfoToDTOGetAppreciationInfo(info repository.AppreciationResponse) dto.AppreciationResponse {
 
-	receiverImageURL := ""
-	if info.ReceiverImageURL.Valid {
-		receiverImageURL = info.ReceiverImageURL.String
-	}
+	receiverImageURL := info.ReceiverImageURL.String
+	senderImageURL := info.SenderImageURL.String
 
-	senderImageURL := ""
-	if info.SenderImageURL.Valid {
-		senderImageURL = info.SenderImageURL.String
-	}
-
-	dtoApprResp := dto.ResponseAppreciation{
+	dtoApprResp := dto.AppreciationResponse{
 		ID:                  info.ID,
 		CoreValueName:       info.CoreValueName,
 		CoreValueDesc:       info.CoreValueDesc,
@@ -59,8 +52,9 @@ func mapRepoGetAppreciationInfoToDTOGetAppreciationInfo(info repository.Apprecia
 // DtoPagination returns modified response pagination struct
 func dtoPagination(pagination repository.Pagination) dto.Pagination {
 	return dto.Pagination{
-		CurrentPage: pagination.CurrentPage,
-		TotalPage:   pagination.TotalPage,
-		PageSize:    pagination.RecordPerPage,
+		CurrentPage:  pagination.CurrentPage,
+		TotalPage:    pagination.TotalPage,
+		PageSize:     pagination.RecordPerPage,
+		TotalRecords: pagination.TotalRecords,
 	}
 }
