@@ -10,7 +10,6 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
-	"github.com/joshsoftware/peerly-backend/internal/pkg/logger"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	logger "github.com/sirupsen/logrus"
@@ -30,6 +29,8 @@ func NewOrganizationConfigRepo(db *sqlx.DB) repository.OrganizationConfigStorer 
 
 func (org *OrganizationConfigStore) CreateOrganizationConfig(ctx context.Context,tx repository.Transaction, orgConfigInfo dto.OrganizationConfig) (createdOrganization repository.OrganizationConfig, err error) {
 
+	queryExecutor := org.InitiateQueryExecutor(tx)
+
 	insertQuery, args, err := repository.Sq.
 	Insert(org.OrganizationConfigTable).Columns(constants.OrgConfigColumns...).
 	Values(		1,
@@ -41,14 +42,14 @@ func (org *OrganizationConfigStore) CreateOrganizationConfig(ctx context.Context
 	Suffix("RETURNING id, reward_multiplier ,reward_quota_renewal_frequency, timezone, created_by, updated_by, created_at, updated_at").
 	ToSql()
 	if err != nil {
-		logger.Error(err.Error())
+		logger.Errorf("err in creating query: %v",err)
 		return repository.OrganizationConfig{}, apperrors.InternalServer
 	}
-	queryExecutor := org.InitiateQueryExecutor(tx)
-	err = queryExecutor.QueryRowx(insertQuery, args...).Scan(&createdOrganization.ID,&createdOrganization.RewardMultiplier,&createdOrganization.RewardQuotaRenewalFrequency,&createdOrganization.Timezone,&createdOrganization.CreatedBy,&createdOrganization.UpdatedBy,&createdOrganization.CreatedAt,&createdOrganization.UpdatedAt)
+	
+	err = queryExecutor.QueryRowx(insertQuery, args...).StructScan(&createdOrganization)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			log.Error(apperrors.ErrRecordNotFound, "Just created an Organization, but can't find it!", err)
+			logger.Errorf("err in creating orgconfig : %v ", err)
 			return repository.OrganizationConfig{}, apperrors.InternalServer
 		}
 	}
@@ -56,11 +57,11 @@ func (org *OrganizationConfigStore) CreateOrganizationConfig(ctx context.Context
 }
 
 func (org *OrganizationConfigStore) UpdateOrganizationConfig(ctx context.Context, tx repository.Transaction, reqOrganization dto.OrganizationConfig) (updatedOrganization repository.OrganizationConfig, err error) {
-	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-
-	updateBuilder := psql.Update(org.OrganizationConfigTable).
+	queryExecutor := org.InitiateQueryExecutor(tx)
+	
+	updateBuilder := repository.Sq.Update(org.OrganizationConfigTable).
 	Where(sq.Eq{"id": 1}).
-	Suffix("RETURNING id, reward_multiplier, reward_quota_renewal_frequency, timezone, created_by , updated_by, created_at, updated_at")
+	Suffix("RETURNING id, reward_multiplier, reward_quota_renewal_frequency, timezone, created_by, updated_by, created_at, updated_at")
 
 	if reqOrganization.RewardMultiplier != 0 {
 		updateBuilder = updateBuilder.Set("reward_multiplier", reqOrganization.RewardMultiplier)
@@ -72,20 +73,20 @@ func (org *OrganizationConfigStore) UpdateOrganizationConfig(ctx context.Context
 		updateBuilder = updateBuilder.Set("timezone", reqOrganization.Timezone)
 	}
 
-	updateBuilder = updateBuilder.Set("updated_at", time.Now().UnixMilli()).
-		Set("updated_by", reqOrganization.UpdatedBy)
+	updateBuilder = updateBuilder.
+	Set("updated_at", time.Now().UnixMilli()).
+	Set("updated_by", reqOrganization.UpdatedBy)
 
 	query, args, err := updateBuilder.ToSql()
 	if err != nil {
-		logger.WithField("err", err.Error()).Error("Error building update query")
+		logger.Errorf("Error building update query: %v",err)
 		return repository.OrganizationConfig{}, err
 	}
 
-	queryExecutor := org.InitiateQueryExecutor(tx)
-	err = queryExecutor.QueryRowx(query, args...).Scan(&updatedOrganization.ID,&updatedOrganization.RewardMultiplier,&updatedOrganization.RewardQuotaRenewalFrequency,&updatedOrganization.Timezone,&updatedOrganization.CreatedBy,&updatedOrganization.UpdatedBy,&updatedOrganization.CreatedAt,&updatedOrganization.UpdatedAt)
+	err = queryExecutor.QueryRowx(query, args...).StructScan(&updatedOrganization)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			log.Error(apperrors.ErrRecordNotFound, "Just created an Organization, but can't find it!", err)
+			logger.Errorf("err in updating orgconfig : %v ", err)
 			return repository.OrganizationConfig{}, apperrors.InternalServer
 		}
 	}
@@ -93,30 +94,30 @@ func (org *OrganizationConfigStore) UpdateOrganizationConfig(ctx context.Context
 }
 
 // GetOrganization - returns an organization from the database if it exists based on its ID primary key
-func (org *OrganizationConfigStore) GetOrganizationConfig(ctx context.Context, tx repository.Transaction) (organization repository.OrganizationConfig, err error) {
+func (org *OrganizationConfigStore) GetOrganizationConfig(ctx context.Context, tx repository.Transaction) (updatedOrgConfig repository.OrganizationConfig, err error) {
 	queryExecutor := org.InitiateQueryExecutor(tx)
-	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
-	queryBuilder := psql.
+	queryBuilder := repository.Sq.
 	Select("*").
-	From("organization_config").
+	From(org.OrganizationConfigTable).
 	Where(sq.Eq{"id": 1})
 
 	query, args, err := queryBuilder.ToSql()
 	if err != nil {
-		logger.WithField("err", err.Error()).Error("Error building select query")
+		logger.Errorf("Error building select query: %v",err)
 		return repository.OrganizationConfig{}, err
 	}
 
-	err = queryExecutor.QueryRowx( query, args...).Scan(&organization.ID,&organization.RewardMultiplier,&organization.RewardQuotaRenewalFrequency,&organization.Timezone,&organization.CreatedAt,&organization.CreatedBy,&organization.UpdatedAt,&organization.UpdatedBy)
+	err = queryExecutor.QueryRowx( query, args...).StructScan(&updatedOrgConfig)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			logger.WithField("organizationID", 1).Warn("Organization not found")
+			logger.Errorf("Organization not found: %v",err)
 			return repository.OrganizationConfig{}, apperrors.OrganizationConfigNotFound
 		}
-		logger.WithField("err", err.Error()).Error("Error fetching organization")
+		logger.Errorf("Error fetching organization: %v",err)
 		return repository.OrganizationConfig{}, err
 	}
 
-	return organization, nil
+	return updatedOrgConfig, nil
 }
+

@@ -5,7 +5,7 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/repository"
 )
 
-func OrganizationConfigToDTO(org repository.OrganizationConfig) dto.OrganizationConfig {
+func organizationConfigToDTO(org repository.OrganizationConfig) dto.OrganizationConfig {
 	return dto.OrganizationConfig{
 		RewardMultiplier:            org.RewardMultiplier,
 		ID:                          org.ID,

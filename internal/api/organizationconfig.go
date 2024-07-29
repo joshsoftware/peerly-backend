@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/joshsoftware/peerly-backend/internal/api/validation"
 	"github.com/joshsoftware/peerly-backend/internal/app/organizationConfig"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
@@ -17,14 +16,14 @@ import (
 func getOrganizationConfigHandler(orgSvc organizationConfig.Service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 
-		organization, err := orgSvc.GetOrganizationConfig(req.Context())
+		orgConfig, err := orgSvc.GetOrganizationConfig(req.Context())
 		if err != nil {
-			logger.WithField("err", err.Error()).Error("Error while fetching organization")
+			logger.Errorf("Error while fetching organization: %v",err)
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
 
-		dto.SuccessRepsonse(rw, http.StatusOK, "organization config fetched successfully",organization)
+		dto.SuccessRepsonse(rw, http.StatusOK, "organization config fetched successfully",orgConfig)
 	})
 }
 
@@ -32,23 +31,24 @@ func getOrganizationConfigHandler(orgSvc organizationConfig.Service) http.Handle
 func createOrganizationConfigHandler(orgSvc organizationConfig.Service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		
-		var organization dto.OrganizationConfig
-		err := json.NewDecoder(req.Body).Decode(&organization)
+		var orgConfig dto.OrganizationConfig
+		err := json.NewDecoder(req.Body).Decode(&orgConfig)
 		if err != nil {
-			logger.WithField("err", err.Error()).Error("Error while decoding organization data")
+			logger.Errorf("Error while decoding organization config data: %v",err)
 			dto.ErrorRepsonse(rw, apperrors.JSONParsingErrorReq)
 			return
 		}
 
-		err = validation.OrgValidate(organization)
+		err = orgConfig.OrgValidate()
 		if err != nil {
+			logger.Errorf("Error in validating request : %v",err)
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
 		
-		createdOrganizationConfig, err := orgSvc.CreateOrganizationConfig(req.Context(), organization)
+		createdOrganizationConfig, err := orgSvc.CreateOrganizationConfig(req.Context(), orgConfig)
 		if err != nil {
-			logger.WithField("err", err.Error()).Error("Error create organization")
+			logger.Errorf("Error in creating organization config: %v",err)
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
@@ -63,19 +63,22 @@ func updateOrganizationConfigHandler(orgSvc organizationConfig.Service) http.Han
 		var organizationConfig dto.OrganizationConfig
 		err := json.NewDecoder(req.Body).Decode(&organizationConfig)
 		if err != nil {
+			logger.Errorf("Error while decoding organization data: %v",err)
 			dto.ErrorRepsonse(rw, apperrors.JSONParsingErrorReq)
 			return
 		}
+		
 		organizationConfig.ID = 1
-		err = validation.OrgUpdateValidate(organizationConfig)
+		err = organizationConfig.OrgUpdateValidate()
 		if err != nil {
+			logger.Errorf("Error in validating request : %v",err)
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
 
 		updatedOrganization, err := orgSvc.UpdateOrganizationConfig(req.Context(), organizationConfig)
 		if err != nil {
-			logger.WithField("err", err.Error()).Error("Error while updating organization")
+			logger.Errorf("Error while updating organization: %v",err)
 			dto.ErrorRepsonse(rw, err)
 			return
 		}

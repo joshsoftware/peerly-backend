@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
+	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
 	"github.com/joshsoftware/peerly-backend/internal/repository/mocks"
@@ -27,9 +28,9 @@ func TestGetOrganizationConfig(t *testing.T) {
 			name:    "Successful retrieval of organization config",
 			context: context.WithValue(context.Background(), "userId", int64(1)),
 			setup: func(orgMock *mocks.OrganizationConfigStorer) {
-				orgMock.On("GetOrganizationConfig", mock.Anything).Return(repository.OrganizationConfig{
-					ID:                           1,
-					RewardMultiplier:             200,
+				orgMock.On("GetOrganizationConfig", mock.Anything, nil).Return(repository.OrganizationConfig{
+					ID:                          1,
+					RewardMultiplier:            200,
 					RewardQuotaRenewalFrequency: 12,
 					Timezone:                    "ACT",
 					CreatedAt:                   1719918501194,
@@ -39,8 +40,8 @@ func TestGetOrganizationConfig(t *testing.T) {
 				}, nil).Once()
 			},
 			expectedResult: dto.OrganizationConfig{
-				ID:                           1,
-				RewardMultiplier:             200,
+				ID:                          1,
+				RewardMultiplier:            200,
 				RewardQuotaRenewalFrequency: 12,
 				Timezone:                    "ACT",
 				CreatedAt:                   1719918501194,
@@ -52,9 +53,9 @@ func TestGetOrganizationConfig(t *testing.T) {
 		},
 		{
 			name:    "Error while retrieving organization config",
-			context: context.WithValue(context.Background(), "userId", int64(1)),
+			context: context.WithValue(context.Background(), constants.UserId, int64(1)),
 			setup: func(orgMock *mocks.OrganizationConfigStorer) {
-				orgMock.On("GetOrganizationConfig", mock.Anything).Return(repository.OrganizationConfig{}, apperrors.InternalServer).Once()
+				orgMock.On("GetOrganizationConfig", mock.Anything, nil).Return(repository.OrganizationConfig{}, apperrors.InternalServer).Once()
 			},
 			expectedResult: dto.OrganizationConfig{},
 			expectedError:  apperrors.InternalServer,
@@ -87,49 +88,56 @@ func TestCreateOrganizationConfig(t *testing.T) {
 		name              string
 		context           context.Context
 		organizationInput dto.OrganizationConfig
-		setup func(orgMock *mocks.OrganizationConfigStorer)
+		setup             func(orgMock *mocks.OrganizationConfigStorer)
 		expectedResult    dto.OrganizationConfig
 		expectedError     error
 	}{
 		{
-			name: "Successful organization config creation",
-			context: context.WithValue(context.Background(), "userId", 1),
+			name:    "Successful organization config creation",
+			context: context.WithValue(context.Background(), constants.UserId, int64(1)),
 			setup: func(orgMock *mocks.OrganizationConfigStorer) {
-				orgMock.On("GetOrganizationConfig", mock.Anything).Return(repository.OrganizationConfig{}, apperrors.OrganizationNotFound).Once()
-				orgMock.On("CreateOrganizationConfig", mock.Anything,mock.Anything).Return(repository.OrganizationConfig{
-					ID:                           1,
-					RewardMultiplier:             200,
+				orgMock.On("GetOrganizationConfig", mock.Anything, nil).Return(repository.OrganizationConfig{}, apperrors.OrganizationConfigNotFound).Once()
+				orgMock.On("CreateOrganizationConfig", mock.Anything, nil, dto.OrganizationConfig{
+					RewardMultiplier:            200,
+					RewardQuotaRenewalFrequency: 12,
+					Timezone:                    "ACT",
+					CreatedBy:                   1,
+					UpdatedBy:                   1,
+				}).Return(repository.OrganizationConfig{
+					ID:                          1,
+					RewardMultiplier:            200,
 					RewardQuotaRenewalFrequency: 12,
 					Timezone:                    "ACT",
 					CreatedAt:                   1719918501194,
-					CreatedBy:                   7,
+					CreatedBy:                   1,
 					UpdatedAt:                   1719920402224,
-					UpdatedBy:                   7,
+					UpdatedBy:                   1,
 				}, nil).Once()
-
 			},
 			organizationInput: dto.OrganizationConfig{
-				RewardMultiplier: 10,
-				RewardQuotaRenewalFrequency: 5,
-				Timezone: "UTC",
+				RewardMultiplier:            200,
+				RewardQuotaRenewalFrequency: 12,
+				Timezone:                    "ACT",
+				CreatedBy:                   1,
+				UpdatedBy:                   1,
 			},
 			expectedResult: dto.OrganizationConfig{
-				ID:                           1,
-				RewardMultiplier:             200,
+				ID:                          1,
+				RewardMultiplier:            200,
 				RewardQuotaRenewalFrequency: 12,
 				Timezone:                    "ACT",
 				CreatedAt:                   1719918501194,
-				CreatedBy:                   7,
+				CreatedBy:                   1,
 				UpdatedAt:                   1719920402224,
-				UpdatedBy:                   7,
+				UpdatedBy:                   1,
 			},
 			expectedError: nil,
 		},
 		{
 			name: "Organization config already present",
-			context: context.WithValue(context.Background(), "userId", 1),
+			context: context.WithValue(context.Background(), constants.UserId, int64(1)),
 			setup: func(orgMock *mocks.OrganizationConfigStorer) {
-				orgMock.On("GetOrganizationConfig", mock.Anything).Return(repository.OrganizationConfig{
+				orgMock.On("GetOrganizationConfig", mock.Anything,nil).Return(repository.OrganizationConfig{
 					ID:                           1,
 					RewardMultiplier:             200,
 					RewardQuotaRenewalFrequency: 12,
@@ -150,10 +158,16 @@ func TestCreateOrganizationConfig(t *testing.T) {
 		},
 		{
 			name: "Error while creating organization config",
-			context: context.WithValue(context.Background(), "userId", 1),
+			context: context.WithValue(context.Background(), constants.UserId, int64(1)),
 			setup: func(orgMock *mocks.OrganizationConfigStorer) {
-				orgMock.On("GetOrganizationConfig", mock.Anything).Return(repository.OrganizationConfig{}, apperrors.OrganizationNotFound).Once()
-				orgMock.On("CreateOrganizationConfig", mock.Anything,mock.Anything).Return(repository.OrganizationConfig{}, apperrors.InternalServer).Once()
+				orgMock.On("GetOrganizationConfig", mock.Anything,nil).Return(repository.OrganizationConfig{}, apperrors.OrganizationConfigNotFound).Once()
+				orgMock.On("CreateOrganizationConfig", mock.Anything,nil,dto.OrganizationConfig{
+					RewardMultiplier:            10,
+					RewardQuotaRenewalFrequency: 5,
+					Timezone:                    "UTC",
+					CreatedBy:                   1,
+					UpdatedBy:                   1,
+				}).Return(repository.OrganizationConfig{}, apperrors.InternalServer).Once()
 			},
 			organizationInput: dto.OrganizationConfig{
 				RewardMultiplier: 10,
@@ -199,12 +213,12 @@ func TestUpdateOrganizationConfig(t *testing.T) {
 		expectedError     error
 	}{
 		{
-			name: "Successful organization config update",
-			context: context.WithValue(context.Background(), "userId", 1),
+			name:    "Successful organization config update",
+			context: context.WithValue(context.Background(), constants.UserId, int64(1)),
 			setup: func(orgMock *mocks.OrganizationConfigStorer) {
-				orgMock.On("GetOrganizationConfig", mock.Anything).Return(repository.OrganizationConfig{
-					ID:                           1,
-					RewardMultiplier:             200,
+				orgMock.On("GetOrganizationConfig", mock.Anything,nil).Return(repository.OrganizationConfig{
+					ID:                          1,
+					RewardMultiplier:            200,
 					RewardQuotaRenewalFrequency: 12,
 					Timezone:                    "ACT",
 					CreatedAt:                   1719918501194,
@@ -212,9 +226,15 @@ func TestUpdateOrganizationConfig(t *testing.T) {
 					UpdatedAt:                   1719920402224,
 					UpdatedBy:                   7,
 				}, nil).Once()
-				orgMock.On("UpdateOrganizationCofig", mock.Anything, mock.Anything).Return(repository.OrganizationConfig{
-					ID:                           1,
-					RewardMultiplier:             10,
+				orgMock.On("UpdateOrganizationConfig", mock.Anything,nil, dto.OrganizationConfig{
+					ID: 1,
+					RewardMultiplier:            10,
+					RewardQuotaRenewalFrequency: 5,
+					Timezone:                    "UTC",
+					UpdatedBy:                   1,
+				}).Return(repository.OrganizationConfig{
+					ID:                          1,
+					RewardMultiplier:            10,
 					RewardQuotaRenewalFrequency: 5,
 					Timezone:                    "UTC",
 					CreatedAt:                   1719918501194,
@@ -224,42 +244,43 @@ func TestUpdateOrganizationConfig(t *testing.T) {
 				}, nil).Once()
 			},
 			organizationInput: dto.OrganizationConfig{
-				ID:                           1,
-				RewardMultiplier:             10,
+				ID: 1,
+				RewardMultiplier:            10,
 				RewardQuotaRenewalFrequency: 5,
 				Timezone:                    "UTC",
+				UpdatedBy:                   1,
 			},
 			expectedResult: dto.OrganizationConfig{
-				ID:                           1,
-				RewardMultiplier:             10,
+				ID:                          1,
+				RewardMultiplier:            10,
 				RewardQuotaRenewalFrequency: 5,
 				Timezone:                    "UTC",
 				CreatedAt:                   1719918501194,
 				CreatedBy:                   7,
 				UpdatedAt:                   1719920402224,
-				UpdatedBy:                   1,
+				UpdatedBy:                   1, // Updated with user ID
 			},
 			expectedError: nil,
 		},
 		{
-			name: "Organization config not found",
-			context: context.WithValue(context.Background(), "userId", 1),
+			name:    "Organization config not found",
+			context: context.WithValue(context.Background(), constants.UserId, int64(1)),
 			setup: func(orgMock *mocks.OrganizationConfigStorer) {
-				orgMock.On("GetOrganizationConfig", mock.Anything).Return(repository.OrganizationConfig{}, apperrors.OrganizationNotFound).Once()
+				orgMock.On("GetOrganizationConfig", mock.Anything,nil).Return(repository.OrganizationConfig{}, apperrors.OrganizationConfigNotFound).Once()
 			},
 			organizationInput: dto.OrganizationConfig{
 				ID: 1,
 			},
 			expectedResult: dto.OrganizationConfig{},
-			expectedError:  apperrors.OrganizationNotFound,
+			expectedError:  apperrors.OrganizationConfigNotFound,
 		},
 		{
-			name: "Error while updating organization config",
-			context: context.WithValue(context.Background(), "userId", 1),
+			name:    "Error while updating organization config",
+			context: context.WithValue(context.Background(), constants.UserId, int64(1)),
 			setup: func(orgMock *mocks.OrganizationConfigStorer) {
-				orgMock.On("GetOrganizationConfig", mock.Anything).Return(repository.OrganizationConfig{
-					ID:                           1,
-					RewardMultiplier:             200,
+				orgMock.On("GetOrganizationConfig", mock.Anything,nil).Return(repository.OrganizationConfig{
+					ID:                          1,
+					RewardMultiplier:            200,
 					RewardQuotaRenewalFrequency: 12,
 					Timezone:                    "ACT",
 					CreatedAt:                   1719918501194,
@@ -267,13 +288,20 @@ func TestUpdateOrganizationConfig(t *testing.T) {
 					UpdatedAt:                   1719920402224,
 					UpdatedBy:                   7,
 				}, nil).Once()
-				orgMock.On("UpdateOrganizationCofig", mock.Anything, mock.Anything).Return(repository.OrganizationConfig{}, apperrors.InternalServer).Once()
+				orgMock.On("UpdateOrganizationConfig", mock.Anything, nil, dto.OrganizationConfig{
+					ID: 1,
+					RewardMultiplier:            10,
+					RewardQuotaRenewalFrequency: 5,
+					Timezone:                    "UTC",
+					UpdatedBy:                   1,
+				}).Return(repository.OrganizationConfig{}, apperrors.InternalServer).Once()
 			},
 			organizationInput: dto.OrganizationConfig{
-				ID:                           1,
-				RewardMultiplier:             10,
+				ID: 1,
+				RewardMultiplier:            10,
 				RewardQuotaRenewalFrequency: 5,
 				Timezone:                    "UTC",
+				UpdatedBy:                   1,
 			},
 			expectedResult: dto.OrganizationConfig{},
 			expectedError:  apperrors.InternalServer,

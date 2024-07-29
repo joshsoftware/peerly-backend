@@ -16,8 +16,8 @@ type service struct {
 
 type Service interface {
 	GetOrganizationConfig(ctx context.Context) (dto.OrganizationConfig, error)
-	CreateOrganizationConfig(ctx context.Context, organization dto.OrganizationConfig) (dto.OrganizationConfig, error)
-	UpdateOrganizationConfig(ctx context.Context, organization dto.OrganizationConfig) (dto.OrganizationConfig, error)
+	CreateOrganizationConfig(ctx context.Context, organizationConfigInfo dto.OrganizationConfig) (dto.OrganizationConfig, error)
+	UpdateOrganizationConfig(ctx context.Context, organizationConfigInfo dto.OrganizationConfig) (dto.OrganizationConfig, error)
 }
 
 func NewService(organizationConfigRepo repository.OrganizationConfigStorer) Service {
@@ -31,9 +31,10 @@ func (orgSvc *service) GetOrganizationConfig(ctx context.Context) (dto.Organizat
 
 	organization, err := orgSvc.OrganizationConfigRepo.GetOrganizationConfig(ctx,nil)
 	if err != nil {
+		logger.Errorf("err: %v",err)
 		return dto.OrganizationConfig{}, err
 	}
-	org := OrganizationConfigToDTO(organization)
+	org := organizationConfigToDTO(organization)
 	return org, nil
 
 }
@@ -54,11 +55,14 @@ func (orgSvc *service) CreateOrganizationConfig(ctx context.Context, organizatio
 	if err != apperrors.OrganizationConfigNotFound {
 		return dto.OrganizationConfig{},apperrors.OrganizationConfigAlreadyPresent
 	}
+
 	createdOrganizationConfig, err := orgSvc.OrganizationConfigRepo.CreateOrganizationConfig(ctx,nil, organizationConfig)
 	if err != nil {
+		logger.Errorf("err: %v",err)
 		return dto.OrganizationConfig{}, err
 	}
-	org := OrganizationConfigToDTO(createdOrganizationConfig)
+	
+	org := organizationConfigToDTO(createdOrganizationConfig)
 	return org, nil
 }
 
@@ -74,13 +78,15 @@ func (orgSvc *service) UpdateOrganizationConfig(ctx context.Context, organizatio
 
 	_ ,err := orgSvc.OrganizationConfigRepo.GetOrganizationConfig(ctx,nil);
 	if err != nil {
+		logger.Errorf("err: %v",err)
 		return dto.OrganizationConfig{},err
 	}
 
 	updatedOrganization, err := orgSvc.OrganizationConfigRepo.UpdateOrganizationConfig(ctx,nil, organizationConfig)
 	if err != nil {
+		logger.Errorf("err: %v",err)
 		return dto.OrganizationConfig{}, err
 	}
-	org := OrganizationConfigToDTO(updatedOrganization)
+	org := organizationConfigToDTO(updatedOrganization)
 	return org, nil
 }
