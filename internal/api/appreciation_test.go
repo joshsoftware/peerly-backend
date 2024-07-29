@@ -225,7 +225,7 @@ func TestListAppreciationsHandler(t *testing.T) {
 			expectedStatusCode: http.StatusOK,
 		},
 		{
-			name:        "service error",
+			name: "service error",
 			queryParams: map[string]string{
 				"name":       "John Doe",
 				"sort_order": "asc",

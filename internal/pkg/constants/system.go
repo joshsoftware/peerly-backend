@@ -36,8 +36,8 @@ const (
 
 // Table Names
 const (
-	Appreciations = "appreciations"
-	Rewards       = "rewards"
-	Users         = "users"
-	CoreValues    = "core_values"
+	AppreciationsTable = "appreciations"
+	RewardsTable       = "rewards"
+	UsersTable         = "users"
+	CoreValuesTable    = "core_values"
 )

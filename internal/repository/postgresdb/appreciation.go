@@ -19,19 +19,19 @@ var AppreciationColumns = []string{"id", "core_value_id", "description", "quarte
 
 type appreciationsStore struct {
 	BaseRepository
-	TableAppreciations string
-	TableRewards       string
-	TableUsers         string
-	TableCoreValues    string
+	AppreciationsTable string
+	RewardsTable       string
+	UsersTable         string
+	CoreValuesTable    string
 }
 
 func NewAppreciationRepo(db *sqlx.DB) repository.AppreciationStorer {
 	return &appreciationsStore{
 		BaseRepository:     BaseRepository{db},
-		TableAppreciations: constants.Appreciations,
-		TableRewards:       constants.Rewards,
-		TableUsers:         constants.Users,
-		TableCoreValues:    constants.CoreValues,
+		AppreciationsTable: constants.AppreciationsTable,
+		RewardsTable:       constants.RewardsTable,
+		UsersTable:         constants.UsersTable,
+		CoreValuesTable:    constants.CoreValuesTable,
 	}
 }
 
@@ -40,7 +40,7 @@ func (appr *appreciationsStore) CreateAppreciation(ctx context.Context, tx repos
 	queryExecutor := appr.InitiateQueryExecutor(tx)
 
 	insertQuery, args, err := repository.Sq.
-		Insert(appr.TableAppreciations).Columns(AppreciationColumns[1:]...).
+		Insert(appr.AppreciationsTable).Columns(AppreciationColumns[1:]...).
 		Values(appreciation.CoreValueID, appreciation.Description, appreciation.Quarter, appreciation.Sender, appreciation.Receiver).
 		Suffix("RETURNING id,core_value_id, description,total_reward_points,quarter,sender,receiver,created_at,updated_at").
 		ToSql()
@@ -98,11 +98,11 @@ func (appr *appreciationsStore) GetAppreciationById(ctx context.Context, tx repo
 				FROM rewards r2 
 				WHERE r2.appreciation_id = a.id AND r2.sender = %d
 			), 0) AS given_reward_point`, userID),
-	).From(appr.TableAppreciations+" a").
-		LeftJoin(appr.TableUsers+" u_sender ON a.sender = u_sender.id").
-		LeftJoin(appr.TableUsers+" u_receiver ON a.receiver = u_receiver.id").
-		LeftJoin(appr.TableCoreValues+" cv ON a.core_value_id = cv.id").
-		LeftJoin(appr.TableRewards+" r ON a.id = r.appreciation_id").
+	).From(appr.AppreciationsTable+" a").
+		LeftJoin(appr.UsersTable+" u_sender ON a.sender = u_sender.id").
+		LeftJoin(appr.UsersTable+" u_receiver ON a.receiver = u_receiver.id").
+		LeftJoin(appr.CoreValuesTable+" cv ON a.core_value_id = cv.id").
+		LeftJoin(appr.RewardsTable+" r ON a.id = r.appreciation_id").
 		Where(squirrel.And{
 			squirrel.Eq{"a.id": apprId},
 			squirrel.Eq{"a.is_valid": true},
@@ -179,7 +179,7 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 	}
 
 	pagination := getPaginationMetaData(filter.Page, filter.Limit, totalRecords)
-	
+
 	queryBuilder = queryBuilder.RemoveColumns()
 	queryBuilder = queryBuilder.Columns(
 		"a.id",
@@ -238,7 +238,7 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 }
 
 func (appr *appreciationsStore) DeleteAppreciation(ctx context.Context, tx repository.Transaction, apprId int32) error {
-	query, args, err := repository.Sq.Update("appreciations").
+	query, args, err := repository.Sq.Update(appr.AppreciationsTable).
 		Set("is_valid", false).
 		Where(squirrel.And{
 			squirrel.Eq{"id": apprId},
@@ -277,7 +277,7 @@ func (appr *appreciationsStore) IsUserPresent(ctx context.Context, tx repository
 
 	// Build the SQL query
 	query, args, err := repository.Sq.Select("COUNT(*)").
-		From("users").
+		From(appr.UsersTable).
 		Where(squirrel.Eq{"id": userID}).
 		ToSql()
 
