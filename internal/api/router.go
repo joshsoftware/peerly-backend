@@ -40,7 +40,7 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 
 	//users
 
-	router.Handle("/users", getIntranetUserListHandler(deps.UserService)).Methods(http.MethodGet)
+	router.Handle("/users", listIntranetUsersHandler(deps.UserService)).Methods(http.MethodGet)
 
 	router.Handle("/users/all", middleware.JwtAuthMiddleware(getUsersHandler(deps.UserService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
 
@@ -52,13 +52,13 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 
 	//appreciations
 
-	router.Handle("/appreciation/{id:[0-9]+}", middleware.JwtAuthMiddleware(getAppreciationByIDHandler(deps.AppreciationService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
+	router.Handle("/appreciations/{id:[0-9]+}", middleware.JwtAuthMiddleware(getAppreciationByIDHandler(deps.AppreciationService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
 
-	router.Handle("/appreciations", middleware.JwtAuthMiddleware(getAppreciationsHandler(deps.AppreciationService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
+	router.Handle("/appreciations", middleware.JwtAuthMiddleware(listAppreciationsHandler(deps.AppreciationService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
 
-	router.Handle("/appreciation/{id:[0-9]+}", middleware.JwtAuthMiddleware(deleteAppreciationHandler(deps.AppreciationService), []string{constants.UserRole})).Methods(http.MethodDelete).Headers(versionHeader, v1)
+	router.Handle("/appreciations/{id:[0-9]+}", middleware.JwtAuthMiddleware(deleteAppreciationHandler(deps.AppreciationService), []string{constants.UserRole})).Methods(http.MethodDelete).Headers(versionHeader, v1)
 
-	router.Handle("/appreciation", middleware.JwtAuthMiddleware(createAppreciationHandler(deps.AppreciationService), []string{constants.UserRole})).Methods(http.MethodPost).Headers(versionHeader, v1)
+	router.Handle("/appreciations", middleware.JwtAuthMiddleware(createAppreciationHandler(deps.AppreciationService), []string{constants.UserRole})).Methods(http.MethodPost).Headers(versionHeader, v1)
 
 	//report appreciation
 	router.Handle("/report_appreciation/{id:[0-9]+}", middleware.JwtAuthMiddleware(reportAppreciationHandler(deps.ReportAppreciationService), []string{constants.UserRole})).Methods(http.MethodPost).Headers(versionHeader, v1)

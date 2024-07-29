@@ -1,61 +1,52 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
+	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	logger "github.com/sirupsen/logrus"
 )
 
 func getPaginationParams(req *http.Request) (page int16, limit int16) {
 
 	pageStr := req.URL.Query().Get("page")
-	limitStr := req.URL.Query().Get("page_size")
+	pageSizeStr := req.URL.Query().Get("page_size")
 
-	if pageStr == "" {
-		page = 1
-	} else {
-		pageInt64, err := strconv.ParseInt(pageStr, 10, 32)
+	page = constants.DefaultPageNumber
+	if pageStr != "" {
+		pageNumber, err := strconv.ParseInt(pageStr, 10, 32)
 		if err != nil {
-			logger.Error(fmt.Sprintf("err: %v",err))
-			page = 1 
+			logger.Errorf("err: %v", err)
+		} else if pageNumber > 0 {
+			page = int16(pageNumber)
 		}
-
-		if pageInt64 < 1 {
-			pageInt64 = 1
-		}
-		page = int16(pageInt64)
 	}
 
-	if limitStr == "" {
-		limit = 10
-	} else {
-		limitInt64, err := strconv.ParseInt(limitStr, 10, 16)
-		if err != nil  {
-			logger.Error(fmt.Sprintf("err: %v",err))
-			limit = 10
+	limit = constants.DefaultPageSize
+	if pageSizeStr != "" {
+		pageSize, err := strconv.ParseInt(pageSizeStr, 10, 32)
+		if err != nil {
+			logger.Errorf("err: %v", err)
+		} else if pageSize > constants.MaxPageSize {
+			pageSize = constants.MaxPageSize
 		}
-		if limitInt64 < 1 {
-			limitInt64 = 10
-		}else if limitInt64 > 1000 {
-			limitInt64 = 1000
-		}
-		limit = int16(limitInt64)
+		limit = int16(pageSize)
 	}
 
 	return page, limit
 }
-func getSelfParam(req *http.Request) (bool) {
+func getSelfParam(req *http.Request) bool {
 	paramStr := req.URL.Query().Get("self")
 	if paramStr == "" {
 		return false
 	}
-	
+
 	boolValue, err := strconv.ParseBool(paramStr)
 	if err != nil {
+		logger.Errorf("err: %v", err)
 		return false
 	}
-	
+
 	return boolValue
 }

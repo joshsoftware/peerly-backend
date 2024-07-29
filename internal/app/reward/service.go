@@ -42,11 +42,11 @@ func (rwrdSvc *service) GiveReward(ctx context.Context, rewardReq dto.Reward) (d
 		return dto.Reward{}, err
 	}
 
-	if appr.SenderId == sender {
+	if appr.SenderID == sender {
 		return dto.Reward{},apperrors.SelfAppreciationRewardError
 	}
 
-	if appr.ReceiverId == sender{
+	if appr.ReceiverID == sender{
 		return dto.Reward{},apperrors.SelfRewardError
 	}
 

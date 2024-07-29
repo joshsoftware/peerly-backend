@@ -50,7 +50,7 @@ func TestListCoreValuesHandler(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			test.setup(coreValueSvc)
 
-			req, err := http.NewRequest("GET", "/core_values", bytes.NewBuffer([]byte("")))
+			req, err := http.NewRequest(http.MethodGet, "/core_values", bytes.NewBuffer([]byte("")))
 			if err != nil {
 				t.Fatal(err)
 				return
@@ -109,7 +109,7 @@ func TestGetCoreValueHandler(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			test.setup(coreValueSvc)
 
-			req, err := http.NewRequest("GET", fmt.Sprintf("/core_values/%d", test.coreValueId), bytes.NewBuffer([]byte("")))
+			req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/core_values/%d", test.coreValueId), bytes.NewBuffer([]byte("")))
 			if err != nil {
 				t.Fatal(err)
 				return
@@ -205,7 +205,7 @@ func TestCreateCoreValueHandler(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			test.setup(coreValueSvc)
 
-			req, err := http.NewRequest("POST", "/core_values", bytes.NewBuffer([]byte(test.coreValue)))
+			req, err := http.NewRequest(http.MethodPost, "/core_values", bytes.NewBuffer([]byte(test.coreValue)))
 			if err != nil {
 				t.Fatal(err)
 				return

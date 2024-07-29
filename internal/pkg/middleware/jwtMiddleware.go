@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"slices"
 	"strings"
@@ -17,7 +16,6 @@ import (
 
 func JwtAuthMiddleware(next http.Handler, roles []string) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		// next.ServeHTTP(rw, req)
 		jwtKey := config.JWTKey()
 		authToken := req.Header.Get(constants.AuthorizationHeader)
 		if authToken == "" {
@@ -27,7 +25,6 @@ func JwtAuthMiddleware(next http.Handler, roles []string) http.Handler {
 			return
 		}
 
-		fmt.Println("authtoken: ", authToken)
 		authToken = strings.TrimPrefix(authToken, "Bearer ")
 
 		claims := &dto.Claims{}
@@ -49,8 +46,8 @@ func JwtAuthMiddleware(next http.Handler, roles []string) http.Handler {
 			return
 		}
 
-		var Id int64 = claims.Id
-		var Role string = claims.Role
+		Id := claims.Id
+		Role := claims.Role
 
 		if !slices.Contains(roles, Role) {
 			err := apperrors.RoleUnathorized
@@ -65,19 +62,5 @@ func JwtAuthMiddleware(next http.Handler, roles []string) http.Handler {
 
 		next.ServeHTTP(rw, req)
 
-	})
-}
-
-func RecoverMiddleware(next http.Handler, roles []string) http.Handler {
-	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		defer func() {
-			rvr := recover()
-			if rvr != nil {
-				logger.Error("err ", rvr)
-				dto.ErrorRepsonse(rw, apperrors.InternalServer)
-			}
-		}()
-
-		next.ServeHTTP(rw, req)
 	})
 }

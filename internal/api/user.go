@@ -23,7 +23,9 @@ func loginUser(userSvc user.Service) http.HandlerFunc {
 			return
 		}
 
-		validateResp, err := userSvc.ValidatePeerly(req.Context(), authToken)
+		ctx := req.Context()
+
+		validateResp, err := userSvc.ValidatePeerly(ctx, authToken)
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)
 			return
@@ -34,7 +36,7 @@ func loginUser(userSvc user.Service) http.HandlerFunc {
 			UserId: validateResp.Data.UserId,
 		}
 
-		user, err := userSvc.GetIntranetUserData(req.Context(), reqData)
+		user, err := userSvc.GetIntranetUserData(ctx, reqData)
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)
 			return
@@ -46,7 +48,7 @@ func loginUser(userSvc user.Service) http.HandlerFunc {
 			return
 		}
 
-		resp, err := userSvc.LoginUser(req.Context(), user)
+		resp, err := userSvc.LoginUser(ctx, user)
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)
 			return
@@ -57,7 +59,7 @@ func loginUser(userSvc user.Service) http.HandlerFunc {
 	}
 }
 
-func getIntranetUserListHandler(userSvc user.Service) http.HandlerFunc {
+func listIntranetUsersHandler(userSvc user.Service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
 
 		authToken := req.Header.Get(constants.IntranetAuth)
@@ -69,13 +71,23 @@ func getIntranetUserListHandler(userSvc user.Service) http.HandlerFunc {
 
 		page := req.URL.Query().Get("page")
 		if page == "" {
+			logger.Error("page query parameter is required")
 			err := apperrors.PageParamNotFound
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
-		pageInt, _ := strconv.Atoi(page)
 
-		validateResp, err := userSvc.ValidatePeerly(req.Context(), authToken)
+		pageInt, err := strconv.ParseInt(page, 10, 64)
+		if err != nil {
+			logger.Errorf("error page string to int64 conversion. err:%s ", err.Error())
+			err = apperrors.InternalServerError
+			dto.ErrorRepsonse(rw, err)
+			return
+		}
+
+		ctx := req.Context()
+
+		validateResp, err := userSvc.ValidatePeerly(ctx, authToken)
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)
 			return
@@ -86,7 +98,7 @@ func getIntranetUserListHandler(userSvc user.Service) http.HandlerFunc {
 			Page:      pageInt,
 		}
 
-		usersData, err := userSvc.GetUserListIntranet(req.Context(), reqData)
+		usersData, err := userSvc.ListIntranetUsers(ctx, reqData)
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)
 			return
@@ -101,7 +113,7 @@ func registerUser(userSvc user.Service) http.HandlerFunc {
 		var user dto.IntranetUserData
 		err := json.NewDecoder(req.Body).Decode(&user)
 		if err != nil {
-			logger.WithField("err", err.Error()).Error("Error while decoding request data")
+			logger.Errorf("error while decoding request data. err: %s", err.Error())
 			err = apperrors.JSONParsingErrorReq
 			dto.ErrorRepsonse(rw, err)
 			return
@@ -149,7 +161,7 @@ func getUsersHandler(userSvc user.Service) http.HandlerFunc {
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
-		dto.SuccessRepsonse(rw, http.StatusOK, "Intranet users listed", resp)
+		dto.SuccessRepsonse(rw, http.StatusOK, "user list fetched successfully", resp)
 	}
 }
 

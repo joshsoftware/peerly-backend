@@ -26,7 +26,7 @@ func NewRewardRepo(db *sqlx.DB) repository.RewardStorer {
 func (rwrd *rewardStore) GiveReward(ctx context.Context, tx repository.Transaction, reward dto.Reward) (repository.Reward, error) {
 
 	queryExecutor := rwrd.InitiateQueryExecutor(tx)
-	insertQuery, args, err := sq.
+	insertQuery, args, err := repository.Sq.
 		Insert("rewards").
 		Columns(constants.CreateRewardColumns...).
 		Values(reward.AppreciationId, reward.Point, reward.SenderId).
@@ -55,7 +55,7 @@ func (rwrd *rewardStore) IsUserRewardForAppreciationPresent(ctx context.Context,
 	fmt.Println("appr id: ", apprId)
 	fmt.Println("sender: ", senderId)
 	// Build the SQL query
-	query, args, err := sq.Select("COUNT(*)").
+	query, args, err := repository.Sq.Select("COUNT(*)").
 		From("rewards").
 		Where(squirrel.And{
 			squirrel.Eq{"appreciation_id": apprId},
@@ -86,7 +86,7 @@ func (rwrd *rewardStore) IsUserRewardForAppreciationPresent(ctx context.Context,
 func (rwrd *rewardStore) DeduceRewardQuotaOfUser(ctx context.Context, tx repository.Transaction, userId int64, points int) (bool, error) {
 	queryExecutor := rwrd.InitiateQueryExecutor(tx)
 	// Build the SQL query to update the reward_quota_balance
-	updateQuery, args, err := sq.
+	updateQuery, args, err := repository.Sq.
 		Update("users").
 		Set("reward_quota_balance", squirrel.Expr("reward_quota_balance - ? * (SELECT points FROM grades WHERE id = users.grade_id)", points)).
 		Where(squirrel.Eq{"id": userId}).
