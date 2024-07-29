@@ -23,7 +23,6 @@ func Load() {
 	if err != nil {
 		panic(fmt.Sprintf("Error loading .env file: %v", err))
 	}
-
 	viper.ReadInConfig()
 	viper.AutomaticEnv()
 
