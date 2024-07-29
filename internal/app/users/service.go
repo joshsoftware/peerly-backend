@@ -288,25 +288,6 @@ func (us *service) ListIntranetUsers(ctx context.Context, reqData dto.GetUserLis
 	return
 }
 
-func (us *service) syncData(ctx context.Context, intranetUserData dto.IntranetUserData, peerlyUserData dto.User) (syncNeeded bool, dataToBeUpdated dto.User, err error) {
-	syncNeeded = false
-	grade, err := us.userRepo.GetGradeByName(ctx, intranetUserData.EmpolyeeDetail.Grade)
-	if err != nil {
-		err = fmt.Errorf("error in selecting grade in syncData err: %w", err)
-		return
-	}
-
-	if intranetUserData.PublicProfile.FirstName != peerlyUserData.FirstName || intranetUserData.PublicProfile.LastName != peerlyUserData.LastName || intranetUserData.PublicProfile.ProfileImgUrl != peerlyUserData.ProfileImgUrl || intranetUserData.EmpolyeeDetail.Designation.Name != peerlyUserData.Designation || grade.Id != peerlyUserData.GradeId {
-		syncNeeded = true
-		dataToBeUpdated.FirstName = intranetUserData.PublicProfile.FirstName
-		dataToBeUpdated.LastName = intranetUserData.PublicProfile.LastName
-		dataToBeUpdated.ProfileImgUrl = intranetUserData.PublicProfile.ProfileImgUrl
-		dataToBeUpdated.Designation = intranetUserData.EmpolyeeDetail.Designation.Name
-		dataToBeUpdated.GradeId = grade.Id
-		dataToBeUpdated.Email = intranetUserData.Email
-	}
-	return
-}
 
 func (us *service) GetUserList(ctx context.Context, reqData dto.UserListReq) (resp dto.UserListWithMetadata, err error) {
 
@@ -433,6 +414,26 @@ func mapDbTop10ToSvcTop10(dbStruct repository.Top10Users) (svcStruct dto.Top10Us
 	svcStruct.ProfileImageURL = dbStruct.ProfileImageURL.String
 	svcStruct.BadgeName = dbStruct.BadgeName.String
 	svcStruct.AppreciationPoints = dbStruct.AppreciationPoints
+	return
+}
+
+func (us *service) syncData(ctx context.Context, intranetUserData dto.IntranetUserData, peerlyUserData dto.User) (syncNeeded bool, dataToBeUpdated dto.User, err error) {
+	syncNeeded = false
+	grade, err := us.userRepo.GetGradeByName(ctx, intranetUserData.EmpolyeeDetail.Grade)
+	if err != nil {
+		err = fmt.Errorf("error in selecting grade in syncData err: %w", err)
+		return
+	}
+
+	if intranetUserData.PublicProfile.FirstName != peerlyUserData.FirstName || intranetUserData.PublicProfile.LastName != peerlyUserData.LastName || intranetUserData.PublicProfile.ProfileImgUrl != peerlyUserData.ProfileImgUrl || intranetUserData.EmpolyeeDetail.Designation.Name != peerlyUserData.Designation || grade.Id != peerlyUserData.GradeId {
+		syncNeeded = true
+		dataToBeUpdated.FirstName = intranetUserData.PublicProfile.FirstName
+		dataToBeUpdated.LastName = intranetUserData.PublicProfile.LastName
+		dataToBeUpdated.ProfileImgUrl = intranetUserData.PublicProfile.ProfileImgUrl
+		dataToBeUpdated.Designation = intranetUserData.EmpolyeeDetail.Designation.Name
+		dataToBeUpdated.GradeId = grade.Id
+		dataToBeUpdated.Email = intranetUserData.Email
+	}
 	return
 }
 

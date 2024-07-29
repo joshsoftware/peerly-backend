@@ -71,7 +71,7 @@ func listIntranetUsersHandler(userSvc user.Service) http.HandlerFunc {
 
 		page := req.URL.Query().Get("page")
 		if page == "" {
-			logger.Error("page query parameter is required")
+      logger.Error("page query parameter is required")
 			err := apperrors.PageParamNotFound
 			dto.ErrorRepsonse(rw, err)
 			return
@@ -124,8 +124,10 @@ func registerUser(userSvc user.Service) http.HandlerFunc {
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
+    
+    ctx := req.Context()
 
-		resp, err := userSvc.RegisterUser(req.Context(), user)
+		resp, err := userSvc.RegisterUser(ctx, user)
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)
 			return
