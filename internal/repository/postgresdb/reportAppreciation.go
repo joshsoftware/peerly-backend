@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
@@ -109,6 +110,53 @@ func (rs *reportAppreciationStore) ListReportedAppreciations(ctx context.Context
 	)
 	if err != nil {
 		err = fmt.Errorf("error in retriving reported appriciations, err:%w", err)
+		return
+	}
+	return
+}
+
+func (rs *reportAppreciationStore) CheckResolution(ctx context.Context, id int64) (doesExist bool, appreciation_id int64, err error) {
+	query := `select appreciation_id from resolutions where id = $1`
+	err = rs.DB.GetContext(
+		ctx,
+		&appreciation_id,
+		query,
+		id,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			doesExist = false
+			err = nil
+			return
+		}
+		err = fmt.Errorf("error in select resolution query, id:%d, err:%w", id, err)
+		return
+	}
+	doesExist = true
+	return
+}
+
+func (rs *reportAppreciationStore) DeleteAppreciation(ctx context.Context, moderationReq dto.ModerationReq) (err error) {
+	moderationQuery := `update resolutions set moderator_comment = $1, moderated_by = $2 where id = $3`
+	_, err = rs.DB.ExecContext(
+		ctx,
+		moderationQuery,
+		moderationReq.ModeratorComment,
+		moderationReq.ModeratedBy,
+		moderationReq.ResolutionId,
+	)
+	if err != nil {
+		err = fmt.Errorf("error in updating moderation values, err: %w", err)
+		return
+	}
+	deleteAppreciation := `update appreciations set is_valid = false where id = $1`
+	_, err = rs.DB.ExecContext(
+		ctx,
+		deleteAppreciation,
+		moderationReq.AppreciationId,
+	)
+	if err != nil {
+		err = fmt.Errorf("error in marking appreciation invalid, err: %w", err)
 		return
 	}
 	return
