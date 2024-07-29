@@ -23,7 +23,6 @@ const (
 	TimeExceeded                       = CustomError("time exceeded")
 	ErrOTPAlreadyExists                = CustomError("otp already exists")
 	ErrOTPAttemptsExceeded             = CustomError("attempts exceeded for organization")
-	InernalServer                      = CustomError("Failed to write organization db")
 	ErrRecordNotFound                  = CustomError("Database record not found")
 	OrganizationConfigAlreadyPresent   = CustomError("organization config already present")
 	InvalidRewardMultiplier            = CustomError("reward multiplier should greater than 1")

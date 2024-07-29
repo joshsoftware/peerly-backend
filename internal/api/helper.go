@@ -18,7 +18,7 @@ func getPaginationParams(req *http.Request) (page int16, limit int16) {
 		pageNumber, err := strconv.ParseInt(pageStr, 10, 32)
 		if err != nil {
 			logger.Errorf("err: %v", err)
-		}else if pageNumber > 0 {
+		} else if pageNumber > 0 {
 			page = int16(pageNumber)
 		}
 	}
@@ -28,7 +28,7 @@ func getPaginationParams(req *http.Request) (page int16, limit int16) {
 		pageSize, err := strconv.ParseInt(pageSizeStr, 10, 32)
 		if err != nil {
 			logger.Errorf("err: %v", err)
-		}else if pageSize > constants.MaxPageSize {
+		} else if pageSize > constants.MaxPageSize {
 			pageSize = constants.MaxPageSize
 		}
 		limit = int16(pageSize)

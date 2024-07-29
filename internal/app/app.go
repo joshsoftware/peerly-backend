@@ -13,9 +13,9 @@ import (
 
 // Dependencies holds the dependencies required by the application.
 type Dependencies struct {
-	CoreValueService          corevalues.Service
-	AppreciationService       appreciation.Service
-	UserService               user.Service
+	CoreValueService    corevalues.Service
+	AppreciationService appreciation.Service
+	UserService         user.Service
 	OrganizationConfigService organizationConfig.Service
 }
 

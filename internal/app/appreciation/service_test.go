@@ -255,7 +255,7 @@ func TestValidateAppreciation(t *testing.T) {
 			isValid: false,
 			apprId:  1,
 			setup: func(apprMock *mocks.AppreciationStorer) {
-				apprMock.On("DeleteAppreciation", mock.Anything, nil,  int32(1)).Return(apperrors.InternalServer).Once()
+				apprMock.On("DeleteAppreciation", mock.Anything, nil, int32(1)).Return(apperrors.InternalServer).Once()
 			},
 			isErrorExpected: true,
 			expectedResult:  false,
@@ -267,12 +267,12 @@ func TestValidateAppreciation(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.setup(appreciationRepo)
 
-		 err := service.DeleteAppreciation(tt.context,  tt.apprId)
+			err := service.DeleteAppreciation(tt.context, tt.apprId)
 
 			if tt.isErrorExpected {
 				assert.Error(t, err)
 				assert.Equal(t, tt.expectedError, err)
-			} 
+			}
 
 			appreciationRepo.AssertExpectations(t)
 		})

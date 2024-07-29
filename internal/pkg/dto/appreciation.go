@@ -32,7 +32,7 @@ type AppreciationResponse struct {
 	CoreValueDesc       string `json:"core_value_description"`
 	Description         string `json:"description"`
 	TotalRewardPoints   int32  `json:"total_reward_points"`
-	Quarter             int8 `json:"quarter"`
+	Quarter             int8   `json:"quarter"`
 	SenderFirstName     string `json:"sender_first_name"`
 	SenderLastName      string `json:"sender_last_name"`
 	SenderImageURL      string `json:"sender_image_url"`
