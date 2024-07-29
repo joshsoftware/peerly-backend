@@ -17,13 +17,13 @@ import (
 func JwtAuthMiddleware(next http.Handler, roles []string) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		jwtKey := config.JWTKey()
-		// authToken := req.Header.Get(constants.AuthorizationHeader)
-		// if authToken == "" {
-		// 	logger.Error("Empty auth token")
-		// 	err := apperrors.InvalidAuthToken
-		// 	dto.ErrorRepsonse(rw, err)
-		// 	return
-		// }
+		authToken := req.Header.Get(constants.AuthorizationHeader)
+		if authToken == "" {
+			logger.Error("Empty auth token")
+			err := apperrors.InvalidAuthToken
+			dto.ErrorRepsonse(rw, err)
+			return
+		}
 
 		authToken = strings.TrimPrefix(authToken, "Bearer ")
 

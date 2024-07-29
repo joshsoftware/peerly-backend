@@ -26,7 +26,7 @@ func NewService(db *sqlx.DB) Dependencies {
 	coreValueRepo := repository.NewCoreValueRepo(db)
 	userRepo := repository.NewUserRepo(db)
 	appreciationRepo := repository.NewAppreciationRepo(db)
-	orgConfigRepo := repository.NewOrganizationRepo(db)
+	orgConfigRepo := repository.NewOrganizationConfigRepo(db)
 
 	coreValueService := corevalues.NewService(coreValueRepo)
 	appreciationService := appreciation.NewService(appreciationRepo, coreValueRepo)

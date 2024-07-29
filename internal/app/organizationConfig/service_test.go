@@ -13,20 +13,20 @@ import (
 )
 
 func TestGetOrganizationConfig(t *testing.T) {
-	orgRepo := mocks.NewOrganizationStorer(t)
+	orgRepo := mocks.NewOrganizationConfigStorer(t)
 	service := NewService(orgRepo)
 
 	tests := []struct {
 		name           string
 		context        context.Context
-		setup          func(orgMock *mocks.OrganizationStorer)
+		setup          func(orgMock *mocks.OrganizationConfigStorer)
 		expectedResult dto.OrganizationConfig
 		expectedError  error
 	}{
 		{
 			name:    "Successful retrieval of organization config",
 			context: context.WithValue(context.Background(), "userId", int64(1)),
-			setup: func(orgMock *mocks.OrganizationStorer) {
+			setup: func(orgMock *mocks.OrganizationConfigStorer) {
 				orgMock.On("GetOrganizationConfig", mock.Anything).Return(repository.OrganizationConfig{
 					ID:                           1,
 					RewardMultiplier:             200,
@@ -53,7 +53,7 @@ func TestGetOrganizationConfig(t *testing.T) {
 		{
 			name:    "Error while retrieving organization config",
 			context: context.WithValue(context.Background(), "userId", int64(1)),
-			setup: func(orgMock *mocks.OrganizationStorer) {
+			setup: func(orgMock *mocks.OrganizationConfigStorer) {
 				orgMock.On("GetOrganizationConfig", mock.Anything).Return(repository.OrganizationConfig{}, apperrors.InternalServer).Once()
 			},
 			expectedResult: dto.OrganizationConfig{},
@@ -80,21 +80,21 @@ func TestGetOrganizationConfig(t *testing.T) {
 }
 
 func TestCreateOrganizationConfig(t *testing.T) {
-	orgRepo := mocks.NewOrganizationStorer(t)
+	orgRepo := mocks.NewOrganizationConfigStorer(t)
 	orgSvc := NewService(orgRepo)
 
 	tests := []struct {
 		name              string
 		context           context.Context
 		organizationInput dto.OrganizationConfig
-		setup func(orgMock *mocks.OrganizationStorer)
+		setup func(orgMock *mocks.OrganizationConfigStorer)
 		expectedResult    dto.OrganizationConfig
 		expectedError     error
 	}{
 		{
 			name: "Successful organization config creation",
 			context: context.WithValue(context.Background(), "userId", 1),
-			setup: func(orgMock *mocks.OrganizationStorer) {
+			setup: func(orgMock *mocks.OrganizationConfigStorer) {
 				orgMock.On("GetOrganizationConfig", mock.Anything).Return(repository.OrganizationConfig{}, apperrors.OrganizationNotFound).Once()
 				orgMock.On("CreateOrganizationConfig", mock.Anything,mock.Anything).Return(repository.OrganizationConfig{
 					ID:                           1,
@@ -128,7 +128,7 @@ func TestCreateOrganizationConfig(t *testing.T) {
 		{
 			name: "Organization config already present",
 			context: context.WithValue(context.Background(), "userId", 1),
-			setup: func(orgMock *mocks.OrganizationStorer) {
+			setup: func(orgMock *mocks.OrganizationConfigStorer) {
 				orgMock.On("GetOrganizationConfig", mock.Anything).Return(repository.OrganizationConfig{
 					ID:                           1,
 					RewardMultiplier:             200,
@@ -151,9 +151,9 @@ func TestCreateOrganizationConfig(t *testing.T) {
 		{
 			name: "Error while creating organization config",
 			context: context.WithValue(context.Background(), "userId", 1),
-			setup: func(orgMock *mocks.OrganizationStorer) {
+			setup: func(orgMock *mocks.OrganizationConfigStorer) {
 				orgMock.On("GetOrganizationConfig", mock.Anything).Return(repository.OrganizationConfig{}, apperrors.OrganizationNotFound).Once()
-				orgMock.On("CreateOrganizationConfig", mock.Anything,mock.Anything).Return(repository.OrganizationConfig{}, apperrors.InernalServer).Once()
+				orgMock.On("CreateOrganizationConfig", mock.Anything,mock.Anything).Return(repository.OrganizationConfig{}, apperrors.InternalServer).Once()
 			},
 			organizationInput: dto.OrganizationConfig{
 				RewardMultiplier: 10,
@@ -187,21 +187,21 @@ func TestCreateOrganizationConfig(t *testing.T) {
 }
 
 func TestUpdateOrganizationConfig(t *testing.T) {
-	orgRepo := mocks.NewOrganizationStorer(t)
+	orgRepo := mocks.NewOrganizationConfigStorer(t)
 	orgSvc := NewService(orgRepo)
 
 	tests := []struct {
 		name              string
 		context           context.Context
 		organizationInput dto.OrganizationConfig
-		setup             func(orgMock *mocks.OrganizationStorer)
+		setup             func(orgMock *mocks.OrganizationConfigStorer)
 		expectedResult    dto.OrganizationConfig
 		expectedError     error
 	}{
 		{
 			name: "Successful organization config update",
 			context: context.WithValue(context.Background(), "userId", 1),
-			setup: func(orgMock *mocks.OrganizationStorer) {
+			setup: func(orgMock *mocks.OrganizationConfigStorer) {
 				orgMock.On("GetOrganizationConfig", mock.Anything).Return(repository.OrganizationConfig{
 					ID:                           1,
 					RewardMultiplier:             200,
@@ -244,7 +244,7 @@ func TestUpdateOrganizationConfig(t *testing.T) {
 		{
 			name: "Organization config not found",
 			context: context.WithValue(context.Background(), "userId", 1),
-			setup: func(orgMock *mocks.OrganizationStorer) {
+			setup: func(orgMock *mocks.OrganizationConfigStorer) {
 				orgMock.On("GetOrganizationConfig", mock.Anything).Return(repository.OrganizationConfig{}, apperrors.OrganizationNotFound).Once()
 			},
 			organizationInput: dto.OrganizationConfig{
@@ -256,7 +256,7 @@ func TestUpdateOrganizationConfig(t *testing.T) {
 		{
 			name: "Error while updating organization config",
 			context: context.WithValue(context.Background(), "userId", 1),
-			setup: func(orgMock *mocks.OrganizationStorer) {
+			setup: func(orgMock *mocks.OrganizationConfigStorer) {
 				orgMock.On("GetOrganizationConfig", mock.Anything).Return(repository.OrganizationConfig{
 					ID:                           1,
 					RewardMultiplier:             200,

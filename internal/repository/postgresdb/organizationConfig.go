@@ -16,52 +16,35 @@ import (
 	logger "github.com/sirupsen/logrus"
 )
 
-const (
-	createOrganizationQuery = `INSERT INTO organization_config (
-		id,
-		reward_multiplier,
-		reward_quota_renewal_frequency,
-		timezone,
-		created_by,updated_by)
-		VALUES ($1, $2, $3, $4,$5,$6) RETURNING id,reward_multiplier,reward_quota_renewal_frequency,timezone,created_by,updated_by,created_at,updated_at`
-
-	getOrganizationQuery = `SELECT id,
-		reward_multiplier,
-		reward_quota_renewal_frequency,
-		timezone,
-		created_at,
-		created_by,
-		updated_at,updated_by FROM organization_config WHERE id=$1`
-)
-
-type OrganizationStore struct {
+type OrganizationConfigStore struct {
 	BaseRepository
+	OrganizationConfigTable string
 }
 
-func NewOrganizationRepo(db *sqlx.DB) repository.OrganizationStorer {
-	return &OrganizationStore{
-		BaseRepository: BaseRepository{db}, // Use *sqlx.DB instead of *sql.DB
+func NewOrganizationConfigRepo(db *sqlx.DB) repository.OrganizationConfigStorer {
+	return &OrganizationConfigStore{
+		BaseRepository: BaseRepository{db},
+		OrganizationConfigTable: constants.OrganizationConfigTable,
 	}
 }
 
-func (s *OrganizationStore) CreateOrganizationConfig(ctx context.Context,tx repository.Transaction, org dto.OrganizationConfig) (createdOrganization repository.OrganizationConfig, err error) {
+func (org *OrganizationConfigStore) CreateOrganizationConfig(ctx context.Context,tx repository.Transaction, orgConfigInfo dto.OrganizationConfig) (createdOrganization repository.OrganizationConfig, err error) {
 
-	insertQuery, args, err := sq.
-	Insert("organization_config").Columns(constants.OrgConfigColumns...).
+	insertQuery, args, err := repository.Sq.
+	Insert(org.OrganizationConfigTable).Columns(constants.OrgConfigColumns...).
 	Values(		1,
-		org.RewardMultiplier,
-		org.RewardQuotaRenewalFrequency,
-		org.Timezone,
-		org.CreatedBy,
-		org.UpdatedBy,).
-	PlaceholderFormat(sq.Dollar).
-	Suffix("RETURNING \"id\",\"reward_multiplier\",\"reward_quota_renewal_frequency\",\"timezone\",\"created_by\",\"updated_by\",\"created_at\",\"updated_at\"").
+		orgConfigInfo.RewardMultiplier,
+		orgConfigInfo.RewardQuotaRenewalFrequency,
+		orgConfigInfo.Timezone,
+		orgConfigInfo.CreatedBy,
+		orgConfigInfo.UpdatedBy,).
+	Suffix("RETURNING id, reward_multiplier ,reward_quota_renewal_frequency, timezone, created_by, updated_by, created_at, updated_at").
 	ToSql()
 	if err != nil {
 		logger.Error(err.Error())
 		return repository.OrganizationConfig{}, apperrors.InternalServer
 	}
-	queryExecutor := s.InitiateQueryExecutor(tx)
+	queryExecutor := org.InitiateQueryExecutor(tx)
 	err = queryExecutor.QueryRowx(insertQuery, args...).Scan(&createdOrganization.ID,&createdOrganization.RewardMultiplier,&createdOrganization.RewardQuotaRenewalFrequency,&createdOrganization.Timezone,&createdOrganization.CreatedBy,&createdOrganization.UpdatedBy,&createdOrganization.CreatedAt,&createdOrganization.UpdatedAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -72,12 +55,12 @@ func (s *OrganizationStore) CreateOrganizationConfig(ctx context.Context,tx repo
 	return
 }
 
-func (s *OrganizationStore) UpdateOrganizationConfig(ctx context.Context, tx repository.Transaction, reqOrganization dto.OrganizationConfig) (updatedOrganization repository.OrganizationConfig, err error) {
+func (org *OrganizationConfigStore) UpdateOrganizationConfig(ctx context.Context, tx repository.Transaction, reqOrganization dto.OrganizationConfig) (updatedOrganization repository.OrganizationConfig, err error) {
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
-	updateBuilder := psql.Update("organization_config").
+	updateBuilder := psql.Update(org.OrganizationConfigTable).
 	Where(sq.Eq{"id": 1}).
-	Suffix("RETURNING \"id\",\"reward_multiplier\",\"reward_quota_renewal_frequency\",\"timezone\",\"created_by\",\"updated_by\",\"created_at\",\"updated_at\"")
+	Suffix("RETURNING id, reward_multiplier, reward_quota_renewal_frequency, timezone, created_by , updated_by, created_at, updated_at")
 
 	if reqOrganization.RewardMultiplier != 0 {
 		updateBuilder = updateBuilder.Set("reward_multiplier", reqOrganization.RewardMultiplier)
@@ -98,7 +81,7 @@ func (s *OrganizationStore) UpdateOrganizationConfig(ctx context.Context, tx rep
 		return repository.OrganizationConfig{}, err
 	}
 
-	queryExecutor := s.InitiateQueryExecutor(tx)
+	queryExecutor := org.InitiateQueryExecutor(tx)
 	err = queryExecutor.QueryRowx(query, args...).Scan(&updatedOrganization.ID,&updatedOrganization.RewardMultiplier,&updatedOrganization.RewardQuotaRenewalFrequency,&updatedOrganization.Timezone,&updatedOrganization.CreatedBy,&updatedOrganization.UpdatedBy,&updatedOrganization.CreatedAt,&updatedOrganization.UpdatedAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -110,8 +93,8 @@ func (s *OrganizationStore) UpdateOrganizationConfig(ctx context.Context, tx rep
 }
 
 // GetOrganization - returns an organization from the database if it exists based on its ID primary key
-func (s *OrganizationStore) GetOrganizationConfig(ctx context.Context, tx repository.Transaction) (organization repository.OrganizationConfig, err error) {
-	queryExecutor := s.InitiateQueryExecutor(tx)
+func (org *OrganizationConfigStore) GetOrganizationConfig(ctx context.Context, tx repository.Transaction) (organization repository.OrganizationConfig, err error) {
+	queryExecutor := org.InitiateQueryExecutor(tx)
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 	queryBuilder := psql.
@@ -136,18 +119,4 @@ func (s *OrganizationStore) GetOrganizationConfig(ctx context.Context, tx reposi
 	}
 
 	return organization, nil
-}
-///helper functions Organization
-
-func OrganizationConfigToDB(org dto.OrganizationConfig) repository.OrganizationConfig {
-	return repository.OrganizationConfig{
-		RewardMultiplier:            org.RewardMultiplier,
-		ID:                          org.ID,
-		RewardQuotaRenewalFrequency: org.RewardQuotaRenewalFrequency,
-		Timezone:                    org.Timezone,
-		CreatedAt:                   org.CreatedAt,
-		CreatedBy:                   org.CreatedBy,
-		UpdatedAt:                   org.UpdatedAt,
-		UpdatedBy:                   org.UpdatedBy,
-	}
 }

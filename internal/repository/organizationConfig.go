@@ -5,7 +5,7 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 )
 
-type OrganizationStorer interface {
+type OrganizationConfigStorer interface {
 	GetOrganizationConfig(ctx context.Context, tx Transaction) (organization OrganizationConfig, err error)
 	UpdateOrganizationConfig(ctx context.Context, tx Transaction, reqOrganization dto.OrganizationConfig) (updatedOrganization OrganizationConfig, err error)
 	CreateOrganizationConfig(ctx context.Context, tx Transaction, org dto.OrganizationConfig) (createdOrganization OrganizationConfig, err error)

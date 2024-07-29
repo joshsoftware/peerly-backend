@@ -11,7 +11,7 @@ import (
 )
 
 type service struct {
-	OrganizationRepo     repository.OrganizationStorer
+	OrganizationConfigRepo     repository.OrganizationConfigStorer
 }
 
 type Service interface {
@@ -20,16 +20,16 @@ type Service interface {
 	UpdateOrganizationConfig(ctx context.Context, organization dto.OrganizationConfig) (dto.OrganizationConfig, error)
 }
 
-func NewService(organizationRepo repository.OrganizationStorer) Service {
+func NewService(organizationConfigRepo repository.OrganizationConfigStorer) Service {
 	return &service{
-		OrganizationRepo:     organizationRepo,
+		OrganizationConfigRepo:     organizationConfigRepo,
 	}
 }
 
 
 func (orgSvc *service) GetOrganizationConfig(ctx context.Context) (dto.OrganizationConfig, error) {
 
-	organization, err := orgSvc.OrganizationRepo.GetOrganizationConfig(ctx,nil)
+	organization, err := orgSvc.OrganizationConfigRepo.GetOrganizationConfig(ctx,nil)
 	if err != nil {
 		return dto.OrganizationConfig{}, err
 	}
@@ -50,15 +50,15 @@ func (orgSvc *service) CreateOrganizationConfig(ctx context.Context, organizatio
 	organizationConfig.CreatedBy = userID
 	organizationConfig.UpdatedBy = userID
 
-	_ ,err := orgSvc.OrganizationRepo.GetOrganizationConfig(ctx,nil);
+	_ ,err := orgSvc.OrganizationConfigRepo.GetOrganizationConfig(ctx,nil);
 	if err != apperrors.OrganizationConfigNotFound {
 		return dto.OrganizationConfig{},apperrors.OrganizationConfigAlreadyPresent
 	}
-	createdOrganization, err := orgSvc.OrganizationRepo.CreateOrganizationConfig(ctx,nil, organizationConfig)
+	createdOrganizationConfig, err := orgSvc.OrganizationConfigRepo.CreateOrganizationConfig(ctx,nil, organizationConfig)
 	if err != nil {
 		return dto.OrganizationConfig{}, err
 	}
-	org := OrganizationConfigToDTO(createdOrganization)
+	org := OrganizationConfigToDTO(createdOrganizationConfig)
 	return org, nil
 }
 
@@ -72,12 +72,12 @@ func (orgSvc *service) UpdateOrganizationConfig(ctx context.Context, organizatio
 	}
 	organizationConfig.UpdatedBy = userID
 
-	_ ,err := orgSvc.OrganizationRepo.GetOrganizationConfig(ctx,nil);
+	_ ,err := orgSvc.OrganizationConfigRepo.GetOrganizationConfig(ctx,nil);
 	if err != nil {
 		return dto.OrganizationConfig{},err
 	}
 
-	updatedOrganization, err := orgSvc.OrganizationRepo.UpdateOrganizationConfig(ctx,nil, organizationConfig)
+	updatedOrganization, err := orgSvc.OrganizationConfigRepo.UpdateOrganizationConfig(ctx,nil, organizationConfig)
 	if err != nil {
 		return dto.OrganizationConfig{}, err
 	}
