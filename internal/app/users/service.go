@@ -291,7 +291,13 @@ func (us *service) AdminLogin(ctx context.Context, loginReq dto.AdminLoginReq) (
 		return
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(loginReq.Password))
+	if dbUser.RoleID != 2 {
+		logger.Errorf("unathorized access")
+		err = apperrors.RoleUnathorized
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(dbUser.Password.String), []byte(loginReq.Password))
 	if err != nil {
 		logger.Errorf("invalid password, err: %s", err.Error())
 		err = apperrors.InvalidPassword

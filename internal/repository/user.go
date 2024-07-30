@@ -19,22 +19,22 @@ type UserStorer interface {
 
 // User - basic struct representing a User
 type User struct {
-	Id                  int64         `db:"id"`
-	EmployeeId          string        `db:"employee_id"`
-	FirstName           string        `db:"first_name"`
-	LastName            string        `db:"last_name"`
-	Email               string        `db:"email"`
-	Password            string        `db:"password"`
-	ProfileImageURL     string        `db:"profile_image_url"`
-	GradeId             int64         `db:"grade_id"`
-	Designation         string        `db:"designation"`
-	RoleID              int64         `db:"role_id"`
-	RewardsQuotaBalance int64         `db:"reward_quota_balance"`
-	Status              int64         `db:"status"`
-	SoftDelete          bool          `db:"soft_delete"`
-	SoftDeleteBy        sql.NullInt64 `db:"soft_delete_by"`
-	SoftDeleteOn        sql.NullTime  `db:"soft_delete_on"`
-	CreatedAt           int64         `db:"created_at"`
+	Id                  int64          `db:"id"`
+	EmployeeId          string         `db:"employee_id"`
+	FirstName           string         `db:"first_name"`
+	LastName            string         `db:"last_name"`
+	Email               string         `db:"email"`
+	Password            sql.NullString `db:"password"`
+	ProfileImageURL     string         `db:"profile_image_url"`
+	GradeId             int64          `db:"grade_id"`
+	Designation         string         `db:"designation"`
+	RoleID              int64          `db:"role_id"`
+	RewardsQuotaBalance int64          `db:"reward_quota_balance"`
+	Status              int64          `db:"status"`
+	SoftDelete          bool           `db:"soft_delete"`
+	SoftDeleteBy        sql.NullInt64  `db:"soft_delete_by"`
+	SoftDeleteOn        sql.NullTime   `db:"soft_delete_on"`
+	CreatedAt           int64          `db:"created_at"`
 }
 
 type Role struct {
