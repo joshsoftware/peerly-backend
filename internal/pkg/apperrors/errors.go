@@ -42,6 +42,8 @@ const (
 	InternalServer           = CustomError("internal Server")
 	FailedToCreateDriver     = CustomError("failure to create driver obj")
 	MigrationFailure         = CustomError("migrate failure")
+	InvalidPassword          = CustomError("invalid password")
+	InvalidEmail             = CustomError("invalid email")
 )
 
 // ErrKeyNotSet - Returns error object specific to the key value passed in
@@ -56,7 +58,7 @@ func GetHTTPStatusCode(err error) int {
 		return http.StatusInternalServerError
 	case OrganizationNotFound, InvalidOrgId, PageParamNotFound, InvalidCoreValueData:
 		return http.StatusNotFound
-	case InvalidId, JSONParsingErrorReq, TextFieldBlank, InvalidParentValue, DescFieldBlank, UniqueCoreValue, InvalidIntranetData, GradeNotFound:
+	case InvalidPassword, InvalidId, JSONParsingErrorReq, TextFieldBlank, InvalidParentValue, DescFieldBlank, UniqueCoreValue, InvalidIntranetData, GradeNotFound, InvalidEmail:
 		return http.StatusBadRequest
 	case RepeatedUser:
 		return http.StatusConflict

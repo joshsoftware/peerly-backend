@@ -58,6 +58,25 @@ func loginUser(userSvc user.Service) http.HandlerFunc {
 	}
 }
 
+func loginAdmin(userSvc user.Service) http.HandlerFunc {
+	return func(rw http.ResponseWriter, req *http.Request) {
+		var reqData dto.AdminLoginReq
+		err := json.NewDecoder(req.Body).Decode(&reqData)
+		if err != nil {
+			logger.Errorf("error while decoding request data. err: %s", err.Error())
+			err = apperrors.JSONParsingErrorReq
+			dto.ErrorRepsonse(rw, err)
+			return
+		}
+		resp, err := userSvc.AdminLogin(req.Context(), reqData)
+		if err != nil {
+			dto.ErrorRepsonse(rw, err)
+			return
+		}
+		dto.SuccessRepsonse(rw, http.StatusOK, "Login successful", resp)
+	}
+}
+
 func listIntranetUsersHandler(userSvc user.Service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
 
@@ -70,7 +89,7 @@ func listIntranetUsersHandler(userSvc user.Service) http.HandlerFunc {
 
 		page := req.URL.Query().Get("page")
 		if page == "" {
-      logger.Error("page query parameter is required")
+			logger.Error("page query parameter is required")
 			err := apperrors.PageParamNotFound
 			dto.ErrorRepsonse(rw, err)
 			return
@@ -79,9 +98,9 @@ func listIntranetUsersHandler(userSvc user.Service) http.HandlerFunc {
 		pageInt, err := strconv.ParseInt(page, 10, 64)
 		if err != nil {
 			logger.Errorf("error page string to int64 conversion. err:%s ", err.Error())
-      err = apperrors.InternalServerError
+			err = apperrors.InternalServerError
 			dto.ErrorRepsonse(rw, err)
-      return
+			return
 		}
 
 		ctx := req.Context()
@@ -123,8 +142,8 @@ func registerUser(userSvc user.Service) http.HandlerFunc {
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
-    
-    ctx := req.Context()
+
+		ctx := req.Context()
 
 		resp, err := userSvc.RegisterUser(ctx, user)
 		if err != nil {

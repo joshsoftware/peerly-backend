@@ -14,6 +14,7 @@ type UserStorer interface {
 	GetGradeByName(ctx context.Context, name string) (grade Grade, err error)
 	GetRewardMultiplier(ctx context.Context) (value int64, err error)
 	SyncData(ctx context.Context, updateData dto.User) (err error)
+	GetAdmin(ctx context.Context, email string) (user User, err error)
 }
 
 // User - basic struct representing a User
@@ -23,6 +24,7 @@ type User struct {
 	FirstName           string        `db:"first_name"`
 	LastName            string        `db:"last_name"`
 	Email               string        `db:"email"`
+	Password            string        `db:"password"`
 	ProfileImageURL     string        `db:"profile_image_url"`
 	GradeId             int64         `db:"grade_id"`
 	Designation         string        `db:"designation"`

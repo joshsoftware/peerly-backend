@@ -16,6 +16,7 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
 	logger "github.com/sirupsen/logrus"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type service struct {
@@ -28,6 +29,7 @@ type Service interface {
 	LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.LoginUserResp, error)
 	RegisterUser(ctx context.Context, u dto.IntranetUserData) (user dto.User, err error)
 	ListIntranetUsers(ctx context.Context, reqData dto.GetUserListReq) (data []dto.IntranetUserData, err error)
+	AdminLogin(ctx context.Context, loginReq dto.AdminLoginReq) (resp dto.LoginUserResp, err error)
 }
 
 func NewService(userRepo repository.UserStorer) Service {
@@ -279,6 +281,49 @@ func (us *service) ListIntranetUsers(ctx context.Context, reqData dto.GetUserLis
 	}
 
 	data = respData.Data
+	return
+}
+
+func (us *service) AdminLogin(ctx context.Context, loginReq dto.AdminLoginReq) (resp dto.LoginUserResp, err error) {
+
+	dbUser, err := us.userRepo.GetAdmin(ctx, loginReq.Email)
+	if err != nil {
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(loginReq.Password))
+	if err != nil {
+		logger.Errorf("invalid password, err: %s", err.Error())
+		err = apperrors.InvalidPassword
+		return
+	}
+
+	user := mapUserDbToService(dbUser)
+
+	expirationTime := time.Now().Add(time.Hour * time.Duration(config.JWTExpiryDurationHours()))
+
+	claims := &dto.Claims{
+		Id:   user.Id,
+		Role: constants.AdminRole,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: expirationTime.Unix(),
+		},
+	}
+
+	var jwtKey = config.JWTKey()
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString(jwtKey)
+
+	if err != nil {
+		logger.Errorf("error generating authtoken. err: %s", err.Error())
+		err = apperrors.InternalServerError
+		return resp, err
+	}
+
+	resp.User = user
+	resp.AuthToken = tokenString
+
 	return
 }
 

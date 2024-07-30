@@ -77,3 +77,8 @@ type GetUserListReq struct {
 type GetUserListRespData struct {
 	Data []IntranetUserData `json:"data"`
 }
+
+type AdminLoginReq struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}

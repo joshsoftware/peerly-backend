@@ -33,6 +33,7 @@ func NewUserRepo(db *sqlx.DB) repository.UserStorer {
 
 var (
 	userColumns      = []string{"id", "employee_id", "first_name", "last_name", "email", "profile_image_url", "role_id", "reward_quota_balance", "designation", "grade_id"}
+	adminColumns     = []string{"id", "employee_id", "first_name", "last_name", "email", "password", "profile_image_url", "role_id", "reward_quota_balance", "designation", "grade_id"}
 	rolesColumns     = []string{"id"}
 	gradeColumns     = []string{"id", "name", "points"}
 	orgConfigColumns = []string{"reward_multiplier"}
@@ -189,4 +190,31 @@ func (us *userStore) SyncData(ctx context.Context, updateData dto.User) (err err
 
 	return
 
+}
+
+func (us *userStore) GetAdmin(ctx context.Context, email string) (user repository.User, err error) {
+	queryBuilder := repository.Sq.Select(adminColumns...).From(us.UsersTable).Where(squirrel.Like{"email": email})
+	getAdminQuery, args, err := queryBuilder.ToSql()
+	if err != nil {
+		logger.Errorf("error in generating squirrel query, err: %s", err.Error())
+		err = apperrors.InternalServerError
+		return
+	}
+	err = us.DB.GetContext(
+		ctx,
+		&user,
+		getAdminQuery,
+		args...,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			logger.Errorf("invalid user email, err:%s", err.Error())
+			err = apperrors.InvalidEmail
+			return
+		}
+		logger.Errorf("error in get admin query, err: %s", err.Error())
+		err = apperrors.InternalServerError
+		return
+	}
+	return
 }
