@@ -159,12 +159,10 @@ func TestListReportedAppreciations(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			ctx := context.Background()
-			ctx = context.WithValue(ctx, constants.UserId, int64(test.userId))
 			test.setup(reportAppreciationRepo)
 
 			// test service
-			_, err := service.ReportAppreciation(ctx, test.reqData)
+			_, err := service.ListReportedAppreciations(test.ctx)
 
 			if (err != nil) != test.isErrorExpected {
 				t.Errorf("Test Failed, expected error to be %v, but got err %v", test.isErrorExpected, err != nil)
