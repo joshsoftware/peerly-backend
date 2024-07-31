@@ -57,8 +57,6 @@ func (_m *UserStorer) CreateNewUser(ctx context.Context, user dto.User) (reposit
 	return r0, r1
 }
 
-<<<<<<< HEAD
-=======
 // GetActiveUserList provides a mock function with given fields: ctx, tx
 func (_m *UserStorer) GetActiveUserList(ctx context.Context, tx repository.Transaction) ([]repository.ActiveUser, error) {
 	ret := _m.Called(ctx, tx)
@@ -82,7 +80,6 @@ func (_m *UserStorer) GetActiveUserList(ctx context.Context, tx repository.Trans
 	return r0, r1
 }
 
->>>>>>> c10990fd43cbd05c229aabc85483b2492efdf457
 // GetGradeById provides a mock function with given fields: ctx, id
 func (_m *UserStorer) GetGradeById(ctx context.Context, id int64) (repository.Grade, error) {
 	ret := _m.Called(ctx, id)
@@ -167,8 +164,6 @@ func (_m *UserStorer) GetRoleByName(ctx context.Context, name string) (int64, er
 	return r0, r1
 }
 
-<<<<<<< HEAD
-=======
 // GetTop10Users provides a mock function with given fields: ctx, quarterTimestamp
 func (_m *UserStorer) GetTop10Users(ctx context.Context, quarterTimestamp int64) ([]repository.Top10Users, error) {
 	ret := _m.Called(ctx, quarterTimestamp)
@@ -192,7 +187,6 @@ func (_m *UserStorer) GetTop10Users(ctx context.Context, quarterTimestamp int64)
 	return r0, r1
 }
 
->>>>>>> c10990fd43cbd05c229aabc85483b2492efdf457
 // GetTotalUserCount provides a mock function with given fields: ctx, reqData
 func (_m *UserStorer) GetTotalUserCount(ctx context.Context, reqData dto.UserListReq) (int64, error) {
 	ret := _m.Called(ctx, reqData)
