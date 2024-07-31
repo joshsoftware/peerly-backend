@@ -14,7 +14,7 @@ import (
 func listCoreValuesHandler(coreValueSvc corevalues.Service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 
-    ctx := req.Context()
+		ctx := req.Context()
 		coreValues, err := coreValueSvc.ListCoreValues(ctx)
 		if err != nil {
 
@@ -29,7 +29,7 @@ func listCoreValuesHandler(coreValueSvc corevalues.Service) http.HandlerFunc {
 func getCoreValueHandler(coreValueSvc corevalues.Service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
-    ctx := req.Context()
+		ctx := req.Context()
 
 		coreValue, err := coreValueSvc.GetCoreValue(ctx, vars["id"])
 		if err != nil {
@@ -52,7 +52,7 @@ func createCoreValueHandler(coreValueSvc corevalues.Service) http.HandlerFunc {
 			return
 		}
 
-    ctx := req.Context()
+		ctx := req.Context()
 
 		resp, err := coreValueSvc.CreateCoreValue(ctx, coreValue)
 		if err != nil {
@@ -78,13 +78,13 @@ func updateCoreValueHandler(coreValueSvc corevalues.Service) http.HandlerFunc {
 			return
 		}
 
-    ctx := req.Context()
+		ctx := req.Context()
 		resp, err := coreValueSvc.UpdateCoreValue(ctx, vars["id"], updateReq)
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
 
-		dto.SuccessRepsonse(rw, http.StatusOK, "Core value created", resp)
+		dto.SuccessRepsonse(rw, http.StatusOK, "Core value updated", resp)
 	})
 }

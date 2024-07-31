@@ -168,6 +168,17 @@ func listUsersHandler(userSvc user.Service) http.HandlerFunc {
 	}
 }
 
+func getActiveUserListHandler(userSvc user.Service) http.HandlerFunc {
+	return func(rw http.ResponseWriter, req *http.Request) {
+
+		resp, err := userSvc.GetActiveUserList(req.Context())
+		if err != nil {
+			dto.ErrorRepsonse(rw, err)
+			return
+		}
+		dto.SuccessRepsonse(rw, http.StatusOK, "Active Users list", resp)
+	}
+}
 func getUserByIdHandler(userSvc user.Service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
 
@@ -179,5 +190,16 @@ func getUserByIdHandler(userSvc user.Service) http.HandlerFunc {
 
 		dto.SuccessRepsonse(rw, 200, "User fetched successfully", resp)
 
+	}
+}
+
+func getTop10UserHandler(userSvc user.Service) http.HandlerFunc {
+	return func(rw http.ResponseWriter, req *http.Request) {
+		resp, err := userSvc.GetTop10Users(req.Context())
+		if err != nil {
+			dto.ErrorRepsonse(rw, err)
+			return
+		}
+		dto.SuccessRepsonse(rw, 200, "Top 10 users fetched successfully", resp)
 	}
 }

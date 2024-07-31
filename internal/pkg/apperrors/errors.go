@@ -16,17 +16,23 @@ func (e CustomError) Error() string {
 
 // Custome errors with errormessage
 const (
+	RoleUnathorized             = CustomError("Role unauthorized")
+	PageParamNotFound           = CustomError("Page parameter not found")
+	RepeatedUser                = CustomError("Repeated user")
 	CannotReportOwnAppreciation = CustomError("You cannot report your own appreciations")
 	RepeatedReport              = CustomError("You cannot report an appreciation twice")
+	UserAlreadyPresent          = CustomError("user already present")
+	RewardAlreadyPresent        = CustomError("reward already present")
+	RewardQuotaIsNotSufficient  = CustomError("reward quota is not sufficient")
+	InvalidRewardPoint          = CustomError("invalid reward point")
+	SelfRewardError             = CustomError("user cannot give reward to ourself")
+	SelfAppreciationRewardError = CustomError("user cannot give reward to his posted appreciaiton ")
 	InvalidId                   = CustomError("invalid id")
 	InternalServerError         = CustomError("internal server error")
 	JSONParsingErrorReq         = CustomError("error in parsing request in json")
 	JSONParsingErrorResp        = CustomError("error in parsing response in json")
 	OutOfRange                  = CustomError("request value is out of range")
 	OrganizationNotFound        = CustomError("organization of given id not found")
-	RoleUnathorized             = CustomError("Role unauthorized")
-	PageParamNotFound           = CustomError("Page parameter not found")
-	RepeatedUser                = CustomError("Repeated user")
 	InvalidContactEmail         = CustomError("contact email is already present")
 	InvalidDomainName           = CustomError("domain name is already present")
 	InvalidCoreValueData        = CustomError("invalid corevalue data")
@@ -40,10 +46,14 @@ const (
 	UserNotFound                = CustomError("user not found")
 	InvalidIntranetData         = CustomError("invalid data recieved from intranet")
 	GradeNotFound               = CustomError("grade not found")
+	AppreciationNotFound        = CustomError("appreciation not found")
 	BadRequest                  = CustomError("bad request")
 	InternalServer              = CustomError("internal Server")
 	FailedToCreateDriver        = CustomError("failure to create driver obj")
 	MigrationFailure            = CustomError("migrate failure")
+	SelfAppreciationError       = CustomError("self-appreciation is not allowed")
+	InvalidCoreValueID          = CustomError("invalid corevalue id")
+	InvalidReceiverID           = CustomError("invalid receiver id")
 )
 
 // ErrKeyNotSet - Returns error object specific to the key value passed in
@@ -56,16 +66,16 @@ func GetHTTPStatusCode(err error) int {
 	switch err {
 	case InternalServerError, JSONParsingErrorResp:
 		return http.StatusInternalServerError
-	case OrganizationNotFound, InvalidOrgId, PageParamNotFound, InvalidCoreValueData:
+	case OrganizationNotFound, InvalidOrgId, GradeNotFound, AppreciationNotFound, PageParamNotFound, InvalidCoreValueData, InvalidIntranetData:
 		return http.StatusNotFound
-	case InvalidId, JSONParsingErrorReq, TextFieldBlank, InvalidParentValue, DescFieldBlank, UniqueCoreValue, InvalidIntranetData, GradeNotFound, CannotReportOwnAppreciation, RepeatedReport:
+	case BadRequest, InvalidId, JSONParsingErrorReq, TextFieldBlank, InvalidParentValue, DescFieldBlank, UniqueCoreValue, SelfAppreciationError, CannotReportOwnAppreciation, RepeatedReport, InvalidCoreValueID, InvalidReceiverID, InvalidRewardPoint:
 		return http.StatusBadRequest
-	case RepeatedUser:
+	case InvalidContactEmail, InvalidDomainName, UserAlreadyPresent, RewardAlreadyPresent, RepeatedUser:
 		return http.StatusConflict
-	case InvalidAuthToken, IntranetValidationFailed, RoleUnathorized:
+	case InvalidAuthToken, RoleUnathorized, IntranetValidationFailed:
 		return http.StatusUnauthorized
-	case InvalidContactEmail, InvalidDomainName:
-		return http.StatusConflict
+	case RewardQuotaIsNotSufficient:
+		return http.StatusUnprocessableEntity
 
 	default:
 		return http.StatusInternalServerError

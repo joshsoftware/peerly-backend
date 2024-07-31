@@ -19,7 +19,7 @@ type GetSenderAndReceiverResp struct {
 	Receiver int64 `json:"receiver" db:"receiver"`
 }
 
-type Appreciation struct {
+type ReportedAppreciation struct {
 	Id                  int64  `json:"id"`
 	Appreciation_id     int64  `json:"appreciation_id"`
 	AppreciationDesc    string `json:"appreciation_description"`

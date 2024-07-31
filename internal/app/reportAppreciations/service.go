@@ -19,7 +19,7 @@ type service struct {
 
 type Service interface {
 	ReportAppreciation(ctx context.Context, reqData dto.ReportAppreciationReq) (resp dto.ReportAppricaitionResp, err error)
-	ListReportedAppreciations(ctx context.Context) ([]dto.Appreciation, error)
+	ListReportedAppreciations(ctx context.Context) ([]dto.ReportedAppreciation, error)
 	DeleteAppreciation(ctx context.Context, reqData dto.ModerationReq) (err error)
 }
 
@@ -81,9 +81,9 @@ func (rs *service) ReportAppreciation(ctx context.Context, reqData dto.ReportApp
 	return
 }
 
-func (rs *service) ListReportedAppreciations(ctx context.Context) ([]dto.Appreciation, error) {
+func (rs *service) ListReportedAppreciations(ctx context.Context) ([]dto.ReportedAppreciation, error) {
 
-	var appreciationList []dto.Appreciation
+	var appreciationList []dto.ReportedAppreciation
 
 	appreciations, err := rs.reportAppreciationRepo.ListReportedAppreciations(ctx)
 	if err != nil {
@@ -160,7 +160,7 @@ func GetQuarterStartUnixTime() int64 {
 	return quarterStart.Unix() * 1000 // convert to milliseconds
 }
 
-func mapDbAppreciationsToSvcAppreciations(dbApp repository.ListReportedAppreciations, sender dto.GetUserByIdResp, receiver dto.GetUserByIdResp) (svcApp dto.Appreciation) {
+func mapDbAppreciationsToSvcAppreciations(dbApp repository.ListReportedAppreciations, sender dto.GetUserByIdResp, receiver dto.GetUserByIdResp) (svcApp dto.ReportedAppreciation) {
 	svcApp.Id = dbApp.Id
 	svcApp.Appreciation_id = dbApp.Appreciation_id
 	svcApp.AppreciationDesc = dbApp.AppreciationDesc
