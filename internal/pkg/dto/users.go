@@ -155,3 +155,7 @@ type GetUserByIdResp struct {
 	Badge              string `json:"badge" db:"name"`
 	BadgeCreatedAt     int64  `json:"badge_created_at" db:"badge_created_at"`
 }
+type AdminLoginReq struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}

@@ -59,6 +59,25 @@ func loginUser(userSvc user.Service) http.HandlerFunc {
 	}
 }
 
+func loginAdmin(userSvc user.Service) http.HandlerFunc {
+	return func(rw http.ResponseWriter, req *http.Request) {
+		var reqData dto.AdminLoginReq
+		err := json.NewDecoder(req.Body).Decode(&reqData)
+		if err != nil {
+			logger.Errorf("error while decoding request data. err: %s", err.Error())
+			err = apperrors.JSONParsingErrorReq
+			dto.ErrorRepsonse(rw, err)
+			return
+		}
+		resp, err := userSvc.AdminLogin(req.Context(), reqData)
+		if err != nil {
+			dto.ErrorRepsonse(rw, err)
+			return
+		}
+		dto.SuccessRepsonse(rw, http.StatusOK, "Login successful", resp)
+	}
+}
+
 func listIntranetUsersHandler(userSvc user.Service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
 

@@ -54,6 +54,8 @@ const (
 	SelfAppreciationError       = CustomError("self-appreciation is not allowed")
 	InvalidCoreValueID          = CustomError("invalid corevalue id")
 	InvalidReceiverID           = CustomError("invalid receiver id")
+	InvalidPassword             = CustomError("invalid password")
+	InvalidEmail                = CustomError("invalid email")
 )
 
 // ErrKeyNotSet - Returns error object specific to the key value passed in
@@ -68,7 +70,7 @@ func GetHTTPStatusCode(err error) int {
 		return http.StatusInternalServerError
 	case OrganizationNotFound, InvalidOrgId, GradeNotFound, AppreciationNotFound, PageParamNotFound, InvalidCoreValueData, InvalidIntranetData:
 		return http.StatusNotFound
-	case BadRequest, InvalidId, JSONParsingErrorReq, TextFieldBlank, InvalidParentValue, DescFieldBlank, UniqueCoreValue, SelfAppreciationError, CannotReportOwnAppreciation, RepeatedReport, InvalidCoreValueID, InvalidReceiverID, InvalidRewardPoint:
+	case BadRequest, InvalidId, JSONParsingErrorReq, TextFieldBlank, InvalidParentValue, DescFieldBlank, UniqueCoreValue, SelfAppreciationError, CannotReportOwnAppreciation, RepeatedReport, InvalidCoreValueID, InvalidReceiverID, InvalidRewardPoint, InvalidEmail, InvalidPassword:
 		return http.StatusBadRequest
 	case InvalidContactEmail, InvalidDomainName, UserAlreadyPresent, RewardAlreadyPresent, RepeatedUser:
 		return http.StatusConflict

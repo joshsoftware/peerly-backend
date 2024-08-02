@@ -17,6 +17,7 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
 	logger "github.com/sirupsen/logrus"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type service struct {
@@ -34,6 +35,7 @@ type Service interface {
 	UpdateRewardQuota(ctx context.Context) (err error)
 	GetActiveUserList(ctx context.Context) ([]dto.ActiveUser, error)
 	GetTop10Users(ctx context.Context) (users []dto.Top10User, err error)
+	AdminLogin(ctx context.Context, loginReq dto.AdminLoginReq) (resp dto.LoginUserResp, err error)
 }
 
 func NewService(userRepo repository.UserStorer) Service {
@@ -318,6 +320,54 @@ func (us *service) ListUsers(ctx context.Context, reqData dto.UserListReq) (resp
 	resp.MetaData.TotalCount = totalCount
 	resp.MetaData.CurrentPage = reqData.Page
 	resp.MetaData.PageCount = reqData.PerPage
+
+	return
+}
+func (us *service) AdminLogin(ctx context.Context, loginReq dto.AdminLoginReq) (resp dto.LoginUserResp, err error) {
+
+	dbUser, err := us.userRepo.GetAdmin(ctx, loginReq.Email)
+	if err != nil {
+		return
+	}
+
+	if dbUser.RoleID != 2 {
+		logger.Errorf("unathorized access")
+		err = apperrors.RoleUnathorized
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(dbUser.Password.String), []byte(loginReq.Password))
+	if err != nil {
+		logger.Errorf("invalid password, err: %s", err.Error())
+		err = apperrors.InvalidPassword
+		return
+	}
+
+	user := mapUserDbToService(dbUser)
+
+	expirationTime := time.Now().Add(time.Hour * time.Duration(config.JWTExpiryDurationHours()))
+
+	claims := &dto.Claims{
+		Id:   user.Id,
+		Role: constants.AdminRole,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: expirationTime.Unix(),
+		},
+	}
+
+	var jwtKey = config.JWTKey()
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString(jwtKey)
+
+	if err != nil {
+		logger.Errorf("error generating authtoken. err: %s", err.Error())
+		err = apperrors.InternalServerError
+		return resp, err
+	}
+
+	resp.User = user
+	resp.AuthToken = tokenString
 
 	return
 }
