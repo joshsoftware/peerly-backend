@@ -19,7 +19,7 @@ type service struct {
 
 type Service interface {
 	ReportAppreciation(ctx context.Context, reqData dto.ReportAppreciationReq) (resp dto.ReportAppricaitionResp, err error)
-	ListReportedAppreciations(ctx context.Context) ([]dto.ReportedAppreciation, error)
+	ListReportedAppreciations(ctx context.Context) (dto.ListReportedAppreciationsResponse, error)
 	DeleteAppreciation(ctx context.Context, reqData dto.ModerationReq) (err error)
 }
 
@@ -81,7 +81,9 @@ func (rs *service) ReportAppreciation(ctx context.Context, reqData dto.ReportApp
 	return
 }
 
-func (rs *service) ListReportedAppreciations(ctx context.Context) ([]dto.ReportedAppreciation, error) {
+func (rs *service) ListReportedAppreciations(ctx context.Context) (dto.ListReportedAppreciationsResponse, error) {
+
+	var resp dto.ListReportedAppreciationsResponse
 
 	var appreciationList []dto.ReportedAppreciation
 
@@ -89,7 +91,7 @@ func (rs *service) ListReportedAppreciations(ctx context.Context) ([]dto.Reporte
 	if err != nil {
 		logger.Error(err.Error())
 		err = apperrors.InternalServerError
-		return appreciationList, err
+		return resp, err
 	}
 
 	for _, appreciation := range appreciations {
@@ -101,7 +103,7 @@ func (rs *service) ListReportedAppreciations(ctx context.Context) ([]dto.Reporte
 
 		sender, err := rs.userRepo.GetUserById(ctx, senderDataReq)
 		if err != nil {
-			return appreciationList, err
+			return resp, err
 		}
 
 		receiverDataReq := dto.GetUserByIdReq{
@@ -111,15 +113,39 @@ func (rs *service) ListReportedAppreciations(ctx context.Context) ([]dto.Reporte
 
 		receiver, err := rs.userRepo.GetUserById(ctx, receiverDataReq)
 		if err != nil {
-			return appreciationList, err
+			return resp, err
 		}
 
-		svcApp := mapDbAppreciationsToSvcAppreciations(appreciation, sender, receiver)
+		reporterDataReq := dto.GetUserByIdReq{
+			UserId:          appreciation.ReportedBy,
+			QuaterTimeStamp: GetQuarterStartUnixTime(),
+		}
+
+		reporter, err := rs.userRepo.GetUserById(ctx, reporterDataReq)
+		if err != nil {
+			return resp, err
+		}
+
+		moderatorDataReq := dto.GetUserByIdReq{
+			UserId:          appreciation.ModeratedBy.Int64,
+			QuaterTimeStamp: GetQuarterStartUnixTime(),
+		}
+
+		var moderator dto.GetUserByIdResp
+		if appreciation.ModeratedBy.Valid {
+			moderator, err = rs.userRepo.GetUserById(ctx, moderatorDataReq)
+			if err != nil {
+				return resp, err
+			}
+		}
+
+		svcApp := mapDbAppreciationsToSvcAppreciations(appreciation, sender, receiver, reporter, moderator)
 
 		appreciationList = append(appreciationList, svcApp)
 
 	}
-	return appreciationList, err
+	resp.Appreciations = appreciationList
+	return resp, err
 }
 
 func (rs *service) DeleteAppreciation(ctx context.Context, reqData dto.ModerationReq) (err error) {
@@ -160,7 +186,7 @@ func GetQuarterStartUnixTime() int64 {
 	return quarterStart.Unix() * 1000 // convert to milliseconds
 }
 
-func mapDbAppreciationsToSvcAppreciations(dbApp repository.ListReportedAppreciations, sender dto.GetUserByIdResp, receiver dto.GetUserByIdResp) (svcApp dto.ReportedAppreciation) {
+func mapDbAppreciationsToSvcAppreciations(dbApp repository.ListReportedAppreciations, sender dto.GetUserByIdResp, receiver dto.GetUserByIdResp, reporter dto.GetUserByIdResp, moderator dto.GetUserByIdResp) (svcApp dto.ReportedAppreciation) {
 	svcApp.Id = dbApp.Id
 	svcApp.Appreciation_id = dbApp.Appreciation_id
 	svcApp.AppreciationDesc = dbApp.AppreciationDesc
@@ -176,8 +202,17 @@ func mapDbAppreciationsToSvcAppreciations(dbApp repository.ListReportedAppreciat
 	svcApp.ReceiverLastName = receiver.LastName
 	svcApp.ReceiverImgUrl = receiver.ProfileImgUrl
 	svcApp.ReceiverDesignation = receiver.Designation
+	svcApp.CreatedAt = dbApp.CreatedAt
 	svcApp.ReportingComment = dbApp.ReportingComment
-	svcApp.ReportedBy = dbApp.ReportedBy
+	svcApp.ReportedByFirstName = reporter.FirstName
+	svcApp.ReportedByLastName = reporter.LastName
 	svcApp.ReportedAt = dbApp.ReportedAt
+	svcApp.IsValid = dbApp.IsValid
+	if (moderator != dto.GetUserByIdResp{}) {
+		svcApp.ModeratedAt = dbApp.ModeratedAt.Int64
+		svcApp.ModeratedByFirstName = moderator.FirstName
+		svcApp.ModeratedByLastName = moderator.LastName
+		svcApp.ModeratorComment = dbApp.ModeratorComment.String
+	}
 	return
 }

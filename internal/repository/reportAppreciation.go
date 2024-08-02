@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 )
@@ -29,16 +30,21 @@ type Resolution struct {
 }
 
 type ListReportedAppreciations struct {
-	Id                int64  `db:"id"`
-	Appreciation_id   int64  `db:"appreciation_id"`
-	AppreciationDesc  string `db:"appreciation_description"`
-	TotalRewardPoints int64  `db:"total_reward_points"`
-	Quarter           int64  `db:"quarter"`
-	CoreValueName     string `db:"core_value_name"`
-	CoreValueDesc     string `db:"core_value_description"`
-	Sender            int64  `db:"sender"`
-	Receiver          int64  `db:"receiver"`
-	ReportingComment  string `db:"reporting_comment"`
-	ReportedBy        int64  `db:"reported_by"`
-	ReportedAt        int64  `db:"reported_at"`
+	Id                int64          `db:"id"`
+	Appreciation_id   int64          `db:"appreciation_id"`
+	AppreciationDesc  string         `db:"appreciation_description"`
+	TotalRewardPoints int64          `db:"total_reward_points"`
+	Quarter           int64          `db:"quarter"`
+	CoreValueName     string         `db:"core_value_name"`
+	CoreValueDesc     string         `db:"core_value_description"`
+	Sender            int64          `db:"sender"`
+	Receiver          int64          `db:"receiver"`
+	CreatedAt         int64          `db:"created_at"`
+	IsValid           bool           `db:"is_valid"`
+	ReportingComment  string         `db:"reporting_comment"`
+	ReportedBy        int64          `db:"reported_by"`
+	ReportedAt        int64          `db:"reported_at"`
+	ModeratorComment  sql.NullString `db:"moderator_comment"`
+	ModeratedBy       sql.NullInt64  `db:"moderated_by"`
+	ModeratedAt       sql.NullInt64  `db:"moderated_at"`
 }

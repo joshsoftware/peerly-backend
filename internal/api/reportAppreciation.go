@@ -49,12 +49,12 @@ func reportAppreciationHandler(reportAppreciationSvc reportappreciations.Service
 
 func listReportedAppreciations(reportAppreciationSvc reportappreciations.Service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		appreciations, err := reportAppreciationSvc.ListReportedAppreciations(req.Context())
+		resp, err := reportAppreciationSvc.ListReportedAppreciations(req.Context())
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
-		dto.SuccessRepsonse(rw, http.StatusOK, "Appreciation reported successfully", appreciations)
+		dto.SuccessRepsonse(rw, http.StatusOK, "Reported appreciations listed successfully", resp)
 	})
 }
 

@@ -102,7 +102,7 @@ func (rs *reportAppreciationStore) ReportAppreciation(ctx context.Context, repor
 }
 
 func (rs *reportAppreciationStore) ListReportedAppreciations(ctx context.Context) (reportedAppreciations []repository.ListReportedAppreciations, err error) {
-	query := `select resolutions.id, appreciations.id as appreciation_id, core_values.name as core_value_name, core_values.description as core_value_description, appreciations.description as appreciation_description, appreciations.total_reward_points, appreciations.quarter, appreciations.sender, appreciations.receiver, resolutions.reporting_comment, resolutions.reported_by, resolutions.reported_at from resolutions join appreciations on resolutions.appreciation_id = appreciations.id join core_values on appreciations.core_value_id = core_values.id group by resolutions.id, appreciations.id, core_values.id`
+	query := `select resolutions.id, appreciations.id as appreciation_id, core_values.name as core_value_name, core_values.description as core_value_description, appreciations.description as appreciation_description, appreciations.total_reward_points, appreciations.quarter, appreciations.sender, appreciations.receiver, appreciations.created_at, appreciations.is_valid, resolutions.reporting_comment, resolutions.reported_by, resolutions.reported_at, resolutions.moderator_comment, resolutions.moderated_by, resolutions.moderated_at from resolutions join appreciations on resolutions.appreciation_id = appreciations.id join core_values on appreciations.core_value_id = core_values.id group by resolutions.id, appreciations.id, core_values.id`
 	err = rs.DB.SelectContext(
 		ctx,
 		&reportedAppreciations,
