@@ -7,8 +7,8 @@ import (
 
 func organizationConfigToDTO(org repository.OrganizationConfig) dto.OrganizationConfig {
 	return dto.OrganizationConfig{
-		RewardMultiplier:            org.RewardMultiplier,
 		ID:                          org.ID,
+		RewardMultiplier:            org.RewardMultiplier,
 		RewardQuotaRenewalFrequency: org.RewardQuotaRenewalFrequency,
 		Timezone:                    org.Timezone,
 		CreatedAt:                   org.CreatedAt,

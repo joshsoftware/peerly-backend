@@ -25,7 +25,16 @@ func TestGetOrganizationConfigHandler(t *testing.T) {
 		{
 			name: "Success fetching organization",
 			setup: func(mockSvc *mocks.Service) {
-				mockSvc.On("GetOrganizationConfig", mock.Anything).Return(dto.OrganizationConfig{}, nil).Once()
+				mockSvc.On("GetOrganizationConfig", mock.Anything).Return(dto.OrganizationConfig{
+					ID: 1,
+					RewardMultiplier: 1,
+					RewardQuotaRenewalFrequency: 1,
+					Timezone: "UTC",
+					CreatedAt:1,
+					CreatedBy:1721631405219,
+					UpdatedAt:1,
+					UpdatedBy:1721631405219,
+				}, nil).Once()
 			},
 			expectedStatusCode: http.StatusOK,
 		},

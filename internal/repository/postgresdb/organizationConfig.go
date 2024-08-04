@@ -60,7 +60,7 @@ func (org *OrganizationConfigStore) UpdateOrganizationConfig(ctx context.Context
 	queryExecutor := org.InitiateQueryExecutor(tx)
 	
 	updateBuilder := repository.Sq.Update(org.OrganizationConfigTable).
-	Where(sq.Eq{"id": 1}).
+	Where(sq.Eq{"id": constants.DefaultOrgID}).
 	Suffix("RETURNING id, reward_multiplier, reward_quota_renewal_frequency, timezone, created_by, updated_by, created_at, updated_at")
 
 	if reqOrganization.RewardMultiplier != 0 {
@@ -98,9 +98,9 @@ func (org *OrganizationConfigStore) GetOrganizationConfig(ctx context.Context, t
 	queryExecutor := org.InitiateQueryExecutor(tx)
 
 	queryBuilder := repository.Sq.
-	Select("*").
+	Select(constants.OrgConfigColumns...).
 	From(org.OrganizationConfigTable).
-	Where(sq.Eq{"id": 1})
+	Where(sq.Eq{"id": constants.DefaultOrgID})
 
 	query, args, err := queryBuilder.ToSql()
 	if err != nil {

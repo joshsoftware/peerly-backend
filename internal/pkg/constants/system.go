@@ -42,3 +42,5 @@ const (
 	CoreValuesTable         = "core_values"
 	OrganizationConfigTable = "organization_config"
 )
+
+const DefaultOrgID = 1
