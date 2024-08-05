@@ -165,7 +165,7 @@ func listUsersHandler(userSvc user.Service) http.HandlerFunc {
 			return
 		}
 		pageInt, _ := strconv.Atoi(page)
-		perPage := req.URL.Query().Get("per_page")
+		perPage := req.URL.Query().Get("page_size")
 		var perPageInt int
 		if perPage == "" {
 			perPageInt = constants.DefaultPageSize
@@ -174,9 +174,9 @@ func listUsersHandler(userSvc user.Service) http.HandlerFunc {
 		}
 		names := strings.Split(req.URL.Query().Get("name"), " ")
 		userListReq := dto.UserListReq{
-			Name:    names,
-			Page:    int64(pageInt),
-			PerPage: int64(perPageInt),
+			Name:     names,
+			Page:     int64(pageInt),
+			PageSize: int64(perPageInt),
 		}
 		resp, err := userSvc.ListUsers(req.Context(), userListReq)
 		if err != nil {
