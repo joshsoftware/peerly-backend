@@ -71,7 +71,7 @@ func listIntranetUsersHandler(userSvc user.Service) http.HandlerFunc {
 
 		page := req.URL.Query().Get("page")
 		if page == "" {
-      logger.Error("page query parameter is required")
+			logger.Error("page query parameter is required")
 			err := apperrors.PageParamNotFound
 			dto.ErrorRepsonse(rw, err)
 			return
@@ -80,9 +80,9 @@ func listIntranetUsersHandler(userSvc user.Service) http.HandlerFunc {
 		pageInt, err := strconv.ParseInt(page, 10, 64)
 		if err != nil {
 			logger.Errorf("error page string to int64 conversion. err:%s ", err.Error())
-      err = apperrors.InternalServerError
+			err = apperrors.InternalServerError
 			dto.ErrorRepsonse(rw, err)
-      return
+			return
 		}
 
 		ctx := req.Context()
