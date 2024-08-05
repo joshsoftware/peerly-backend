@@ -1,0 +1,413 @@
+openapi: 3.0.3
+info:
+  title: Swagger Peerly
+  description: |-
+    Peer to peer appreciations
+  version: 1.0.11
+servers:
+  - url: http://localhost:33001/
+tags:
+  - name: Core Values
+    description: Core Value cruds
+  - name: Appreciation
+    description: Appreciations CRUD
+  - name: OrganizaitonConfig
+    description: OrganizaitonConfig  
+
+paths:
+  /organizationconfig:
+    get:  
+      security:
+        - basicAuth: []
+      tags: 
+        - OrganizaitonConfig
+      summary: get organization config information
+      description: Show Organization Config
+      parameters:
+        - in: header
+          name: Accept-Version
+          required: true
+          description: Defines the version of the API endpoint
+          schema:
+            enum:
+              - 'application/vnd.peerly.v1'
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationConfigSuccessResponse'
+                
+        '404':
+          description: OrganizationConfig not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                example-1:
+                  summary: Appreciation not found
+                  value:
+                   message: "OrganizationConfig not found"
+                   status: 404
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                example-1:
+                  summary: Internal server error
+                  value:
+                   message: "Internal server error"
+                   status: 500
+    post:
+      tags: 
+        - OrganizaitonConfig
+      summary: Create OrganizationConfig
+      description: Create OrganizationConfig
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrganizationConfigRequest'
+      parameters:
+        - in: header
+          name: Accept-Version
+          required: true
+          description: Defines the version of the API endpoint
+          schema:
+            enum:
+              - 'application/vnd.peerly.v1'
+            type: string 
+      responses:
+        '201':
+          description: Create Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationConfigSuccessResponse' 
+
+        '400':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvalidDataErrorResponse'
+
+
+        '404':
+          description: Appreciation not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                example-1:
+                  summary: User Not Found
+                  value:
+                   message: "User Not Found"
+                   status: 404
+                example-2:
+                  summary: Invalid corevalue data
+                  value:
+                    message: "Invalid corevalue data"
+                    status: 404
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                example-1:
+                  summary: Internal server error
+                  value:
+                   message: "Internal server error"
+                   status: 500
+
+    put:
+      tags: 
+        - OrganizaitonConfig
+      summary: Create OrganizationConfig
+      description: Create OrganizationConfig
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrganizationConfigRequest'
+      parameters:
+        - in: header
+          name: Accept-Version
+          required: true
+          description: Defines the version of the API endpoint
+          schema:
+            enum:
+              - 'application/vnd.peerly.v1'
+            type: string 
+      responses:
+        '201':
+          description: Create Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationConfigSuccessResponse' 
+
+        '400':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvalidDataErrorResponse'
+
+
+        '404':
+          description: Appreciation not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                example-1:
+                  summary: User Not Found
+                  value:
+                   message: "User Not Found"
+                   status: 404
+                example-2:
+                  summary: Invalid corevalue data
+                  value:
+                    message: "Invalid corevalue data"
+                    status: 404
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                example-1:
+                  summary: Internal server error
+                  value:
+                   message: "Internal server error"
+                   status: 500
+
+      
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+  schemas:
+    SuccessResponse:
+      type: object
+      properties:
+        data:
+          type: object
+
+    ErrorObject:
+      type: object
+      properties:
+        code:
+          type: string
+        messageObject:
+          $ref: '#/components/schemas/MessageObject'
+        fields:
+          type: object
+          additionalProperties:
+            type: string
+
+    MessageObject:
+      type: object
+      properties:
+        message:
+          type: string
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/ErrorObject'
+
+    Appreciation:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 4
+        core_value_name:
+          type: string
+          example: Integrity
+        description:
+          type: string
+          example: Great teamwork!
+        is_valid:
+          type: boolean
+          example: true
+        total_rewards:
+          type: integer
+          example: 10
+        quarter:
+          type: string
+          example: 2
+        sender_first_name:
+          type: string
+          example: John
+        sender_last_name:
+          type: string
+          example: Doe
+        sender_image_url:
+          type: string
+          example: https://example.com/profile_images/johndoe.jpg
+        sender_designation:
+          type: string
+          example: Software Engineer
+        receiver_first_name:
+          type: string
+          example: Jane
+        receiver_last_name:
+          type: string
+          example: Smith
+        receiver_image_url:
+          type: string
+          example: https://example.com/profile_images/janesmith.jpg
+        receiver_designation:
+          type: string
+          example: Product Manager
+        created_at:
+          type: integer
+          example: 1719322966768
+        updated_at:
+          type: integer
+          example: 1719322966768
+    AppreciationsSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessResponse'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/Appreciation'
+    AppreciationSuccessResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Appreciation'
+    CreateAppreciation:
+      type: object
+      properties:
+        core_value_id:
+          type: integer
+          example: 1
+        description:
+          type: string
+          example: "Great teamwork"
+        receiver:
+          type: integer
+          example: 5
+    CreateAppreciationResp:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Appreciation'
+          id:
+            type: integer
+            example: 2
+          core_value_id:
+            type: integer
+            example: 1
+          description:
+            type: string
+            example: "Great teamwork"
+          quarter:
+            type: integer
+            example: 2
+          sender: 
+            type: integer
+            example: 6
+          receiver:
+            type: integer
+            example: 5
+          created_at:
+            type: integer
+            example: 1719388759956
+          updated_at:
+            type: integer
+            example: 1719388759956
+    InvalidDataErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: invalid_data
+            message:
+              type: string
+              example: Please provide valid appreciation data
+            fields:
+              type: object
+              properties:
+                core_value_id:
+                  type: string
+                  example: enter valid core value id
+                description:
+                  type: string
+                  example: enter description
+                receiver:
+                  type: string
+                  example: enter valid receiver id
+    OrganizationConfig:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        reward_multiplier:
+          type: integer
+          example: 200
+        reward_quota_renewal_frequency:
+          type: integer
+          example: 12
+        timezone:
+          type: string
+          example: "ACT"
+        created_at:
+          type: integer
+          example: 1719918501194
+        created_by:
+          type: integer
+          example: 7
+        updated_at:
+          type: integer
+          example: 1719920402224
+        updated_by:
+          type: integer
+          example: 7
+    OrganizationConfigSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/OrganizationConfig'
+    CreateOrganizationConfigRequest:
+      type: object
+      properties:
+        reward_multiplier:
+          type: integer
+          example: 0
+        reward_quota_renewal_frequency:
+          type: integer
+          example: 5
+        timezone:
+          type: string
+          example: "UTC"
+
+

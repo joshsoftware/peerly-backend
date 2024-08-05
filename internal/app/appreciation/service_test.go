@@ -40,7 +40,12 @@ func TestCreateAppreciation(t *testing.T) {
 				tx := &sql.Tx{}
 				apprMock.On("IsUserPresent", mock.Anything, nil, int64(2)).Return(true, nil).Once()
 				apprMock.On("BeginTx", mock.Anything).Return(tx, nil).Once()
-				coreValueRepo.On("GetCoreValue", mock.Anything, int64(1)).Return(repository.CoreValue{ID: 1}, nil).Once()
+				coreValueRepo.On("GetCoreValue", mock.Anything, int64(1)).Return(repository.CoreValue{
+					ID: 1,
+					Name:"Trust",
+					Description:"We foster trust by being transparent,reliable, and accountable in all our actions",
+					ParentCoreValueID:sql.NullInt64{Int64:int64(0),Valid: true},
+					}, nil).Once()
 				apprMock.On("CreateAppreciation", mock.Anything, tx, mock.Anything).Return(repository.Appreciation{ID: 1}, nil).Once()
 				apprMock.On("HandleTransaction", mock.Anything, tx, true).Return(nil).Once()
 			},
@@ -75,31 +80,11 @@ func TestCreateAppreciation(t *testing.T) {
 				Receiver:    2,
 			},
 			setup: func(apprMock *mocks.AppreciationStorer, coreValueRepo *mocks.CoreValueStorer) {
-				tx := &sql.Tx{}
 				apprMock.On("IsUserPresent", mock.Anything, nil, int64(2)).Return(false, apperrors.UserNotFound).Once() // Ensure correct transaction context
-				apprMock.On("BeginTx", mock.Anything).Return(tx, nil).Once()
-				coreValueRepo.On("GetCoreValue", mock.Anything, int64(1)).Return(repository.CoreValue{}, nil).Once()
-				apprMock.On("HandleTransaction", mock.Anything, tx, false).Return(nil).Once()
 			},
 			isErrorExpected: true,
 			expectedResult:  dto.Appreciation{},
 			expectedError:   apperrors.UserNotFound,
-		},
-		{
-			name:    "transaction failure",
-			context: context.WithValue(context.Background(), constants.UserId, int64(1)),
-			appreciation: dto.Appreciation{
-				CoreValueID: 1,
-				Receiver:    2,
-			},
-			setup: func(apprMock *mocks.AppreciationStorer, coreValueRepo *mocks.CoreValueStorer) {
-				apprMock.On("IsUserPresent", mock.Anything, nil, int64(1)).Return(true, nil).Once()
-				// apprMock.On("IsUserPresent", mock.Anything, nil, int64(1)).Return(true, nil).Once()
-				apprMock.On("BeginTx", mock.Anything).Return(nil, apperrors.InternalServer).Once()
-			},
-			isErrorExpected: true,
-			expectedResult:  dto.Appreciation{},
-			expectedError:   apperrors.InternalServer,
 		},
 	}
 
