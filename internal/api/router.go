@@ -27,49 +27,53 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 	route_prefix := "/peerly"
 
 	//corevalues
-	router.Handle(route_prefix + "/core_values/{id:[0-9]+}", middleware.JwtAuthMiddleware(getCoreValueHandler(deps.CoreValueService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
+	router.Handle(route_prefix+"/core_values/{id:[0-9]+}", middleware.JwtAuthMiddleware(getCoreValueHandler(deps.CoreValueService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
 
-	router.Handle(route_prefix + "/core_values", middleware.JwtAuthMiddleware(listCoreValuesHandler(deps.CoreValueService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
+	router.Handle(route_prefix+"/core_values", middleware.JwtAuthMiddleware(listCoreValuesHandler(deps.CoreValueService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
 
-	router.Handle(route_prefix + "/core_values", middleware.JwtAuthMiddleware(createCoreValueHandler(deps.CoreValueService), []string{constants.UserRole})).Methods(http.MethodPost).Headers(versionHeader, v1)
+	router.Handle(route_prefix+"/core_values", middleware.JwtAuthMiddleware(createCoreValueHandler(deps.CoreValueService), []string{constants.UserRole})).Methods(http.MethodPost).Headers(versionHeader, v1)
 
-	router.Handle(route_prefix + "/core_values/{id:[0-9]+}", middleware.JwtAuthMiddleware(updateCoreValueHandler(deps.CoreValueService), []string{constants.UserRole})).Methods(http.MethodPut).Headers(versionHeader, v1)
+	router.Handle(route_prefix+"/core_values/{id:[0-9]+}", middleware.JwtAuthMiddleware(updateCoreValueHandler(deps.CoreValueService), []string{constants.UserRole})).Methods(http.MethodPut).Headers(versionHeader, v1)
 
 	//login
-	router.Handle(route_prefix + "/user/register", registerUser(deps.UserService)).Methods(http.MethodPost)
+	router.Handle(route_prefix+"/user/register", registerUser(deps.UserService)).Methods(http.MethodPost)
 
-	router.Handle(route_prefix + "/user/login", loginUser(deps.UserService)).Methods(http.MethodGet).Headers(versionHeader, v1)
+	router.Handle(route_prefix+"/user/login", loginUser(deps.UserService)).Methods(http.MethodGet).Headers(versionHeader, v1)
 
-	//users
+	router.Handle("/admin/login", loginAdmin(deps.UserService)).Methods(http.MethodPost).Headers(versionHeader, v1)
 
-	router.Handle(route_prefix + "/users", listIntranetUsersHandler(deps.UserService)).Methods(http.MethodGet)
+	router.Handle(route_prefix+"/users", listIntranetUsersHandler(deps.UserService)).Methods(http.MethodGet)
 
-	router.Handle(route_prefix + "/users/all", middleware.JwtAuthMiddleware(getUsersHandler(deps.UserService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
+	router.Handle("/users/all", middleware.JwtAuthMiddleware(listUsersHandler(deps.UserService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
 
-	router.Handle(route_prefix + "/user_profile", middleware.JwtAuthMiddleware(getUserByIdHandler(deps.UserService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
+	router.Handle(route_prefix+"/user_profile", middleware.JwtAuthMiddleware(getUserByIdHandler(deps.UserService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
 
-	router.Handle(route_prefix + "/users/active", getActiveUserListHandler(deps.UserService)).Methods(http.MethodGet)
+	router.Handle(route_prefix+"/users/active", getActiveUserListHandler(deps.UserService)).Methods(http.MethodGet)
 
-	router.Handle(route_prefix + "/users/top10", middleware.JwtAuthMiddleware(getTop10UserHandler(deps.UserService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
+	router.Handle(route_prefix+"/users/top10", middleware.JwtAuthMiddleware(getTop10UserHandler(deps.UserService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
 
 	//appreciations
 
-	router.Handle(route_prefix + "/appreciations/{id:[0-9]+}", middleware.JwtAuthMiddleware(getAppreciationByIDHandler(deps.AppreciationService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
+	router.Handle(route_prefix+"/appreciations/{id:[0-9]+}", middleware.JwtAuthMiddleware(getAppreciationByIDHandler(deps.AppreciationService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
 
-	router.Handle(route_prefix + "/appreciations", middleware.JwtAuthMiddleware(listAppreciationsHandler(deps.AppreciationService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
+	router.Handle("/appreciations", middleware.JwtAuthMiddleware(listAppreciationsHandler(deps.AppreciationService), []string{constants.UserRole, constants.AdminRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
 
-	router.Handle(route_prefix + "/appreciations/{id:[0-9]+}", middleware.JwtAuthMiddleware(deleteAppreciationHandler(deps.AppreciationService), []string{constants.UserRole})).Methods(http.MethodDelete).Headers(versionHeader, v1)
+	router.Handle(route_prefix+"/appreciations/{id:[0-9]+}", middleware.JwtAuthMiddleware(deleteAppreciationHandler(deps.AppreciationService), []string{constants.UserRole})).Methods(http.MethodDelete).Headers(versionHeader, v1)
 
-	router.Handle(route_prefix + "/appreciations", middleware.JwtAuthMiddleware(createAppreciationHandler(deps.AppreciationService), []string{constants.UserRole})).Methods(http.MethodPost).Headers(versionHeader, v1)
+	router.Handle(route_prefix+"/appreciations", middleware.JwtAuthMiddleware(createAppreciationHandler(deps.AppreciationService), []string{constants.UserRole})).Methods(http.MethodPost).Headers(versionHeader, v1)
 
 	//report appreciation
-	router.Handle(route_prefix + "/report_appreciation/{id:[0-9]+}", middleware.JwtAuthMiddleware(reportAppreciationHandler(deps.ReportAppreciationService), []string{constants.UserRole})).Methods(http.MethodPost).Headers(versionHeader, v1)
+	router.Handle(route_prefix+"/report_appreciation/{id:[0-9]+}", middleware.JwtAuthMiddleware(reportAppreciationHandler(deps.ReportAppreciationService), []string{constants.UserRole})).Methods(http.MethodPost).Headers(versionHeader, v1)
+
+	router.Handle("/report_appreciations", middleware.JwtAuthMiddleware(listReportedAppreciations(deps.ReportAppreciationService), []string{constants.UserRole, constants.AdminRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
+
+	router.Handle("/moderate_appreciation/{id:[0-9]+}", middleware.JwtAuthMiddleware(moderateAppriciation(deps.ReportAppreciationService), []string{constants.UserRole, constants.AdminRole})).Methods(http.MethodPut).Headers(versionHeader, v1)
 
 	// reward appreciation
-	router.Handle(route_prefix + "/reward/{id:[0-9]+}", middleware.JwtAuthMiddleware(giveRewardHandler(deps.RewardService), []string{constants.UserRole})).Methods(http.MethodPost).Headers(versionHeader, v1)
+	router.Handle(route_prefix+"/reward/{id:[0-9]+}", middleware.JwtAuthMiddleware(giveRewardHandler(deps.RewardService), []string{constants.UserRole})).Methods(http.MethodPost).Headers(versionHeader, v1)
 
 	// No version requirement for /ping
-	router.HandleFunc(route_prefix + "/ping", pingHandler).Methods(http.MethodGet)
+	router.HandleFunc(route_prefix+"/ping", pingHandler).Methods(http.MethodGet)
 
 	sh := http.StripPrefix("/api_doc", http.FileServer(http.Dir("./apiDoc")))
 	router.PathPrefix("/api_doc").Handler(sh)

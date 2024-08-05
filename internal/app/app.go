@@ -8,7 +8,7 @@ import (
 	reward "github.com/joshsoftware/peerly-backend/internal/app/reward"
 
 	user "github.com/joshsoftware/peerly-backend/internal/app/users"
-	
+
 	appreciation "github.com/joshsoftware/peerly-backend/internal/app/appreciation"
 
 	repository "github.com/joshsoftware/peerly-backend/internal/repository/postgresdb"
@@ -36,7 +36,7 @@ func NewService(db *sqlx.DB) Dependencies {
 	coreValueService := corevalues.NewService(coreValueRepo)
 	appreciationService := appreciation.NewService(appreciationRepo, coreValueRepo)
 	userService := user.NewService(userRepo)
-	reportAppreciationService := reportappreciations.NewService(reportAppreciationRepo)
+	reportAppreciationService := reportappreciations.NewService(reportAppreciationRepo, userRepo)
 	rewardService := reward.NewService(rewardRepo, appreciationRepo)
 
 	return Dependencies{

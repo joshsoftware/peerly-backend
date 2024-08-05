@@ -76,11 +76,11 @@ type GetUserListReq struct {
 	Page      int64
 }
 
-type GetUserListResp struct {
-	Id        int64  `json:"id" db:"id"`
-	Email     string `json:"email" db:"email"`
-	FirstName string `json:"first_name" db:"first_name"`
-	LastName  string `json:"last_name" db:"last_name"`
+type UserListResp struct {
+	Id        int64  `json:"id"`
+	Email     string `json:"email"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
 }
 
 type UserListMetadata struct {
@@ -90,8 +90,8 @@ type UserListMetadata struct {
 }
 
 type UserListWithMetadata struct {
-	UserList []GetUserListResp `json:"user_list"`
-	MetaData UserListMetadata  `json:"metadata"`
+	UserList []UserListResp   `json:"user_list"`
+	MetaData UserListMetadata `json:"metadata"`
 }
 
 type GetUserListRespData struct {
@@ -133,7 +133,7 @@ type GetUserByIdDbResp struct {
 	Designation        string         `json:"designation" db:"designation"`
 	RewardQuotaBalance int64          `json:"reward_quota_balance" db:"reward_quota_balance"`
 	GradeId            int64          `json:"grade_id" db:"grade_id"`
-	EmployeeId         int64          `json:"employee_id" db:"employee_id"`
+	EmployeeId         string         `json:"employee_id" db:"employee_id"`
 	TotalPoints        int64          `json:"total_points" db:"total_points"`
 	Badge              sql.NullString `json:"badge" db:"name"`
 	BadgeCreatedAt     sql.NullInt64  `json:"badge_created_at" db:"badge_created_at"`
@@ -150,8 +150,12 @@ type GetUserByIdResp struct {
 	TotalRewardQuota   int64  `json:"total_reward_quota"`
 	RefilDate          int64  `json:"refil_date"`
 	GradeId            int64  `json:"grade_id" db:"grade_id"`
-	EmployeeId         int64  `json:"employee_id" db:"employee_id"`
+	EmployeeId         string `json:"employee_id" db:"employee_id"`
 	TotalPoints        int64  `json:"total_points" db:"total_points"`
 	Badge              string `json:"badge" db:"name"`
 	BadgeCreatedAt     int64  `json:"badge_created_at" db:"badge_created_at"`
+}
+type AdminLoginReq struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }

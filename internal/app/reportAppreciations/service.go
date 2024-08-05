@@ -3,6 +3,7 @@ package reportappreciations
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
@@ -13,15 +14,19 @@ import (
 
 type service struct {
 	reportAppreciationRepo repository.ReportAppreciationStorer
+	userRepo               repository.UserStorer
 }
 
 type Service interface {
 	ReportAppreciation(ctx context.Context, reqData dto.ReportAppreciationReq) (resp dto.ReportAppricaitionResp, err error)
+	ListReportedAppreciations(ctx context.Context) (dto.ListReportedAppreciationsResponse, error)
+	DeleteAppreciation(ctx context.Context, reqData dto.ModerationReq) (err error)
 }
 
-func NewService(reportAppreciationRepo repository.ReportAppreciationStorer) Service {
+func NewService(reportAppreciationRepo repository.ReportAppreciationStorer, userRepo repository.UserStorer) Service {
 	return &service{
 		reportAppreciationRepo: reportAppreciationRepo,
+		userRepo:               userRepo,
 	}
 }
 
@@ -73,5 +78,141 @@ func (rs *service) ReportAppreciation(ctx context.Context, reqData dto.ReportApp
 		return
 	}
 
+	return
+}
+
+func (rs *service) ListReportedAppreciations(ctx context.Context) (dto.ListReportedAppreciationsResponse, error) {
+
+	var resp dto.ListReportedAppreciationsResponse
+
+	var appreciationList []dto.ReportedAppreciation
+
+	appreciations, err := rs.reportAppreciationRepo.ListReportedAppreciations(ctx)
+	if err != nil {
+		logger.Error(err.Error())
+		err = apperrors.InternalServerError
+		return resp, err
+	}
+
+	for _, appreciation := range appreciations {
+
+		senderDataReq := dto.GetUserByIdReq{
+			UserId:          appreciation.Sender,
+			QuaterTimeStamp: GetQuarterStartUnixTime(),
+		}
+
+		sender, err := rs.userRepo.GetUserById(ctx, senderDataReq)
+		if err != nil {
+			return resp, err
+		}
+
+		receiverDataReq := dto.GetUserByIdReq{
+			UserId:          appreciation.Receiver,
+			QuaterTimeStamp: GetQuarterStartUnixTime(),
+		}
+
+		receiver, err := rs.userRepo.GetUserById(ctx, receiverDataReq)
+		if err != nil {
+			return resp, err
+		}
+
+		reporterDataReq := dto.GetUserByIdReq{
+			UserId:          appreciation.ReportedBy,
+			QuaterTimeStamp: GetQuarterStartUnixTime(),
+		}
+
+		reporter, err := rs.userRepo.GetUserById(ctx, reporterDataReq)
+		if err != nil {
+			return resp, err
+		}
+
+		moderatorDataReq := dto.GetUserByIdReq{
+			UserId:          appreciation.ModeratedBy.Int64,
+			QuaterTimeStamp: GetQuarterStartUnixTime(),
+		}
+
+		var moderator dto.GetUserByIdResp
+		if appreciation.ModeratedBy.Valid {
+			moderator, err = rs.userRepo.GetUserById(ctx, moderatorDataReq)
+			if err != nil {
+				return resp, err
+			}
+		}
+
+		svcApp := mapDbAppreciationsToSvcAppreciations(appreciation, sender, receiver, reporter, moderator)
+
+		appreciationList = append(appreciationList, svcApp)
+
+	}
+	resp.Appreciations = appreciationList
+	return resp, err
+}
+
+func (rs *service) DeleteAppreciation(ctx context.Context, reqData dto.ModerationReq) (err error) {
+	moderatorId := ctx.Value(constants.UserId)
+	fmt.Printf("moderatorId: %T", moderatorId)
+	data, ok := moderatorId.(int64)
+	if !ok {
+		logger.Error("Error in typecasting moderator id")
+		err = apperrors.InternalServerError
+		return
+	}
+	reqData.ModeratedBy = data
+	doesExist, appreciationId, err := rs.reportAppreciationRepo.CheckResolution(ctx, reqData.ResolutionId)
+	if err != nil {
+		logger.Error(err.Error())
+		err = apperrors.InternalServerError
+		return
+	}
+	if !doesExist {
+		logger.Errorf("No such resolution exists")
+		err = apperrors.InvalidId
+		return
+	}
+	reqData.AppreciationId = appreciationId
+	err = rs.reportAppreciationRepo.DeleteAppreciation(ctx, reqData)
+	if err != nil {
+		logger.Error(err.Error())
+		err = apperrors.InternalServerError
+		return
+	}
+	return
+}
+
+func GetQuarterStartUnixTime() int64 {
+	// Example function to get the Unix timestamp of the start of the quarter
+	now := time.Now()
+	quarterStart := time.Date(now.Year(), (now.Month()-1)/3*3+1, 1, 0, 0, 0, 0, time.UTC)
+	return quarterStart.Unix() * 1000 // convert to milliseconds
+}
+
+func mapDbAppreciationsToSvcAppreciations(dbApp repository.ListReportedAppreciations, sender dto.GetUserByIdResp, receiver dto.GetUserByIdResp, reporter dto.GetUserByIdResp, moderator dto.GetUserByIdResp) (svcApp dto.ReportedAppreciation) {
+	svcApp.Id = dbApp.Id
+	svcApp.Appreciation_id = dbApp.Appreciation_id
+	svcApp.AppreciationDesc = dbApp.AppreciationDesc
+	svcApp.TotalRewardPoints = dbApp.TotalRewardPoints
+	svcApp.Quarter = dbApp.TotalRewardPoints
+	svcApp.CoreValueName = dbApp.CoreValueName
+	svcApp.CoreValueDesc = dbApp.CoreValueDesc
+	svcApp.SenderFirstName = sender.FirstName
+	svcApp.SenderLastName = sender.LastName
+	svcApp.SenderImgUrl = sender.ProfileImgUrl
+	svcApp.SenderDesignation = sender.Designation
+	svcApp.ReceiverFirstName = receiver.FirstName
+	svcApp.ReceiverLastName = receiver.LastName
+	svcApp.ReceiverImgUrl = receiver.ProfileImgUrl
+	svcApp.ReceiverDesignation = receiver.Designation
+	svcApp.CreatedAt = dbApp.CreatedAt
+	svcApp.ReportingComment = dbApp.ReportingComment
+	svcApp.ReportedByFirstName = reporter.FirstName
+	svcApp.ReportedByLastName = reporter.LastName
+	svcApp.ReportedAt = dbApp.ReportedAt
+	svcApp.IsValid = dbApp.IsValid
+	if (moderator != dto.GetUserByIdResp{}) {
+		svcApp.ModeratedAt = dbApp.ModeratedAt.Int64
+		svcApp.ModeratedByFirstName = moderator.FirstName
+		svcApp.ModeratedByLastName = moderator.LastName
+		svcApp.ModeratorComment = dbApp.ModeratorComment.String
+	}
 	return
 }

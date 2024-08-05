@@ -17,6 +17,7 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
 	logger "github.com/sirupsen/logrus"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type service struct {
@@ -29,11 +30,12 @@ type Service interface {
 	LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.LoginUserResp, error)
 	RegisterUser(ctx context.Context, u dto.IntranetUserData) (user dto.User, err error)
 	ListIntranetUsers(ctx context.Context, reqData dto.GetUserListReq) (data []dto.IntranetUserData, err error)
-	GetUserList(ctx context.Context, reqData dto.UserListReq) (resp dto.UserListWithMetadata, err error)
+	ListUsers(ctx context.Context, reqData dto.UserListReq) (resp dto.UserListWithMetadata, err error)
+	GetUserById(ctx context.Context) (user dto.GetUserByIdResp, err error)
 	UpdateRewardQuota(ctx context.Context) (err error)
 	GetActiveUserList(ctx context.Context) ([]dto.ActiveUser, error)
-	GetUserById(ctx context.Context) (user dto.GetUserByIdResp, err error)
 	GetTop10Users(ctx context.Context) (users []dto.Top10User, err error)
+	AdminLogin(ctx context.Context, loginReq dto.AdminLoginReq) (resp dto.LoginUserResp, err error)
 }
 
 func NewService(userRepo repository.UserStorer) Service {
@@ -288,8 +290,7 @@ func (us *service) ListIntranetUsers(ctx context.Context, reqData dto.GetUserLis
 	return
 }
 
-
-func (us *service) GetUserList(ctx context.Context, reqData dto.UserListReq) (resp dto.UserListWithMetadata, err error) {
+func (us *service) ListUsers(ctx context.Context, reqData dto.UserListReq) (resp dto.UserListWithMetadata, err error) {
 
 	var names []string
 	for _, data := range reqData.Name {
@@ -298,12 +299,21 @@ func (us *service) GetUserList(ctx context.Context, reqData dto.UserListReq) (re
 
 	totalCount, err := us.userRepo.GetTotalUserCount(ctx, reqData)
 	if err != nil {
+		logger.Errorf(err.Error())
+		err = apperrors.InternalServerError
 		return
 	}
 
-	users, err := us.userRepo.GetUserList(ctx, reqData)
+	dbResp, err := us.userRepo.ListUsers(ctx, reqData)
 	if err != nil {
 		return
+	}
+
+	var users []dto.UserListResp
+
+	for _, dbUser := range dbResp {
+		user := mapDbUserToUserListResp(dbUser)
+		users = append(users, user)
 	}
 
 	resp.UserList = users
@@ -312,7 +322,98 @@ func (us *service) GetUserList(ctx context.Context, reqData dto.UserListReq) (re
 	resp.MetaData.PageCount = reqData.PerPage
 
 	return
+}
+func (us *service) AdminLogin(ctx context.Context, loginReq dto.AdminLoginReq) (resp dto.LoginUserResp, err error) {
 
+	dbUser, err := us.userRepo.GetAdmin(ctx, loginReq.Email)
+	if err != nil {
+		return
+	}
+
+	if dbUser.RoleID != 2 {
+		logger.Errorf("unathorized access")
+		err = apperrors.RoleUnathorized
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(dbUser.Password.String), []byte(loginReq.Password))
+	if err != nil {
+		logger.Errorf("invalid password, err: %s", err.Error())
+		err = apperrors.InvalidPassword
+		return
+	}
+
+	user := mapUserDbToService(dbUser)
+
+	expirationTime := time.Now().Add(time.Hour * time.Duration(config.JWTExpiryDurationHours()))
+
+	claims := &dto.Claims{
+		Id:   user.Id,
+		Role: constants.AdminRole,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: expirationTime.Unix(),
+		},
+	}
+
+	var jwtKey = config.JWTKey()
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString(jwtKey)
+
+	if err != nil {
+		logger.Errorf("error generating authtoken. err: %s", err.Error())
+		err = apperrors.InternalServerError
+		return resp, err
+	}
+
+	resp.User = user
+	resp.AuthToken = tokenString
+
+	return
+}
+
+func (us *service) syncData(ctx context.Context, intranetUserData dto.IntranetUserData, peerlyUserData dto.User) (syncNeeded bool, dataToBeUpdated dto.User, err error) {
+	syncNeeded = false
+	grade, err := us.userRepo.GetGradeByName(ctx, intranetUserData.EmpolyeeDetail.Grade)
+	if err != nil {
+		err = fmt.Errorf("error in selecting grade in syncData err: %w", err)
+		return
+	}
+
+	if intranetUserData.PublicProfile.FirstName != peerlyUserData.FirstName || intranetUserData.PublicProfile.LastName != peerlyUserData.LastName || intranetUserData.PublicProfile.ProfileImgUrl != peerlyUserData.ProfileImgUrl || intranetUserData.EmpolyeeDetail.Designation.Name != peerlyUserData.Designation || grade.Id != peerlyUserData.GradeId {
+		syncNeeded = true
+		dataToBeUpdated.FirstName = intranetUserData.PublicProfile.FirstName
+		dataToBeUpdated.LastName = intranetUserData.PublicProfile.LastName
+		dataToBeUpdated.ProfileImgUrl = intranetUserData.PublicProfile.ProfileImgUrl
+		dataToBeUpdated.Designation = intranetUserData.EmpolyeeDetail.Designation.Name
+		dataToBeUpdated.GradeId = grade.Id
+		dataToBeUpdated.Email = intranetUserData.Email
+	}
+	return
+}
+
+func mapUserDbToService(dbStruct repository.User) (svcStruct dto.User) {
+	svcStruct.Id = dbStruct.Id
+	svcStruct.EmployeeId = dbStruct.EmployeeId
+	svcStruct.FirstName = dbStruct.FirstName
+	svcStruct.LastName = dbStruct.LastName
+	svcStruct.Email = dbStruct.Email
+	svcStruct.ProfileImgUrl = dbStruct.ProfileImageURL.String
+	svcStruct.RoleId = dbStruct.RoleID
+	svcStruct.RewardQuotaBalance = dbStruct.RewardsQuotaBalance
+	svcStruct.Designation = dbStruct.Designation
+	svcStruct.GradeId = dbStruct.GradeId
+	svcStruct.CreatedAt = dbStruct.CreatedAt
+
+	return svcStruct
+}
+
+func mapDbUserToUserListResp(dbStruct repository.User) (svcData dto.UserListResp) {
+	svcData.Id = dbStruct.Id
+	svcData.FirstName = dbStruct.FirstName
+	svcData.LastName = dbStruct.LastName
+	svcData.Email = dbStruct.Email
+	return svcData
 }
 
 func (us *service) GetUserById(ctx context.Context) (user dto.GetUserByIdResp, err error) {
@@ -415,42 +516,6 @@ func mapDbTop10ToSvcTop10(dbStruct repository.Top10Users) (svcStruct dto.Top10Us
 	svcStruct.BadgeName = dbStruct.BadgeName.String
 	svcStruct.AppreciationPoints = dbStruct.AppreciationPoints
 	return
-}
-
-func (us *service) syncData(ctx context.Context, intranetUserData dto.IntranetUserData, peerlyUserData dto.User) (syncNeeded bool, dataToBeUpdated dto.User, err error) {
-	syncNeeded = false
-	grade, err := us.userRepo.GetGradeByName(ctx, intranetUserData.EmpolyeeDetail.Grade)
-	if err != nil {
-		err = fmt.Errorf("error in selecting grade in syncData err: %w", err)
-		return
-	}
-
-	if intranetUserData.PublicProfile.FirstName != peerlyUserData.FirstName || intranetUserData.PublicProfile.LastName != peerlyUserData.LastName || intranetUserData.PublicProfile.ProfileImgUrl != peerlyUserData.ProfileImgUrl || intranetUserData.EmpolyeeDetail.Designation.Name != peerlyUserData.Designation || grade.Id != peerlyUserData.GradeId {
-		syncNeeded = true
-		dataToBeUpdated.FirstName = intranetUserData.PublicProfile.FirstName
-		dataToBeUpdated.LastName = intranetUserData.PublicProfile.LastName
-		dataToBeUpdated.ProfileImgUrl = intranetUserData.PublicProfile.ProfileImgUrl
-		dataToBeUpdated.Designation = intranetUserData.EmpolyeeDetail.Designation.Name
-		dataToBeUpdated.GradeId = grade.Id
-		dataToBeUpdated.Email = intranetUserData.Email
-	}
-	return
-}
-
-func mapUserDbToService(dbStruct repository.User) (svcStruct dto.User) {
-	svcStruct.Id = dbStruct.Id
-	svcStruct.EmployeeId = dbStruct.EmployeeId
-	svcStruct.FirstName = dbStruct.FirstName
-	svcStruct.LastName = dbStruct.LastName
-	svcStruct.Email = dbStruct.Email
-	svcStruct.ProfileImgUrl = dbStruct.ProfileImageURL
-	svcStruct.RoleId = dbStruct.RoleID
-	svcStruct.RewardQuotaBalance = dbStruct.RewardsQuotaBalance
-	svcStruct.Designation = dbStruct.Designation
-	svcStruct.GradeId = dbStruct.GradeId
-	svcStruct.CreatedAt = dbStruct.CreatedAt
-
-	return svcStruct
 }
 
 func mapIntranetUserDataToSvcUser(intranetData dto.IntranetUserData) (svcData dto.User) {

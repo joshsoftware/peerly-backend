@@ -21,6 +21,7 @@ const (
 	AuthorizationHeader     = "Authorization"
 	ClientCode              = "Client-Code"
 	UserRole                = "user"
+	AdminRole               = "admin"
 	UserId                  = "userId"
 	Role                    = "role"
 	IntranetAuth            = "Intranet-Auth"

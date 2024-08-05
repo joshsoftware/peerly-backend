@@ -59,6 +59,25 @@ func loginUser(userSvc user.Service) http.HandlerFunc {
 	}
 }
 
+func loginAdmin(userSvc user.Service) http.HandlerFunc {
+	return func(rw http.ResponseWriter, req *http.Request) {
+		var reqData dto.AdminLoginReq
+		err := json.NewDecoder(req.Body).Decode(&reqData)
+		if err != nil {
+			logger.Errorf("error while decoding request data. err: %s", err.Error())
+			err = apperrors.JSONParsingErrorReq
+			dto.ErrorRepsonse(rw, err)
+			return
+		}
+		resp, err := userSvc.AdminLogin(req.Context(), reqData)
+		if err != nil {
+			dto.ErrorRepsonse(rw, err)
+			return
+		}
+		dto.SuccessRepsonse(rw, http.StatusOK, "Login successful", resp)
+	}
+}
+
 func listIntranetUsersHandler(userSvc user.Service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
 
@@ -71,7 +90,7 @@ func listIntranetUsersHandler(userSvc user.Service) http.HandlerFunc {
 
 		page := req.URL.Query().Get("page")
 		if page == "" {
-      logger.Error("page query parameter is required")
+			logger.Error("page query parameter is required")
 			err := apperrors.PageParamNotFound
 			dto.ErrorRepsonse(rw, err)
 			return
@@ -124,19 +143,20 @@ func registerUser(userSvc user.Service) http.HandlerFunc {
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
-    
-    ctx := req.Context()
+
+		ctx := req.Context()
 
 		resp, err := userSvc.RegisterUser(ctx, user)
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
+
 		dto.SuccessRepsonse(rw, http.StatusOK, "User registered successfully", resp)
 	}
 }
 
-func getUsersHandler(userSvc user.Service) http.HandlerFunc {
+func listUsersHandler(userSvc user.Service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		page := req.URL.Query().Get("page")
 		if page == "" {
@@ -148,7 +168,7 @@ func getUsersHandler(userSvc user.Service) http.HandlerFunc {
 		perPage := req.URL.Query().Get("per_page")
 		var perPageInt int
 		if perPage == "" {
-			perPageInt = constants.PerPage
+			perPageInt = constants.DefaultPageSize
 		} else {
 			perPageInt, _ = strconv.Atoi(perPage)
 		}
@@ -158,12 +178,12 @@ func getUsersHandler(userSvc user.Service) http.HandlerFunc {
 			Page:    int64(pageInt),
 			PerPage: int64(perPageInt),
 		}
-		resp, err := userSvc.GetUserList(req.Context(), userListReq)
+		resp, err := userSvc.ListUsers(req.Context(), userListReq)
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
-		dto.SuccessRepsonse(rw, http.StatusOK, "user list fetched successfully", resp)
+		dto.SuccessRepsonse(rw, http.StatusOK, "Peerly users listed", resp)
 	}
 }
 

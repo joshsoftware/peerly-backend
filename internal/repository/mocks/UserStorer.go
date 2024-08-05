@@ -250,16 +250,16 @@ func (_m *UserStorer) GetUserById(ctx context.Context, reqData dto.GetUserByIdRe
 	return r0, r1
 }
 
-// GetUserList provides a mock function with given fields: ctx, reqData
-func (_m *UserStorer) GetUserList(ctx context.Context, reqData dto.UserListReq) ([]dto.GetUserListResp, error) {
+// ListUsers provides a mock function with given fields: ctx, reqData
+func (_m *UserStorer) ListUsers(ctx context.Context, reqData dto.UserListReq) ([]repository.User, error) {
 	ret := _m.Called(ctx, reqData)
 
-	var r0 []dto.GetUserListResp
-	if rf, ok := ret.Get(0).(func(context.Context, dto.UserListReq) []dto.GetUserListResp); ok {
+	var r0 []repository.User
+	if rf, ok := ret.Get(0).(func(context.Context, dto.UserListReq) []repository.User); ok {
 		r0 = rf(ctx, reqData)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]dto.GetUserListResp)
+			r0 = ret.Get(0).([]repository.User)
 		}
 	}
 

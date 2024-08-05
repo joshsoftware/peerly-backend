@@ -35,25 +35,27 @@ const (
 	OrganizationNotFound        = CustomError("organization of given id not found")
 	InvalidContactEmail         = CustomError("contact email is already present")
 	InvalidDomainName           = CustomError("domain name is already present")
-	InvalidCoreValueData     = CustomError("invalid corevalue data")
-	TextFieldBlank           = CustomError("text field cannot be blank")
-	DescFieldBlank           = CustomError("description cannot be blank")
-	InvalidParentValue       = CustomError("invalid parent core value")
-	InvalidOrgId             = CustomError("invalid organisation")
-	UniqueCoreValue          = CustomError("choose a unique coreValue name")
-	InvalidAuthToken         = CustomError("invalid Auth token")
-	IntranetValidationFailed = CustomError("intranet Validation Failed")
-	UserNotFound             = CustomError("user not found")
-	InvalidIntranetData      = CustomError("invalid data recieved from intranet")
-	GradeNotFound            = CustomError("grade not found")
-	AppreciationNotFound     = CustomError("appreciation not found")
-	BadRequest               = CustomError("bad request")
-	InternalServer           = CustomError("internal Server")
-	FailedToCreateDriver     = CustomError("failure to create driver obj")
-	MigrationFailure         = CustomError("migrate failure")
-	SelfAppreciationError    = CustomError("self-appreciation is not allowed")
-	InvalidCoreValueID       = CustomError("invalid corevalue id")
-	InvalidReceiverID        = CustomError("invalid receiver id")
+	InvalidCoreValueData        = CustomError("invalid corevalue data")
+	TextFieldBlank              = CustomError("text field cannot be blank")
+	DescFieldBlank              = CustomError("description cannot be blank")
+	InvalidParentValue          = CustomError("invalid parent core value")
+	InvalidOrgId                = CustomError("invalid organisation")
+	UniqueCoreValue             = CustomError("choose a unique coreValue name")
+	InvalidAuthToken            = CustomError("invalid Auth token")
+	IntranetValidationFailed    = CustomError("intranet Validation Failed")
+	UserNotFound                = CustomError("user not found")
+	InvalidIntranetData         = CustomError("invalid data recieved from intranet")
+	GradeNotFound               = CustomError("grade not found")
+	AppreciationNotFound        = CustomError("appreciation not found")
+	BadRequest                  = CustomError("bad request")
+	InternalServer              = CustomError("internal Server")
+	FailedToCreateDriver        = CustomError("failure to create driver obj")
+	MigrationFailure            = CustomError("migrate failure")
+	SelfAppreciationError       = CustomError("self-appreciation is not allowed")
+	InvalidCoreValueID          = CustomError("invalid corevalue id")
+	InvalidReceiverID           = CustomError("invalid receiver id")
+	InvalidPassword             = CustomError("invalid password")
+	InvalidEmail                = CustomError("invalid email")
 )
 
 // ErrKeyNotSet - Returns error object specific to the key value passed in
@@ -68,7 +70,7 @@ func GetHTTPStatusCode(err error) int {
 		return http.StatusInternalServerError
 	case OrganizationNotFound, InvalidOrgId, GradeNotFound, AppreciationNotFound, PageParamNotFound, InvalidCoreValueData, InvalidIntranetData:
 		return http.StatusNotFound
-	case BadRequest, InvalidId, JSONParsingErrorReq, TextFieldBlank, InvalidParentValue, DescFieldBlank, UniqueCoreValue, SelfAppreciationError, CannotReportOwnAppreciation, RepeatedReport, InvalidCoreValueID, InvalidReceiverID, InvalidRewardPoint:
+	case BadRequest, InvalidId, JSONParsingErrorReq, TextFieldBlank, InvalidParentValue, DescFieldBlank, UniqueCoreValue, SelfAppreciationError, CannotReportOwnAppreciation, RepeatedReport, InvalidCoreValueID, InvalidReceiverID, InvalidRewardPoint, InvalidEmail, InvalidPassword:
 		return http.StatusBadRequest
 	case InvalidContactEmail, InvalidDomainName, UserAlreadyPresent, RewardAlreadyPresent, RepeatedUser:
 		return http.StatusConflict

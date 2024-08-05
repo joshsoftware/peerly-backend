@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"strconv"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
@@ -40,6 +39,7 @@ func NewUserRepo(db *sqlx.DB) repository.UserStorer {
 
 var (
 	userColumns      = []string{"id", "employee_id", "first_name", "last_name", "email", "profile_image_url", "role_id", "reward_quota_balance", "designation", "grade_id"}
+	adminColumns     = []string{"id", "employee_id", "first_name", "last_name", "email", "password", "profile_image_url", "role_id", "reward_quota_balance", "designation", "grade_id"}
 	rolesColumns     = []string{"id"}
 	gradeColumns     = []string{"id", "name", "points"}
 	orgConfigColumns = []string{"reward_multiplier"}
@@ -200,80 +200,68 @@ func (us *userStore) SyncData(ctx context.Context, updateData dto.User) (err err
 
 func (us *userStore) GetTotalUserCount(ctx context.Context, reqData dto.UserListReq) (totalCount int64, err error) {
 
-	getUserCountQuery := "Select count(*) from users "
-
-	for i, name := range reqData.Name {
+	queryBuilder := repository.Sq.Select("count(*)").From("users")
+	conditions := []squirrel.Sqlizer{}
+	for _, name := range reqData.Name {
 		if name != "" {
-			if i == 0 {
-				getUserCountQuery += "where"
-				str := fmt.Sprint(" lower(first_name) like '%" + name + "%' or lower(last_name) like '%" + name + "%'")
-				getUserCountQuery += str
-			} else {
-				str := fmt.Sprint(" or lower(first_name) like '%" + name + "%' or lower(last_name) like '%" + name + "%'")
-				getUserCountQuery += str
-			}
+			conditions = append(conditions, squirrel.Like{"lower(first_name)": "%" + name + "%"})
+			conditions = append(conditions, squirrel.Like{"lower(last_name)": "%" + name + "%"})
 		}
+	}
+	if len(conditions) > 0 {
+		queryBuilder = queryBuilder.Where(squirrel.Or(conditions))
+	}
+
+	getUserCountQuery, args, err := queryBuilder.ToSql()
+	if err != nil {
+		err = fmt.Errorf("error in generating squirrel query, err: %w", err)
+		return
 	}
 
 	var resp []int64
 
-	err = us.DB.Select(&resp, getUserCountQuery)
+	err = us.DB.Select(&resp, getUserCountQuery, args...)
 	if err != nil {
-		logger.WithField("err", err.Error()).Error("Error in getUserCountQuery")
-		err = apperrors.InternalServerError
+		err = fmt.Errorf("error in getUserCountQuery, err:%w", err)
 		return
 	}
-
-	totalCount = resp[0]
-
 	return
 }
 
-func (us *userStore) GetUserList(ctx context.Context, reqData dto.UserListReq) (resp []dto.GetUserListResp, err error) {
+func (us *userStore) ListUsers(ctx context.Context, reqData dto.UserListReq) (resp []repository.User, err error) {
 
-	// getUserListQuery := "Select users.employee_id, users.email, users.first_name, users.last_name, grades.name, users.designation, users.profile_image_url from users join grades on grades.id = users.grade_id "
-
-	getUserListQuery := "Select users.id, users.email, users.first_name, users.last_name from users "
-
-	if len(reqData.Name) >= 0 {
-		getUserListQuery += "where"
-	}
-	for i, name := range reqData.Name {
-		if i == 0 {
-			str := fmt.Sprint(" lower(first_name) like '%" + name + "%' or lower(last_name) like '%" + name + "%'")
-			getUserListQuery += str
-		} else {
-			str := fmt.Sprint(" or lower(first_name) like '%" + name + "%' or lower(last_name) like '%" + name + "%'")
-			getUserListQuery += str
+	queryBuilder := repository.Sq.Select(userColumns...).From(us.UsersTable)
+	conditions := []squirrel.Sqlizer{}
+	for _, name := range reqData.Name {
+		if name != "" {
+			conditions = append(conditions, squirrel.Like{"lower(first_name)": "%" + name + "%"})
+			conditions = append(conditions, squirrel.Like{"lower(last_name)": "%" + name + "%"})
 		}
 	}
+	if len(conditions) > 0 {
+		queryBuilder = queryBuilder.Where(squirrel.Or(conditions))
+	}
+	offset := reqData.PerPage * (reqData.Page - 1)
+	queryBuilder = queryBuilder.Limit(uint64(reqData.PerPage)).Offset(uint64(offset))
 
-	str := fmt.Sprint(" limit " + strconv.Itoa(int(reqData.PerPage)) + " offset " + strconv.Itoa(int(reqData.PerPage*(reqData.Page-1))))
-	getUserListQuery += str
-
-	err = us.DB.Select(&resp, getUserListQuery)
+	listUsersQuery, args, err := queryBuilder.ToSql()
 	if err != nil {
-		if err == sql.ErrNoRows {
-			logger.WithField("err", err.Error()).Error("No fields returned")
-			err = nil
-			return
-		}
-		logger.WithField("err", err.Error()).Error("Error in fetching users from database")
+		logger.Errorf("error in generating squirrel query, err: %s", err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
 
-	// for _, user := range dbResp {
-	// 	var respUser dto.GetUserListResp
-	// 	respUser.EmployeeId = user.EmployeeId
-	// 	respUser.Email = user.Email
-	// 	respUser.FirstName = user.FirstName
-	// 	respUser.LastName = user.LastName
-	// 	respUser.Grade = user.Grade
-	// 	respUser.Designation = user.Designation
-	// 	respUser.ProfileImg = user.ProfileImg.String
-	// 	resp = append(resp, respUser)
-	// }
+	err = us.DB.Select(&resp, listUsersQuery, args...)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			logger.Errorf("no fields returned, err:%s", err.Error())
+			err = nil
+			return
+		}
+		logger.Errorf("error in fetching users from database, err: %s", err.Error())
+		err = apperrors.InternalServerError
+		return
+	}
 
 	return
 }
@@ -478,6 +466,28 @@ func (us *userStore) GetGradeById(ctx context.Context, id int64) (grade reposito
 	err = us.DB.Get(&grade, getGradeById, id)
 	if err != nil {
 		err = fmt.Errorf("error in getGradeById. id:%d. err:%w", id, err)
+		return
+	}
+	return
+}
+
+func (us *userStore) GetAdmin(ctx context.Context, email string) (user repository.User, err error) {
+	queryBuilder := repository.Sq.Select(adminColumns...).From(us.UsersTable).Where(squirrel.Like{"email": email})
+	getAdminQuery, args, err := queryBuilder.ToSql()
+	err = us.DB.GetContext(
+		ctx,
+		&user,
+		getAdminQuery,
+		args...,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			logger.Errorf("invalid user email, err:%s", err.Error())
+			err = apperrors.InvalidEmail
+			return
+		}
+		logger.Errorf("error in get admin query, err: %s", err.Error())
+		err = apperrors.InternalServerError
 		return
 	}
 	return

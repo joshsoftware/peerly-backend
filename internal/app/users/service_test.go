@@ -49,12 +49,15 @@ func TestLoginUser(t *testing.T) {
 			},
 			setup: func(userMock *mocks.UserStorer) {
 				userMock.On("GetUserByEmail", mock.Anything, mock.Anything).Return(repository.User{
-					Id:                  1,
-					EmployeeId:          "26",
-					FirstName:           "sharyu",
-					LastName:            "marwadi",
-					Email:               "sharyu@josh.com",
-					ProfileImageURL:     "image url",
+					Id:         1,
+					EmployeeId: "26",
+					FirstName:  "sharyu",
+					LastName:   "marwadi",
+					Email:      "sharyu@josh.com",
+					ProfileImageURL: sql.NullString{
+						Valid:  true,
+						String: "image url",
+					},
 					RoleID:              1,
 					RewardsQuotaBalance: 10,
 					Designation:         "Intern",
@@ -99,12 +102,15 @@ func TestLoginUser(t *testing.T) {
 				userMock.On("GetRewardMultiplier", mock.Anything).Return(int64(10), nil).Once()
 				userMock.On("GetRoleByName", mock.Anything, mock.Anything).Return(int64(1), nil).Once()
 				userMock.On("CreateNewUser", mock.Anything, mock.Anything).Return(repository.User{
-					Id:                  1,
-					EmployeeId:          "26",
-					FirstName:           "sharyu",
-					LastName:            "marwadi",
-					Email:               "sharyu@josh.com",
-					ProfileImageURL:     "image url",
+					Id:         1,
+					EmployeeId: "26",
+					FirstName:  "sharyu",
+					LastName:   "marwadi",
+					Email:      "sharyu@josh.com",
+					ProfileImageURL: sql.NullString{
+						Valid:  true,
+						String: "image url",
+					},
 					RoleID:              1,
 					RewardsQuotaBalance: 10,
 					Designation:         "Intern",
@@ -151,12 +157,15 @@ func TestLoginUser(t *testing.T) {
 			},
 			setup: func(userMock *mocks.UserStorer) {
 				userMock.On("GetUserByEmail", mock.Anything, mock.Anything).Return(repository.User{
-					Id:                  1,
-					EmployeeId:          "26",
-					FirstName:           "sharyu",
-					LastName:            "marwadi",
-					Email:               "sharyu@josh.com",
-					ProfileImageURL:     "image url",
+					Id:         1,
+					EmployeeId: "26",
+					FirstName:  "sharyu",
+					LastName:   "marwadi",
+					Email:      "sharyu@josh.com",
+					ProfileImageURL: sql.NullString{
+						Valid:  true,
+						String: "image url",
+					},
 					RoleID:              1,
 					RewardsQuotaBalance: 10,
 					Designation:         "Manager",
@@ -170,12 +179,15 @@ func TestLoginUser(t *testing.T) {
 				}, nil).Once()
 				userMock.On("SyncData", mock.Anything, mock.Anything).Return(nil).Once()
 				userMock.On("GetUserByEmail", mock.Anything, mock.Anything).Return(repository.User{
-					Id:                  1,
-					EmployeeId:          "26",
-					FirstName:           "sharyu",
-					LastName:            "marwadi",
-					Email:               "sharyu@josh.com",
-					ProfileImageURL:     "image url",
+					Id:         1,
+					EmployeeId: "26",
+					FirstName:  "sharyu",
+					LastName:   "marwadi",
+					Email:      "sharyu@josh.com",
+					ProfileImageURL: sql.NullString{
+						Valid:  true,
+						String: "image url",
+					},
 					RoleID:              1,
 					RewardsQuotaBalance: 10,
 					Designation:         "Intern",
@@ -294,12 +306,15 @@ func TestLoginUser(t *testing.T) {
 			},
 			setup: func(userMock *mocks.UserStorer) {
 				userMock.On("GetUserByEmail", mock.Anything, mock.Anything).Return(repository.User{
-					Id:                  1,
-					EmployeeId:          "26",
-					FirstName:           "sharyu",
-					LastName:            "marwadi",
-					Email:               "sharyu@josh.com",
-					ProfileImageURL:     "image url",
+					Id:         1,
+					EmployeeId: "26",
+					FirstName:  "sharyu",
+					LastName:   "marwadi",
+					Email:      "sharyu@josh.com",
+					ProfileImageURL: sql.NullString{
+						Valid:  true,
+						String: "image url",
+					},
 					RoleID:              1,
 					RewardsQuotaBalance: 10,
 					Designation:         "Manager",
@@ -348,7 +363,7 @@ func TestGetUserList(t *testing.T) {
 			reqData: dto.UserListReq{},
 			setup: func(userMock *mocks.UserStorer) {
 				userMock.On("GetTotalUserCount", mock.Anything, mock.Anything).Return(int64(280), nil).Once()
-				userMock.On("GetUserList", mock.Anything, mock.Anything).Return([]dto.GetUserListResp{}, nil).Once()
+				userMock.On("ListUsers", mock.Anything, mock.Anything).Return([]repository.User{}, nil).Once()
 
 			},
 			isErrorExpected: false,
@@ -368,7 +383,7 @@ func TestGetUserList(t *testing.T) {
 			reqData: dto.UserListReq{},
 			setup: func(userMock *mocks.UserStorer) {
 				userMock.On("GetTotalUserCount", mock.Anything, mock.Anything).Return(int64(280), nil).Once()
-				userMock.On("GetUserList", mock.Anything, mock.Anything).Return([]dto.GetUserListResp{}, apperrors.InternalServerError).Once()
+				userMock.On("ListUsers", mock.Anything, mock.Anything).Return([]repository.User{}, apperrors.InternalServerError).Once()
 			},
 			isErrorExpected: true,
 		},
@@ -379,7 +394,7 @@ func TestGetUserList(t *testing.T) {
 			test.setup(userRepo)
 
 			// test service
-			_, err := service.GetUserList(test.context, test.reqData)
+			_, err := service.ListUsers(test.context, test.reqData)
 
 			if (err != nil) != test.isErrorExpected {
 				t.Errorf("Test Failed, expected error to be %v, but got err %v", test.isErrorExpected, err != nil)
@@ -529,6 +544,12 @@ func TestGetUserById(t *testing.T) {
 			userId:  2,
 			setup: func(userMock *mocks.UserStorer) {
 				userMock.On("GetUserById", mock.Anything, mock.Anything).Return(dto.GetUserByIdResp{}, nil).Once()
+				userMock.On("GetGradeById", mock.Anything, mock.Anything).Return(repository.Grade{
+					Id:     1,
+					Name:   "J1",
+					Points: 100,
+				}, nil).Once()
+				userMock.On("GetRewardMultiplier", mock.Anything).Return(10, nil).Once()
 
 			},
 			isErrorExpected: false,
