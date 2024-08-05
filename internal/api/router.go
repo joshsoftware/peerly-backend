@@ -72,11 +72,21 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 	// reward appreciation
 	router.Handle(route_prefix+"/reward/{id:[0-9]+}", middleware.JwtAuthMiddleware(giveRewardHandler(deps.RewardService), []string{constants.UserRole})).Methods(http.MethodPost).Headers(versionHeader, v1)
 
+	// organization config
+	router.Handle("/organizationconfig", middleware.JwtAuthMiddleware(getOrganizationConfigHandler(deps.OrganizationConfigService),[]string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
+
+	//organization config data inserted by seed file
+	// router.Handle("/organizationconfig", middleware.JwtAuthMiddleware(createOrganizationConfigHandler(deps.OrganizationConfigService),[]string{constants.UserRole})).Methods(http.MethodPost).Headers(versionHeader, v1)
+
+	router.Handle("/organizationconfig", middleware.JwtAuthMiddleware(updateOrganizationConfigHandler(deps.OrganizationConfigService),[]string{constants.UserRole})).Methods(http.MethodPut).Headers(versionHeader, v1)
+	
 	// No version requirement for /ping
 	router.HandleFunc(route_prefix+"/ping", pingHandler).Methods(http.MethodGet)
 
 	sh := http.StripPrefix("/api_doc", http.FileServer(http.Dir("./apiDoc")))
 	router.PathPrefix("/api_doc").Handler(sh)
+
+	
 
 	return router
 }
