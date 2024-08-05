@@ -133,7 +133,7 @@ type GetUserByIdDbResp struct {
 	Designation        string         `json:"designation" db:"designation"`
 	RewardQuotaBalance int64          `json:"reward_quota_balance" db:"reward_quota_balance"`
 	GradeId            int64          `json:"grade_id" db:"grade_id"`
-	EmployeeId         int64          `json:"employee_id" db:"employee_id"`
+	EmployeeId         string         `json:"employee_id" db:"employee_id"`
 	TotalPoints        int64          `json:"total_points" db:"total_points"`
 	Badge              sql.NullString `json:"badge" db:"name"`
 	BadgeCreatedAt     sql.NullInt64  `json:"badge_created_at" db:"badge_created_at"`
@@ -150,7 +150,7 @@ type GetUserByIdResp struct {
 	TotalRewardQuota   int64  `json:"total_reward_quota"`
 	RefilDate          int64  `json:"refil_date"`
 	GradeId            int64  `json:"grade_id" db:"grade_id"`
-	EmployeeId         int64  `json:"employee_id" db:"employee_id"`
+	EmployeeId         string `json:"employee_id" db:"employee_id"`
 	TotalPoints        int64  `json:"total_points" db:"total_points"`
 	Badge              string `json:"badge" db:"name"`
 	BadgeCreatedAt     int64  `json:"badge_created_at" db:"badge_created_at"`
