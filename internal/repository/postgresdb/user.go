@@ -8,6 +8,7 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
+	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
 	logger "github.com/sirupsen/logrus"
@@ -24,10 +25,10 @@ type userStore struct {
 func NewUserRepo(db *sqlx.DB) repository.UserStorer {
 	return &userStore{
 		DB:             db,
-		UsersTable:     "users",
-		GradesTable:    "grades",
-		RolesTable:     "roles",
-		OrgConfigTable: "organization_config",
+		UsersTable:     constants.UsersTable,
+		GradesTable:    constants.GradesTable,
+		RolesTable:     constants.RolesTable,
+		OrgConfigTable: constants.OrganizationConfigTable,
 	}
 }
 
