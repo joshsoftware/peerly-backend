@@ -83,7 +83,7 @@ type UserListResp struct {
 
 type UserListMetadata struct {
 	TotalCount  int64 `json:"total_count"`
-	CurrentPage int64 `json:"current_page"`
+	CurrentPage int64 `json:"page"`
 	PageCount   int64 `json:"page_size"`
 }
 
@@ -97,7 +97,7 @@ type GetUserListRespData struct {
 }
 
 type UserListReq struct {
-	Page    int64
-	PerPage int64
-	Name    []string
+	Page     int64
+	PageSize int64
+	Name     []string
 }

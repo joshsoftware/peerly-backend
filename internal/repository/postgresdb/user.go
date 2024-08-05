@@ -238,8 +238,8 @@ func (us *userStore) ListUsers(ctx context.Context, reqData dto.UserListReq) (re
 	if len(conditions) > 0 {
 		queryBuilder = queryBuilder.Where(squirrel.Or(conditions))
 	}
-	offset := reqData.PerPage * (reqData.Page - 1)
-	queryBuilder = queryBuilder.Limit(uint64(reqData.PerPage)).Offset(uint64(offset))
+	offset := reqData.PageSize * (reqData.Page - 1)
+	queryBuilder = queryBuilder.Limit(uint64(reqData.PageSize)).Offset(uint64(offset))
 
 	listUsersQuery, args, err := queryBuilder.ToSql()
 	if err != nil {
