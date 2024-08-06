@@ -107,7 +107,7 @@ func startApp() (err error) {
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
 		AllowCredentials: true,
-		AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions},
+		AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete, http.MethodOptions},
 		AllowedHeaders:   []string{"*"},
 	})
 
@@ -121,7 +121,7 @@ func startApp() (err error) {
 		return
 	}
 
-	cronjob.InitializeJobs(services.AppreciationService,services.UserService,scheduler)
+	cronjob.InitializeJobs(services.AppreciationService, services.UserService, scheduler)
 	defer scheduler.Shutdown()
 	//initialize router
 	router := api.NewRouter(services)

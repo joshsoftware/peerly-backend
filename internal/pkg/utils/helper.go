@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"strconv"
 	"time"
 
@@ -17,10 +16,9 @@ func VarsStringToInt(inp string, label string) (result int64, err error) {
 	}
 	result, err = strconv.ParseInt(inp, 10, 64)
 	if err != nil {
-		logger.WithField("err", err.Error()).Error(fmt.Scanf("Error while parsing %s from url", label))
+		logger.Errorf("error while parsing %s from url, err: %s", label, err.Error())
 		err = apperrors.InternalServerError
 		return
-
 	}
 
 	return

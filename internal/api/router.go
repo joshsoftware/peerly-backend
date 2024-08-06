@@ -72,16 +72,18 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 	//grades
 	peerlySubrouter.Handle("/grades", middleware.JwtAuthMiddleware(listGradesHandler(deps.GradeService), []string{constants.UserRole, constants.AdminRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
 
+	peerlySubrouter.Handle("/grades/{id:[0-9]+}", middleware.JwtAuthMiddleware(editGradesHandler(deps.GradeService), []string{constants.UserRole, constants.AdminRole})).Methods(http.MethodPatch).Headers(versionHeader, v1)
+
 	// reward appreciation
 	peerlySubrouter.Handle("/reward/{id:[0-9]+}", middleware.JwtAuthMiddleware(giveRewardHandler(deps.RewardService), []string{constants.UserRole})).Methods(http.MethodPost).Headers(versionHeader, v1)
 
 	// organization config
-	peerlySubrouter.Handle("/organizationconfig", middleware.JwtAuthMiddleware(getOrganizationConfigHandler(deps.OrganizationConfigService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
+	peerlySubrouter.Handle("/organizationconfig", middleware.JwtAuthMiddleware(getOrganizationConfigHandler(deps.OrganizationConfigService), []string{constants.UserRole, constants.AdminRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
 
 	//organization config data inserted by seed file
 	// router.Handle("/organizationconfig", middleware.JwtAuthMiddleware(createOrganizationConfigHandler(deps.OrganizationConfigService),[]string{constants.UserRole})).Methods(http.MethodPost).Headers(versionHeader, v1)
 
-	peerlySubrouter.Handle("/organizationconfig", middleware.JwtAuthMiddleware(updateOrganizationConfigHandler(deps.OrganizationConfigService), []string{constants.UserRole})).Methods(http.MethodPut).Headers(versionHeader, v1)
+	peerlySubrouter.Handle("/organizationconfig", middleware.JwtAuthMiddleware(updateOrganizationConfigHandler(deps.OrganizationConfigService), []string{constants.UserRole, constants.AdminRole})).Methods(http.MethodPut).Headers(versionHeader, v1)
 
 	// No version requirement for /ping
 	peerlySubrouter.HandleFunc("/ping", pingHandler).Methods(http.MethodGet)

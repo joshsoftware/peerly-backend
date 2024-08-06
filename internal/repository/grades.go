@@ -1,9 +1,14 @@
 package repository
 
-import "context"
+import (
+	"context"
+
+	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
+)
 
 type GradesStorer interface {
 	ListGrades(ctx context.Context) (gradesList []Grade, err error)
+	EditGrade(ctx context.Context, reqData dto.UpdateGradeReq) (err error)
 }
 
 type Grade struct {
