@@ -43,4 +43,5 @@ const (
 	RewardsTable       = "rewards"
 	UsersTable         = "users"
 	CoreValuesTable    = "core_values"
+	GradesTable        = "grades"
 )

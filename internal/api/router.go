@@ -72,11 +72,14 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 	// reward appreciation
 	router.Handle(route_prefix+"/reward/{id:[0-9]+}", middleware.JwtAuthMiddleware(giveRewardHandler(deps.RewardService), []string{constants.UserRole})).Methods(http.MethodPost).Headers(versionHeader, v1)
 
+	//grades
+	router.Handle(route_prefix+"/grades", middleware.JwtAuthMiddleware(listGradesHandler(deps.GradeService), []string{constants.UserRole, constants.AdminRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
+
 	// No version requirement for /ping
 	router.HandleFunc(route_prefix+"/ping", pingHandler).Methods(http.MethodGet)
 
-	sh := http.StripPrefix("/api_doc", http.FileServer(http.Dir("./apiDoc")))
-	router.PathPrefix("/api_doc").Handler(sh)
+	sh := http.StripPrefix(route_prefix+"/api_doc", http.FileServer(http.Dir("./apiDoc")))
+	router.PathPrefix(route_prefix + "/api_doc").Handler(sh)
 
 	return router
 }
