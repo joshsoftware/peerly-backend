@@ -83,7 +83,7 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 	// No version requirement for /ping
 	peerlySubrouter.HandleFunc("/ping", pingHandler).Methods(http.MethodGet)
 
-	sh := http.StripPrefix("/api_doc", http.FileServer(http.Dir("./apiDoc")))
+	sh := http.StripPrefix("/peerly/api_doc", http.FileServer(http.Dir("./apiDoc")))
 	peerlySubrouter.PathPrefix("/api_doc").Handler(sh)
 
 	
