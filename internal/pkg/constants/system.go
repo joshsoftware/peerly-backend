@@ -36,8 +36,11 @@ const (
 
 // Table Names
 const (
-	AppreciationsTable = "appreciations"
-	RewardsTable       = "rewards"
-	UsersTable         = "users"
-	CoreValuesTable    = "core_values"
+	AppreciationsTable      = "appreciations"
+	RewardsTable            = "rewards"
+	UsersTable              = "users"
+	CoreValuesTable         = "core_values"
+	OrganizationConfigTable = "organization_config"
 )
+
+const DefaultOrgID = 1

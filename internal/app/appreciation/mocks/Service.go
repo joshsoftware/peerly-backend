@@ -116,6 +116,24 @@ func (_m *Service) ListAppreciations(ctx context.Context, filter dto.Appreciatio
 	return r0, r1
 }
 
+// sendAppreciationEmail provides a mock function with given fields: to, sub, maildata
+func (_m *Service) sendAppreciationEmail(to string, sub string, maildata string) error {
+	ret := _m.Called(to, sub, maildata)
+
+	if len(ret) == 0 {
+		panic("no return value specified for sendAppreciationEmail")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
+		r0 = rf(to, sub, maildata)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // NewService creates a new instance of Service. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewService(t interface {
