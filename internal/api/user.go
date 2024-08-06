@@ -125,7 +125,9 @@ func registerUser(userSvc user.Service) http.HandlerFunc {
 			return
 		}
 
-		resp, err := userSvc.RegisterUser(req.Context(), user)
+		ctx := req.Context()
+
+		resp, err := userSvc.RegisterUser(ctx, user)
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)
 			return

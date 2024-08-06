@@ -2,6 +2,7 @@ package app
 
 import (
 	"github.com/jmoiron/sqlx"
+	// "github.com/joshsoftware/peerly-backend/internal/app/appreciation"
 	corevalues "github.com/joshsoftware/peerly-backend/internal/app/coreValues"
 	reportappreciations "github.com/joshsoftware/peerly-backend/internal/app/reportAppreciations"
 
@@ -10,6 +11,8 @@ import (
 	user "github.com/joshsoftware/peerly-backend/internal/app/users"
 	
 	appreciation "github.com/joshsoftware/peerly-backend/internal/app/appreciation"
+
+	// email "github.com/joshsoftware/peerly-backend/internal/app/email"
 
 	repository "github.com/joshsoftware/peerly-backend/internal/repository/postgresdb"
 )

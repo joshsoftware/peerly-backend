@@ -43,3 +43,31 @@ const (
 	UsersTable         = "users"
 	CoreValuesTable    = "core_values"
 )
+
+// // User required constants
+// const (
+// 	AuthorizationHeader     = "Authorization"
+// 	ClientCode              = "Client-Code"
+// 	UserRole                = "user"
+// 	UserId                  = "userId"
+// 	Role                    = "role"
+// 	IntranetAuth            = "Intranet-Auth"
+// 	PeerlyValidationPath    = "/api/peerly/v1/sessions/login"
+// 	GetIntranetUserDataPath = "/api/peerly/v1/users/"
+// 	ListIntranetUsersPath   = "/api/peerly/v1/users?page=%d&per_page=%d"
+// )
+
+// // Pagination Metadata constants
+// const (
+// 	DefaultPageNumber = 1
+// 	DefaultPageSize   = 400
+// 	MaxPageSize       = 1000
+// )
+
+// // Table Names
+// const (
+// 	AppreciationsTable = "appreciations"
+// 	RewardsTable       = "rewards"
+// 	UsersTable         = "users"
+// 	CoreValuesTable    = "core_values"
+// )

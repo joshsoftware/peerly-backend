@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #333333;
+            line-height: 1.6;
+        }
+        .content {
+            padding: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #dddddd;
+            border-radius: 5px;
+        }
+        .header {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .footer {
+            margin-top: 30px;
+            font-size: 14px;
+            color: #555555;
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <p class="header">Dear {{.ReceiverName}},</p>
+        <p>We're pleased to inform you that you've received an appreciation for your work!!!</p>
+        <p><strong>Appreciation Details:</strong></p>
+        <ul>
+            <li><strong>From:</strong> {{.SenderName}}</li>
+            <li><strong>Message:</strong> {{.Message}}</li>
+            <li><strong>Quarter:</strong> Q{{.Quarter}}</li>
+        </ul>
+        <p>Thank you for your valuable contributions to the team.</p>
+        <p class="footer">
+            Best regards,<br>
+            {{.YourName}}, {{.YourPosition}}<br>
+            JoshSoftware
+        </p>
+    </div>
+</body>
+</html>
