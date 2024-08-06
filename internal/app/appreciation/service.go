@@ -174,4 +174,3 @@ func (apprSvc *service) UpdateAppreciation(ctx context.Context) (bool, error) {
 
 	return true, nil
 }
-}
