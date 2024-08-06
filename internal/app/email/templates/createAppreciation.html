@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #333333;
+            line-height: 1.6;
+        }
+        .content {
+            padding: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #dddddd;
+            border-radius: 5px;
+        }
+        .header {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .footer {
+            margin-top: 30px;
+            font-size: 14px;
+            color: #555555;
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <div>
+            <div>Peerly</div>
+            <div><img src="./assets/Recived Star.svg" alt="received Star image"></div>
+            <div>
+                <p>Bravo!<br>
+                    You have received a deserved<br>
+                    word of appreciation.<br>
+                    Keep inspiring those around you!</p>
+            </div>
+        </div>
+        <div>
+            <div>
+                <div>{{.SenderName}},appreciated you.</div>
+                <div>Core Value</div>
+                <div>{{.CorevalueName}}</div>
+            </div>
+            <div>
+                <div>Words by {{.SenderName}}</div>
+                <div>{{.CorevalueDescription}}</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

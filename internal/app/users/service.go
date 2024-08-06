@@ -319,7 +319,7 @@ func (us *service) ListUsers(ctx context.Context, reqData dto.UserListReq) (resp
 	resp.UserList = users
 	resp.MetaData.TotalCount = totalCount
 	resp.MetaData.CurrentPage = reqData.Page
-	resp.MetaData.PageCount = reqData.PerPage
+	resp.MetaData.PageCount = reqData.PageSize
 
 	return
 }

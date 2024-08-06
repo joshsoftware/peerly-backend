@@ -179,7 +179,6 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 	}
 
 	pagination := getPaginationMetaData(filter.Page, filter.Limit, totalRecords)
-
 	queryBuilder = queryBuilder.RemoveColumns()
 	queryBuilder = queryBuilder.Columns(
 		"a.id",

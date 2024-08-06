@@ -6,6 +6,7 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/app/grades"
 	reportappreciations "github.com/joshsoftware/peerly-backend/internal/app/reportAppreciations"
 
+	organizationConfig "github.com/joshsoftware/peerly-backend/internal/app/organizationConfig"
 	reward "github.com/joshsoftware/peerly-backend/internal/app/reward"
 
 	user "github.com/joshsoftware/peerly-backend/internal/app/users"
@@ -23,6 +24,7 @@ type Dependencies struct {
 	ReportAppreciationService reportappreciations.Service
 	RewardService             reward.Service
 	GradeService              grades.Service
+	OrganizationConfigService organizationConfig.Service
 }
 
 // NewService initializes and returns a Dependencies instance with the given database connection.
@@ -35,6 +37,7 @@ func NewService(db *sqlx.DB) Dependencies {
 	appreciationRepo := repository.NewAppreciationRepo(db)
 	rewardRepo := repository.NewRewardRepo(db)
 	gradeRepo := repository.NewGradesRepo(db)
+	orgConfigRepo := repository.NewOrganizationConfigRepo(db)
 
 	coreValueService := corevalues.NewService(coreValueRepo)
 	appreciationService := appreciation.NewService(appreciationRepo, coreValueRepo)
@@ -42,6 +45,7 @@ func NewService(db *sqlx.DB) Dependencies {
 	reportAppreciationService := reportappreciations.NewService(reportAppreciationRepo, userRepo)
 	rewardService := reward.NewService(rewardRepo, appreciationRepo)
 	gradeService := grades.NewService(gradeRepo)
+	orgConfigService := organizationConfig.NewService(orgConfigRepo)
 
 	return Dependencies{
 		CoreValueService:          coreValueService,
@@ -50,6 +54,7 @@ func NewService(db *sqlx.DB) Dependencies {
 		ReportAppreciationService: reportAppreciationService,
 		RewardService:             rewardService,
 		GradeService:              gradeService,
+		OrganizationConfigService: orgConfigService,
 	}
 
 }
