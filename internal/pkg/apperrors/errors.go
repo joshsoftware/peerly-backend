@@ -23,7 +23,7 @@ const (
 	TimeExceeded                       = CustomError("time exceeded")
 	ErrOTPAlreadyExists                = CustomError("otp already exists")
 	ErrOTPAttemptsExceeded             = CustomError("attempts exceeded for organization")
-	InternalServer                      = CustomError("internal server error")
+	InternalServer                     = CustomError("internal server error")
 	ErrRecordNotFound                  = CustomError("Database record not found")
 	OrganizationConfigAlreadyPresent   = CustomError("organization config already present")
 	InvalidRewardMultiplier            = CustomError("reward multiplier should greater than 1")
@@ -58,6 +58,7 @@ const (
 	SelfAppreciationError              = CustomError("self-appreciation is not allowed")
 	InvalidCoreValueID                 = CustomError("invalid corevalue id")
 	InvalidReceiverID                  = CustomError("invalid receiver id")
+	DescriptionLengthExceed            = CustomError("maximum character length exceeded 500")
 )
 
 // ErrKeyNotSet - Returns error object specific to the key value passed in
@@ -72,7 +73,7 @@ func GetHTTPStatusCode(err error) int {
 		return http.StatusInternalServerError
 	case OrganizationConfigNotFound, OrganizationNotFound, InvalidCoreValueData, InvalidOrgId, AppreciationNotFound, PageParamNotFound:
 		return http.StatusNotFound
-	case BadRequest, InvalidId, JSONParsingErrorReq, TextFieldBlank, InvalidParentValue, DescFieldBlank, UniqueCoreValue, InvalidIntranetData, IntranetValidationFailed, RepeatedUser, SelfAppreciationError, InvalidCoreValueID, InvalidReceiverID, InvalidRewardMultiplier, InvalidRewardQuotaRenewalFrequency, InvalidTimezone, GradeNotFound:
+	case BadRequest, InvalidId, JSONParsingErrorReq, TextFieldBlank, InvalidParentValue, DescFieldBlank, UniqueCoreValue, InvalidIntranetData, IntranetValidationFailed, RepeatedUser, SelfAppreciationError, InvalidCoreValueID, InvalidReceiverID, InvalidRewardMultiplier, InvalidRewardQuotaRenewalFrequency, InvalidTimezone, GradeNotFound, DescriptionLengthExceed :
 		return http.StatusBadRequest
 	case InvalidAuthToken, RoleUnathorized:
 		return http.StatusUnauthorized
