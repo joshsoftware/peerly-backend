@@ -25,6 +25,8 @@ type UserStorer interface {
 	GetTop10Users(ctx context.Context, quarterTimestamp int64) (users []Top10Users, err error)
 	GetGradeById(ctx context.Context, id int64) (grade Grade, err error)
 	GetAdmin(ctx context.Context, email string) (user User, err error)
+	AddDeviceToken(ctx context.Context, userID int64, deviceToken string) (err error)
+	ListDeviceTokensByUserID(ctx context.Context, userID int64) (notificationTokens []string, err error)
 }
 
 // User - basic struct representing a User
@@ -74,4 +76,14 @@ type Top10Users struct {
 	ProfileImageURL    sql.NullString `db:"profile_image_url"`
 	BadgeName          sql.NullString `db:"name"`
 	AppreciationPoints int            `db:"ap"`
+}
+
+type UserBadgeDetails struct {
+	ID          int64          `db:"id"`
+	FirstName   string         `db:"first_name"`
+	LastName    string         `db:"last_name"`
+	Email       string         `db:"email"`
+	BadgeID     int8           `db:"badge_id"`
+	BadgeName   sql.NullString `db:"badge_name"`
+	BadgePoints int32          `db:"badge_points"`
 }

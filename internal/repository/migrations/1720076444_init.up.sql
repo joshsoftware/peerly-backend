@@ -98,3 +98,10 @@ CREATE TABLE IF NOT EXISTS organization_config (
     updated_at BIGINT DEFAULT (EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT,
     updated_by BIGINT REFERENCES users(id)
 );
+
+CREATE TABLE IF NOT EXISTS notification_tokens (
+    id SERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    notification_token TEXT NOT NULL,
+    UNIQUE (user_id, notification_token)
+);

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/joshsoftware/peerly-backend/internal/app/email"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/config"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
@@ -36,6 +37,7 @@ type Service interface {
 	GetActiveUserList(ctx context.Context) ([]dto.ActiveUser, error)
 	GetTop10Users(ctx context.Context) (users []dto.Top10User, err error)
 	AdminLogin(ctx context.Context, loginReq dto.AdminLoginReq) (resp dto.LoginUserResp, err error)
+	sendRewardQuotaRefillEmailToAll(ctx context.Context)
 }
 
 func NewService(userRepo repository.UserStorer) Service {
@@ -97,11 +99,13 @@ func (us *service) GetIntranetUserData(ctx context.Context, req dto.GetIntranetU
 	resp, err := client.Do(intranetReq)
 	if err != nil {
 		logger.Errorf("error in intranet get user api. status returned: %d, err: %s  ", resp.StatusCode, err.Error())
+		logger.Errorf("error response: %v",resp)
 		err = apperrors.InternalServerError
 		return
 	}
 	if resp.StatusCode != http.StatusOK {
 		logger.Errorf("error in intranet get user api. status returned: %d ", resp.StatusCode)
+		logger.Errorf("error response: %v",resp)
 		err = apperrors.InternalServerError
 		return
 	}
@@ -192,6 +196,10 @@ func (us *service) LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.L
 	resp.User = user
 	resp.AuthToken = tokenString
 
+	err = us.userRepo.AddDeviceToken(ctx,user.Id,u.NotificationToken)
+	if err != nil{
+		logger.Errorf("err in adding device token: %v",err)
+	}
 	return resp, nil
 
 }
@@ -481,6 +489,10 @@ func (us *service) GetActiveUserList(ctx context.Context) ([]dto.ActiveUser, err
 }
 func (us *service) UpdateRewardQuota(ctx context.Context) error {
 	err := us.userRepo.UpdateRewardQuota(ctx, nil)
+
+	if err == nil{
+		us.sendRewardQuotaRefillEmailToAll(ctx)
+	}
 	return err
 }
 func GetQuarterStartUnixTime() int64 {
@@ -526,4 +538,46 @@ func mapIntranetUserDataToSvcUser(intranetData dto.IntranetUserData) (svcData dt
 	svcData.LastName = intranetData.PublicProfile.LastName
 	svcData.Designation = intranetData.EmpolyeeDetail.Designation.Name
 	return svcData
+}
+
+func  (us *service) sendRewardQuotaRefillEmailToAll(ctx context.Context){
+
+	reqData := dto.UserListReq  {
+		Page     :1,
+		PageSize :1000,
+	}
+	dbUsers,err := us.userRepo.ListUsers(ctx,reqData)
+	if err != nil{
+		logger.Errorf("error in getting users for email")
+		return
+	}
+
+	usersEmails := make([]string,0)
+	for _, user := range dbUsers{
+		usersEmails = append(usersEmails, user.Email)
+	}
+
+	logger.Info("user emails : ")
+
+	for _,userEmail := range usersEmails{
+		logger.Infoln("email: ",userEmail)
+	}
+
+	templateData := struct {
+		UserName    string
+	}{
+		UserName:    fmt.Sprint("first name ", " ", "lastname"),
+	}
+
+	mailReq := email.NewMail([]string{"samnitpatil9882@gmail.com"}, []string{"samnitpatil@gmail.com"}, []string{"samirpatil9882@gmail.com"}, "Reward Quota Refilled")
+	err = mailReq.ParseTemplate("./internal/app/email/templates/rewardQuotaReset.html", templateData)
+	if err != nil{
+		logger.Errorf("err in creating html file : %v",err)
+		return
+	}
+	err = mailReq.Send("reward quota renewal")
+	if err != nil {
+		logger.Errorf("err: %v", err)
+		return 
+	}
 }

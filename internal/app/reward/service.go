@@ -2,7 +2,10 @@ package reward
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/joshsoftware/peerly-backend/internal/app/notification"
+	user "github.com/joshsoftware/peerly-backend/internal/app/users"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
@@ -13,16 +16,18 @@ import (
 type service struct {
 	rewardRepo       repository.RewardStorer
 	appreciationRepo repository.AppreciationStorer
+	userRepo         repository.UserStorer
 }
 
 type Service interface {
 	GiveReward(ctx context.Context, rewardReq dto.Reward) (dto.Reward, error)
 }
 
-func NewService(rewardRepo repository.RewardStorer, appreciationRepo repository.AppreciationStorer) Service {
+func NewService(rewardRepo repository.RewardStorer, appreciationRepo repository.AppreciationStorer, userRepo repository.UserStorer) Service {
 	return &service{
 		rewardRepo:       rewardRepo,
 		appreciationRepo: appreciationRepo,
+		userRepo:         userRepo,
 	}
 }
 
@@ -43,14 +48,14 @@ func (rwrdSvc *service) GiveReward(ctx context.Context, rewardReq dto.Reward) (d
 	}
 
 	if appr.SenderID == sender {
-		return dto.Reward{},apperrors.SelfAppreciationRewardError
+		return dto.Reward{}, apperrors.SelfAppreciationRewardError
 	}
 
-	if appr.ReceiverID == sender{
-		return dto.Reward{},apperrors.SelfRewardError
+	if appr.ReceiverID == sender {
+		return dto.Reward{}, apperrors.SelfRewardError
 	}
 
-	userChk, err := rwrdSvc.rewardRepo.UserHasRewardQuota(ctx, nil, rewardReq.SenderId,rewardReq.Point)
+	userChk, err := rwrdSvc.rewardRepo.UserHasRewardQuota(ctx, nil, rewardReq.SenderId, rewardReq.Point)
 	if err != nil {
 		return dto.Reward{}, err
 	}
@@ -97,7 +102,7 @@ func (rwrdSvc *service) GiveReward(ctx context.Context, rewardReq dto.Reward) (d
 
 	//deduce user rewardquota
 
-	deduceChk, err := rwrdSvc.rewardRepo.DeduceRewardQuotaOfUser(ctx, tx, rewardReq.SenderId,int(rewardReq.Point))
+	deduceChk, err := rwrdSvc.rewardRepo.DeduceRewardQuotaOfUser(ctx, tx, rewardReq.SenderId, int(rewardReq.Point))
 	if err != nil {
 		return dto.Reward{}, err
 	}
@@ -106,10 +111,66 @@ func (rwrdSvc *service) GiveReward(ctx context.Context, rewardReq dto.Reward) (d
 		return dto.Reward{}, apperrors.InternalServer
 	}
 
+
+
 	var reward dto.Reward
 	reward.Id = repoRewardRes.Id
 	reward.AppreciationId = repoRewardRes.AppreciationId
 	reward.SenderId = repoRewardRes.SenderId
 	reward.Point = repoRewardRes.Point
+	quaterTimeStamp := user.GetQuarterStartUnixTime()
+	
+	req := dto.GetUserByIdReq{
+		UserId:          sender,
+		QuaterTimeStamp: quaterTimeStamp,
+	}
+	userInfo ,err := rwrdSvc.userRepo.GetUserById(ctx,req)
+	if err != nil {
+		logger.Errorf("err in getting user data: %v",err)
+	}
+	rwrdSvc.sendRewardNotificationToSender(ctx,userInfo)
+	rwrdSvc.sendRewardNotificationToReceiver(ctx,appr.ReceiverID)
 	return reward, nil
+}
+
+func GetQuarterStartUnixTime() {
+	panic("unimplemented")
+}
+
+func (rwrdSvc *service) sendRewardNotificationToSender(ctx context.Context, user dto.GetUserByIdResp) {
+
+	notificationTokens, err := rwrdSvc.userRepo.ListDeviceTokensByUserID(ctx, user.UserId)
+	if err != nil {
+		logger.Errorf("err in getting device tokens: %v", err)
+		return 
+	}
+
+	msg := notification.Message{
+		Title: "Reward Give Successfully",
+		Body:  fmt.Sprintf("You have successfully given a reward! \nYou now have %d reward points left.",user.RewardQuotaBalance),
+	}
+
+	for _, notificationToken := range notificationTokens {
+		msg.SendNotificationToNotificationToken(notificationToken)
+	}
+
+}
+
+func (rwrdSvc *service) sendRewardNotificationToReceiver(ctx context.Context, userID int64) {
+
+	notificationTokens, err := rwrdSvc.userRepo.ListDeviceTokensByUserID(ctx, userID)
+	if err != nil {
+		logger.Errorf("err in getting device tokens: %v", err)
+		return 
+	}
+
+	msg := notification.Message{
+		Title: "Received Reward",
+		Body:  "You've been awarded a reward! Well done and keep up the JOSH!",
+	}
+
+	for _, notificationToken := range notificationTokens {
+		msg.SendNotificationToNotificationToken(notificationToken)
+	}
+
 }

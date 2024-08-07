@@ -289,13 +289,13 @@ func (us *userStore) GetActiveUserList(ctx context.Context, tx repository.Transa
         (SELECT sender AS user_id, COUNT(*) AS total_sent_appreciations 
          FROM appreciations
 		 WHERE
-        Appreciations.is_valid = true AND appreciations.created_at >=$2 
+        Appreciations.is_valid = true AND appreciations.created_at >=$2
          GROUP BY sender) AS sent ON u.id = sent.user_id
     LEFT JOIN 
         (SELECT sender AS user_id, COUNT(*) AS total_given_rewards 
          FROM rewards
 		 WHERE
-		 rewards.created_at >=$3 
+		 rewards.created_at >=$3
          GROUP BY sender) AS given ON u.id = given.user_id
     WHERE
         COALESCE(received.total_received_appreciations, 0) > 0 OR
@@ -326,8 +326,10 @@ LEFT JOIN
     (SELECT ub.user_id, b.name
      FROM user_badges ub 
      JOIN badges b ON ub.badge_id = b.id
-     WHERE ub.id = (SELECT MAX(id) FROM user_badges WHERE user_id = ub.user_id)) AS b ON u.id = b.user_id;
+     WHERE ub.id = (SELECT MAX(id) FROM user_badges WHERE user_id = ub.user_id)) AS b ON u.id = b.user_id
+LIMIT 10;
 `
+	logger.Info("afterTime: ",afterTime)
 
 	rows, err := queryExecutor.Query(query, afterTime, afterTime, afterTime)
 	if err != nil {
@@ -491,4 +493,49 @@ func (us *userStore) GetAdmin(ctx context.Context, email string) (user repositor
 		return
 	}
 	return
+}
+
+func (us *userStore) AddDeviceToken(ctx context.Context,userID int64,notificationToken string)(err error){
+
+	if notificationToken == ""{
+		return nil
+	}
+	insertQuery, args, err := repository.Sq.
+	Insert("notification_tokens").Columns("user_id","notification_token").
+	Values(userID,notificationToken).
+	Suffix("RETURNING id,user_id,notification_token").
+	ToSql()
+	if err != nil {
+		logger.Errorf("error in generating squirrel query, err: %v", err)
+		return apperrors.InternalServerError
+	}
+
+	type Device struct{
+		ID int32 `db:"id"`
+		UserID int64 `db:"user_id"`
+		NotificationToken string `db:"notification_token"`
+	}
+
+	var device Device
+	// Execute the query
+	err = us.DB.QueryRowx(insertQuery, args...).StructScan(&device)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			logger.Error("device not found")
+			return apperrors.InternalServerError
+		}
+		logger.Errorf("failed to execute query: %v", err)
+		return apperrors.InternalServerError
+	}
+	return nil
+}
+
+func (us *userStore) ListDeviceTokensByUserID(ctx context.Context, userID int64) (notificationTokens []string, err error) {
+    notificationTokenQuery := "SELECT notification_token FROM notification_tokens WHERE user_id = $1"
+    err = us.DB.Select(&notificationTokens, notificationTokenQuery, userID)
+    if err != nil {
+        err = fmt.Errorf("error in ListDeviceTokensByUserID: %w", err)
+        return
+    }
+    return
 }

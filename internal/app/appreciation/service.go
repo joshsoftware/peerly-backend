@@ -2,7 +2,10 @@ package appreciation
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/joshsoftware/peerly-backend/internal/app/email"
+	"github.com/joshsoftware/peerly-backend/internal/app/notification"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
@@ -14,21 +17,26 @@ import (
 type service struct {
 	appreciationRepo repository.AppreciationStorer
 	corevaluesRespo  repository.CoreValueStorer
+	userRepo         repository.UserStorer
 }
 
 // Service contains all
 type Service interface {
-CreateAppreciation(ctx context.Context, appreciation dto.Appreciation) (dto.Appreciation, error)
-GetAppreciationById(ctx context.Context, appreciationId int32) (dto.AppreciationResponse, error)
-ListAppreciations(ctx context.Context, filter dto.AppreciationFilter) (dto.ListAppreciationsResponse, error)
-DeleteAppreciation(ctx context.Context, apprId int32) error
+	CreateAppreciation(ctx context.Context, appreciation dto.Appreciation) (dto.Appreciation, error)
+	GetAppreciationById(ctx context.Context, appreciationId int32) (dto.AppreciationResponse, error)
+	ListAppreciations(ctx context.Context, filter dto.AppreciationFilter) (dto.ListAppreciationsResponse, error)
+	DeleteAppreciation(ctx context.Context, apprId int32) error
 	UpdateAppreciation(ctx context.Context) (bool, error)
+	sendAppreciationNotificationToReceiver(ctx context.Context, appr repository.AppreciationResponse)
+	sendAppreciationNotificationToAll(ctx context.Context, appr repository.AppreciationResponse)
+	sendEmailForBadgeAllocation(userBadgeDetails []repository.UserBadgeDetails)
 }
 
-func NewService(appreciationRepo repository.AppreciationStorer, coreValuesRepo repository.CoreValueStorer) Service {
+func NewService(appreciationRepo repository.AppreciationStorer, coreValuesRepo repository.CoreValueStorer, userRepo repository.UserStorer) Service {
 	return &service{
 		appreciationRepo: appreciationRepo,
 		corevaluesRespo:  coreValuesRepo,
+		userRepo:         userRepo,
 	}
 }
 
@@ -98,7 +106,16 @@ func (apprSvc *service) CreateAppreciation(ctx context.Context, appreciation dto
 		return dto.Appreciation{}, err
 	}
 
-	return mapAppreciationDBToDTO(appr), nil
+	res := mapAppreciationDBToDTO(appr)
+	apprInfo, err := apprSvc.appreciationRepo.GetAppreciationById(ctx, tx, int32(res.ID))
+	if err != nil {
+		logger.Errorf("err: %v", err)
+		return res, nil
+	}
+	err = sendAppreciationEmail(apprInfo)
+	apprSvc.sendAppreciationNotificationToReceiver(ctx, apprInfo)
+	apprSvc.sendAppreciationNotificationToAll(ctx, apprInfo)
+	return res, nil
 }
 
 func (apprSvc *service) GetAppreciationById(ctx context.Context, appreciationId int32) (dto.AppreciationResponse, error) {
@@ -165,12 +182,97 @@ func (apprSvc *service) UpdateAppreciation(ctx context.Context) (bool, error) {
 		return false, err
 	}
 
-	_, err = apprSvc.appreciationRepo.UpdateUserBadgesBasedOnTotalRewards(ctx, tx)
-
+	userBadgeDetails, err := apprSvc.appreciationRepo.UpdateUserBadgesBasedOnTotalRewards(ctx, tx)
 	if err != nil {
 		logger.Error("err: ", err.Error())
 		return false, err
 	}
 
+	apprSvc.sendEmailForBadgeAllocation(userBadgeDetails)
 	return true, nil
+}
+
+func sendAppreciationEmail(emailData repository.AppreciationResponse) error {
+	// Plain text content
+	plainTextContent := "Samnit " + "123456"
+
+	templateData := struct {
+		SenderName    string
+		Description   string
+		CoreValueName string
+	}{
+		SenderName:    fmt.Sprint(emailData.SenderFirstName, " ", emailData.SenderLastName),
+		Description:   emailData.Description,
+		CoreValueName: emailData.CoreValueName,
+	}
+	mailReq := email.NewMail([]string{"samnitpatil9882@gmail.com"}, []string{"samnitpatil@gmail.com"}, []string{"samirpatil9882@gmail.com"}, "Received an Appreciation")
+	err := mailReq.ParseTemplate("./internal/app/email/templates/createAppreciation.html", templateData)
+	if err != nil {
+		logger.Errorf("err in creating html file : %v", err)
+		return err
+	}
+	err = mailReq.Send(plainTextContent)
+	if err != nil {
+		logger.Errorf("err: %v", err)
+		return err
+	}
+	return nil
+}
+
+func (apprSvc *service) sendAppreciationNotificationToReceiver(ctx context.Context, appr repository.AppreciationResponse) {
+
+	notificationTokens, err := apprSvc.userRepo.ListDeviceTokensByUserID(ctx, appr.ReceiverID)
+	if err != nil {
+		logger.Errorf("err in getting device tokens: %v", err)
+		return
+	}
+
+	msg := notification.Message{
+		Title: "Received Appreciation",
+		Body:  fmt.Sprintf("You've been appreciated by %s %s! Well done and keep up the JOSH!", appr.SenderFirstName, appr.SenderLastName),
+	}
+
+	for _, notificationToken := range notificationTokens {
+		msg.SendNotificationToNotificationToken(notificationToken)
+	}
+
+}
+
+func (apprSvc *service) sendAppreciationNotificationToAll(ctx context.Context, appr repository.AppreciationResponse) {
+
+	msg := notification.Message{
+		Title: "Appreciation",
+		Body:  fmt.Sprintf(" %s %s appreciated %s %s", appr.SenderFirstName, appr.SenderLastName, appr.ReceiverFirstName, appr.ReceiverLastName),
+	}
+	msg.SendNotificationToTopic("peerly")
+}
+
+func (apprSvc *service) sendEmailForBadgeAllocation(userBadgeDetails []repository.UserBadgeDetails){
+
+	logger.Info("user Badge Details:---------------->\n ",userBadgeDetails)
+	for _, userBadgeDetail := range userBadgeDetails {
+		// repository.UserBadgeDetails
+		templateData := struct {
+			EmployeeName       string
+			BadgeName          string
+			AppreciationPoints int32
+		}{
+			EmployeeName:       fmt.Sprint(userBadgeDetail.FirstName, " ", userBadgeDetail.LastName),
+			BadgeName:          userBadgeDetail.BadgeName.String,
+			AppreciationPoints: userBadgeDetail.BadgePoints,
+		}
+		logger.Info("badge data: ",templateData)
+		mailReq := email.NewMail([]string{"samnitpatil9882@gmail.com"}, []string{}, []string{}, "Received an badge")
+		err := mailReq.ParseTemplate("./internal/app/email/templates/badge.html", templateData)
+		if err != nil {
+			logger.Errorf("err in creating html file : %v", err)
+			return 
+		}
+		err = mailReq.Send("badge allocation")
+		if err != nil {
+			logger.Errorf("err: %v", err)
+			return 
+		}
+	}
+	return
 }

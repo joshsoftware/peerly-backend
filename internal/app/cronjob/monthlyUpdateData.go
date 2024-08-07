@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/go-co-op/gocron/v2"
+	"github.com/joshsoftware/peerly-backend/internal/app/notification"
 	user "github.com/joshsoftware/peerly-backend/internal/app/users"
 
 	logger "github.com/sirupsen/logrus"
@@ -59,8 +60,18 @@ func (cron *MonthlyJob) Task(ctx context.Context) {
 		logger.Info("cron job attempt:", i+1)
 		err := cron.userService.UpdateRewardQuota(ctx)
 		if err == nil {
+			sendRewardQuotaRefilledNotificationToAll()
 			break
 		}
 	}
 
 }
+
+func sendRewardQuotaRefilledNotificationToAll() {
+	msg := notification.Message{
+		Title: "Reward Quota is Refilled",
+		Body:  "Your reward quota is reset! You now recognize your colleagues.",
+	}
+	msg.SendNotificationToTopic("peerly")
+}
+
