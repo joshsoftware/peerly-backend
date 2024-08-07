@@ -85,6 +85,12 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 
 	peerlySubrouter.Handle("/organizationconfig", middleware.JwtAuthMiddleware(updateOrganizationConfigHandler(deps.OrganizationConfigService), []string{constants.UserRole, constants.AdminRole})).Methods(http.MethodPut).Headers(versionHeader, v1)
 
+	//badges
+
+	peerlySubrouter.Handle("/badges", middleware.JwtAuthMiddleware(listBadgesHandler(deps.BadgeService), []string{constants.UserRole, constants.AdminRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
+
+	peerlySubrouter.Handle("/badges/{id:[0-9]+}", middleware.JwtAuthMiddleware(editBadgesHandler(deps.BadgeService), []string{constants.UserRole, constants.AdminRole})).Methods(http.MethodPatch).Headers(versionHeader, v1)
+
 	// No version requirement for /ping
 	peerlySubrouter.HandleFunc("/ping", pingHandler).Methods(http.MethodGet)
 

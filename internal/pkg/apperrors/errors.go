@@ -69,6 +69,7 @@ const (
 	InvalidRewardQuotaRenewalFrequency = CustomError("reward renewal frequency should greater than 1")
 	InvalidTimezone                    = CustomError("enter valid timezone")
 	NegativeGradePoints                = CustomError("grade points cannot be negative")
+	NegativeBadgePoints                = CustomError("badge reward points cannot be negative")
 )
 
 // ErrKeyNotSet - Returns error object specific to the key value passed in
