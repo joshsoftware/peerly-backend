@@ -9,6 +9,7 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/app/appreciation"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
+	"github.com/joshsoftware/peerly-backend/internal/pkg/utils"
 	logger "github.com/sirupsen/logrus"
 )
 
@@ -70,11 +71,11 @@ func listAppreciationsHandler(appreciationSvc appreciation.Service) http.Handler
 		filter.SortOrder = req.URL.Query().Get("sort_order")
 
 		// Get pagination parameters
-		page, limit := getPaginationParams(req)
+		page, limit := utils.GetPaginationParams(req)
 
 		filter.Limit = limit
 		filter.Page = page
-		filter.Self = getSelfParam(req)
+		filter.Self = utils.GetSelfParam(req)
 
 		appreciations, err := appreciationSvc.ListAppreciations(req.Context(), filter)
 		if err != nil {
