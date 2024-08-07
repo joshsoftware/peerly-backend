@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/joshsoftware/peerly-backend/internal/api/validation"
 	user "github.com/joshsoftware/peerly-backend/internal/app/users"
@@ -132,5 +133,57 @@ func registerUser(userSvc user.Service) http.HandlerFunc {
 			return
 		}
 		dto.SuccessRepsonse(rw, http.StatusOK, "User registered successfully", resp)
+	}
+}
+
+func listUsersHandler(userSvc user.Service) http.HandlerFunc {
+	return func(rw http.ResponseWriter, req *http.Request) {
+		page := req.URL.Query().Get("page")
+		if page == "" {
+			err := apperrors.PageParamNotFound
+			dto.ErrorRepsonse(rw, err)
+			return
+		}
+		pageInt, err := strconv.ParseInt(page, 10, 64)
+		if err != nil {
+			logger.Errorf("error in page  string to int64 conversion, err:%s", err.Error())
+			err = apperrors.InternalServerError
+			dto.ErrorRepsonse(rw, err)
+		}
+		if pageInt <= 0 {
+			err := apperrors.InvalidPage
+			dto.ErrorRepsonse(rw, err)
+			return
+		}
+
+		perPage := req.URL.Query().Get("page_size")
+		var perPageInt int64
+		if perPage == "" {
+			perPageInt = constants.DefaultPageSize
+		} else {
+			perPageInt, err = strconv.ParseInt(perPage, 10, 64)
+			if err != nil {
+				logger.Errorf("error in page size string to int64 conversion, err:%s", err.Error())
+				err = apperrors.InternalServerError
+				dto.ErrorRepsonse(rw, err)
+			}
+		}
+		if perPageInt <= 0 {
+			err := apperrors.InvalidPageSize
+			dto.ErrorRepsonse(rw, err)
+			return
+		}
+		names := strings.Split(req.URL.Query().Get("name"), " ")
+		userListReq := dto.ListUsersReq{
+			Name:     names,
+			Page:     pageInt,
+			PageSize: perPageInt,
+		}
+		resp, err := userSvc.ListUsers(req.Context(), userListReq)
+		if err != nil {
+			dto.ErrorRepsonse(rw, err)
+			return
+		}
+		dto.SuccessRepsonse(rw, http.StatusOK, "Peerly users listed", resp)
 	}
 }

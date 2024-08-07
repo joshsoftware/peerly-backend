@@ -17,14 +17,14 @@ func (e CustomError) Error() string {
 // Custome errors with errormessage
 const (
 	OrganizationConfigNotFound         = CustomError("organizationconfig  not found")
-	InvalidReferenceId                 = CustomError("Invalid reference id")
+	InvalidReferenceId                 = CustomError("invalid reference id")
 	AttemptExceeded                    = CustomError(" 3 attempts exceeded ")
 	InvalidOTP                         = CustomError("invalid otp")
 	TimeExceeded                       = CustomError("time exceeded")
 	ErrOTPAlreadyExists                = CustomError("otp already exists")
 	ErrOTPAttemptsExceeded             = CustomError("attempts exceeded for organization")
-	InternalServer                      = CustomError("internal server error")
-	ErrRecordNotFound                  = CustomError("Database record not found")
+	InternalServer                     = CustomError("internal server error")
+	ErrRecordNotFound                  = CustomError("database record not found")
 	OrganizationConfigAlreadyPresent   = CustomError("organization config already present")
 	InvalidRewardMultiplier            = CustomError("reward multiplier should greater than 1")
 	InvalidRewardQuotaRenewalFrequency = CustomError("reward renewal frequency should greater than 1")
@@ -35,9 +35,9 @@ const (
 	JSONParsingErrorResp               = CustomError("error in parsing response in json")
 	OutOfRange                         = CustomError("request value is out of range")
 	OrganizationNotFound               = CustomError("organization of given id not found")
-	RoleUnathorized                    = CustomError("Role unauthorized")
-	PageParamNotFound                  = CustomError("Page parameter not found")
-	RepeatedUser                       = CustomError("Repeated user")
+	RoleUnathorized                    = CustomError("role unauthorized")
+	PageParamNotFound                  = CustomError("page parameter not found")
+	RepeatedUser                       = CustomError("repeated user")
 	InvalidContactEmail                = CustomError("contact email is already present")
 	InvalidDomainName                  = CustomError("domain name is already present")
 	InvalidCoreValueData               = CustomError("invalid corevalue data")
@@ -58,6 +58,8 @@ const (
 	SelfAppreciationError              = CustomError("self-appreciation is not allowed")
 	InvalidCoreValueID                 = CustomError("invalid corevalue id")
 	InvalidReceiverID                  = CustomError("invalid receiver id")
+	InvalidPageSize                    = CustomError("invalid page size")
+	InvalidPage                        = CustomError("invalid page value")
 )
 
 // ErrKeyNotSet - Returns error object specific to the key value passed in
@@ -72,7 +74,7 @@ func GetHTTPStatusCode(err error) int {
 		return http.StatusInternalServerError
 	case OrganizationConfigNotFound, OrganizationNotFound, InvalidCoreValueData, InvalidOrgId, AppreciationNotFound, PageParamNotFound:
 		return http.StatusNotFound
-	case BadRequest, InvalidId, JSONParsingErrorReq, TextFieldBlank, InvalidParentValue, DescFieldBlank, UniqueCoreValue, InvalidIntranetData, IntranetValidationFailed, RepeatedUser, SelfAppreciationError, InvalidCoreValueID, InvalidReceiverID, InvalidRewardMultiplier, InvalidRewardQuotaRenewalFrequency, InvalidTimezone, GradeNotFound:
+	case BadRequest, InvalidId, JSONParsingErrorReq, TextFieldBlank, InvalidParentValue, DescFieldBlank, UniqueCoreValue, InvalidIntranetData, IntranetValidationFailed, RepeatedUser, SelfAppreciationError, InvalidCoreValueID, InvalidReceiverID, InvalidRewardMultiplier, InvalidRewardQuotaRenewalFrequency, InvalidTimezone, GradeNotFound, InvalidPageSize, InvalidPage:
 		return http.StatusBadRequest
 	case InvalidAuthToken, RoleUnathorized:
 		return http.StatusUnauthorized

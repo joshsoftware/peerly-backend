@@ -7,6 +7,7 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
+	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
 	logger "github.com/sirupsen/logrus"
@@ -22,7 +23,7 @@ type coreValueStore struct {
 func NewCoreValueRepo(db *sqlx.DB) repository.CoreValueStorer {
 	return &coreValueStore{
 		DB:        db,
-		TableName: "core_values",
+		TableName: constants.CoreValuesTable,
 	}
 }
 

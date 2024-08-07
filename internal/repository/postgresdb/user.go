@@ -8,6 +8,7 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
+	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
 	logger "github.com/sirupsen/logrus"
@@ -24,10 +25,10 @@ type userStore struct {
 func NewUserRepo(db *sqlx.DB) repository.UserStorer {
 	return &userStore{
 		DB:             db,
-		UsersTable:     "users",
-		GradesTable:    "grades",
-		RolesTable:     "roles",
-		OrgConfigTable: "organization_config",
+		UsersTable:     constants.UsersTable,
+		GradesTable:    constants.GradesTable,
+		RolesTable:     constants.RolesTable,
+		OrgConfigTable: constants.OrganizationConfigTable,
 	}
 }
 
@@ -189,4 +190,70 @@ func (us *userStore) SyncData(ctx context.Context, updateData dto.User) (err err
 
 	return
 
+}
+
+func (us *userStore) GetTotalUserCount(ctx context.Context, reqData dto.ListUsersReq) (totalCount int64, err error) {
+
+	queryBuilder := repository.Sq.Select("count(*)").From(us.UsersTable)
+	conditions := []squirrel.Sqlizer{}
+	for _, name := range reqData.Name {
+		conditions = append(conditions, squirrel.Like{"lower(first_name)": "%" + name + "%"})
+		conditions = append(conditions, squirrel.Like{"lower(last_name)": "%" + name + "%"})
+	}
+	if len(conditions) > 0 {
+		queryBuilder = queryBuilder.Where(squirrel.Or(conditions))
+	}
+
+	getUserCountQuery, args, err := queryBuilder.ToSql()
+	if err != nil {
+		err = fmt.Errorf("error in generating squirrel query, err: %w", err)
+		return
+	}
+
+	err = us.DB.GetContext(ctx, &totalCount, getUserCountQuery, args...)
+	if err != nil {
+		err = fmt.Errorf("error in getUserCountQuery, err:%w", err)
+		return
+	}
+
+	return
+}
+
+func (us *userStore) ListUsers(ctx context.Context, reqData dto.ListUsersReq) (resp []repository.User, count int64, err error) {
+
+	count, err = us.GetTotalUserCount(ctx, reqData)
+	if err != nil {
+		return
+	}
+
+	queryBuilder := repository.Sq.Select(userColumns...).From(us.UsersTable).OrderBy("first_name")
+	conditions := []squirrel.Sqlizer{}
+	for _, name := range reqData.Name {
+		conditions = append(conditions, squirrel.Like{"lower(first_name)": "%" + name + "%"})
+		conditions = append(conditions, squirrel.Like{"lower(last_name)": "%" + name + "%"})
+	}
+	if len(conditions) > 0 {
+		queryBuilder = queryBuilder.Where(squirrel.Or(conditions))
+	}
+	offset := reqData.PageSize * (reqData.Page - 1)
+	queryBuilder = queryBuilder.Limit(uint64(reqData.PageSize)).Offset(uint64(offset))
+
+	listUsersQuery, args, err := queryBuilder.ToSql()
+	if err != nil {
+		err = fmt.Errorf("error in generating squirrel query, err: %w", err)
+		return
+	}
+
+	err = us.DB.Select(&resp, listUsersQuery, args...)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			logger.Errorf("no fields returned, err:%s", err.Error())
+			err = nil
+			return
+		}
+		err = fmt.Errorf("error in fetching users from database, err: %w", err)
+		return
+	}
+
+	return
 }

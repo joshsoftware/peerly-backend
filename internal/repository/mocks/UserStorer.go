@@ -117,6 +117,36 @@ func (_m *UserStorer) GetUserByEmail(ctx context.Context, email string) (reposit
 	return r0, r1
 }
 
+// ListUsers provides a mock function with given fields: ctx, reqData
+func (_m *UserStorer) ListUsers(ctx context.Context, reqData dto.ListUsersReq) ([]repository.User, int64, error) {
+	ret := _m.Called(ctx, reqData)
+
+	var r0 []repository.User
+	if rf, ok := ret.Get(0).(func(context.Context, dto.ListUsersReq) []repository.User); ok {
+		r0 = rf(ctx, reqData)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]repository.User)
+		}
+	}
+
+	var r1 int64
+	if rf, ok := ret.Get(1).(func(context.Context, dto.ListUsersReq) int64); ok {
+		r1 = rf(ctx, reqData)
+	} else {
+		r1 = ret.Get(1).(int64)
+	}
+
+	var r2 error
+	if rf, ok := ret.Get(2).(func(context.Context, dto.ListUsersReq) error); ok {
+		r2 = rf(ctx, reqData)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
 // SyncData provides a mock function with given fields: ctx, updateData
 func (_m *UserStorer) SyncData(ctx context.Context, updateData dto.User) error {
 	ret := _m.Called(ctx, updateData)

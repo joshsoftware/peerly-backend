@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
+	"strings"
 
 	"net/http"
 	"time"
@@ -28,6 +30,7 @@ type Service interface {
 	LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.LoginUserResp, error)
 	RegisterUser(ctx context.Context, u dto.IntranetUserData) (user dto.User, err error)
 	ListIntranetUsers(ctx context.Context, reqData dto.GetUserListReq) (data []dto.IntranetUserData, err error)
+	ListUsers(ctx context.Context, reqData dto.ListUsersReq) (resp dto.ListUsersResp, err error)
 }
 
 func NewService(userRepo repository.UserStorer) Service {
@@ -263,7 +266,7 @@ func (us *service) ListIntranetUsers(ctx context.Context, reqData dto.GetUserLis
 	}
 	defer resp.Body.Close()
 
-	var respData dto.GetUserListRespData
+	var respData dto.ListIntranetUsersRespData
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -279,6 +282,40 @@ func (us *service) ListIntranetUsers(ctx context.Context, reqData dto.GetUserLis
 	}
 
 	data = respData.Data
+	return
+}
+
+func (us *service) ListUsers(ctx context.Context, reqData dto.ListUsersReq) (resp dto.ListUsersResp, err error) {
+
+	var names []string
+	for _, data := range reqData.Name {
+		if data != "" {
+			names = append(names, strings.ToLower(data))
+		}
+	}
+
+	reqData.Name = names
+
+	dbResp, totalCount, err := us.userRepo.ListUsers(ctx, reqData)
+	if err != nil {
+		logger.Errorf(err.Error())
+		err = apperrors.InternalServerError
+		return
+	}
+
+	var users []dto.UserDetails
+
+	for _, dbUser := range dbResp {
+		user := mapDbUserToUserListResp(dbUser)
+		users = append(users, user)
+	}
+
+	resp.UserList = users
+	resp.MetaData.TotalRecords = totalCount
+	resp.MetaData.CurrentPage = reqData.Page
+	resp.MetaData.PageSize = reqData.PageSize
+	resp.MetaData.TotalPage = int64(math.Ceil(float64(totalCount) / float64(reqData.PageSize)))
+
 	return
 }
 
@@ -308,7 +345,7 @@ func mapUserDbToService(dbStruct repository.User) (svcStruct dto.User) {
 	svcStruct.FirstName = dbStruct.FirstName
 	svcStruct.LastName = dbStruct.LastName
 	svcStruct.Email = dbStruct.Email
-	svcStruct.ProfileImgUrl = dbStruct.ProfileImageURL
+	svcStruct.ProfileImgUrl = dbStruct.ProfileImageURL.String
 	svcStruct.RoleId = dbStruct.RoleID
 	svcStruct.RewardQuotaBalance = dbStruct.RewardsQuotaBalance
 	svcStruct.Designation = dbStruct.Designation
@@ -325,5 +362,13 @@ func mapIntranetUserDataToSvcUser(intranetData dto.IntranetUserData) (svcData dt
 	svcData.FirstName = intranetData.PublicProfile.FirstName
 	svcData.LastName = intranetData.PublicProfile.LastName
 	svcData.Designation = intranetData.EmpolyeeDetail.Designation.Name
+	return svcData
+}
+
+func mapDbUserToUserListResp(dbStruct repository.User) (svcData dto.UserDetails) {
+	svcData.Id = dbStruct.Id
+	svcData.FirstName = dbStruct.FirstName
+	svcData.LastName = dbStruct.LastName
+	svcData.Email = dbStruct.Email
 	return svcData
 }
