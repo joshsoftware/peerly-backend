@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"strings"
 
 	"net/http"
@@ -29,7 +30,7 @@ type Service interface {
 	LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.LoginUserResp, error)
 	RegisterUser(ctx context.Context, u dto.IntranetUserData) (user dto.User, err error)
 	ListIntranetUsers(ctx context.Context, reqData dto.GetUserListReq) (data []dto.IntranetUserData, err error)
-	ListUsers(ctx context.Context, reqData dto.UserListReq) (resp dto.UserListWithMetadata, err error)
+	ListUsers(ctx context.Context, reqData dto.ListUsersReq) (resp dto.ListUsersResp, err error)
 }
 
 func NewService(userRepo repository.UserStorer) Service {
@@ -265,7 +266,7 @@ func (us *service) ListIntranetUsers(ctx context.Context, reqData dto.GetUserLis
 	}
 	defer resp.Body.Close()
 
-	var respData dto.GetUserListRespData
+	var respData dto.ListIntranetUsersRespData
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -284,11 +285,13 @@ func (us *service) ListIntranetUsers(ctx context.Context, reqData dto.GetUserLis
 	return
 }
 
-func (us *service) ListUsers(ctx context.Context, reqData dto.UserListReq) (resp dto.UserListWithMetadata, err error) {
+func (us *service) ListUsers(ctx context.Context, reqData dto.ListUsersReq) (resp dto.ListUsersResp, err error) {
 
 	var names []string
 	for _, data := range reqData.Name {
-		names = append(names, strings.ToLower(data))
+		if data != "" {
+			names = append(names, strings.ToLower(data))
+		}
 	}
 
 	reqData.Name = names
@@ -300,7 +303,7 @@ func (us *service) ListUsers(ctx context.Context, reqData dto.UserListReq) (resp
 		return
 	}
 
-	var users []dto.UserListResp
+	var users []dto.UserDetails
 
 	for _, dbUser := range dbResp {
 		user := mapDbUserToUserListResp(dbUser)
@@ -308,9 +311,10 @@ func (us *service) ListUsers(ctx context.Context, reqData dto.UserListReq) (resp
 	}
 
 	resp.UserList = users
-	resp.MetaData.TotalCount = totalCount
+	resp.MetaData.TotalRecords = totalCount
 	resp.MetaData.CurrentPage = reqData.Page
-	resp.MetaData.PageCount = reqData.PageSize
+	resp.MetaData.PageSize = reqData.PageSize
+	resp.MetaData.TotalPage = int64(math.Ceil(float64(totalCount) / float64(reqData.PageSize)))
 
 	return
 }
@@ -361,7 +365,7 @@ func mapIntranetUserDataToSvcUser(intranetData dto.IntranetUserData) (svcData dt
 	return svcData
 }
 
-func mapDbUserToUserListResp(dbStruct repository.User) (svcData dto.UserListResp) {
+func mapDbUserToUserListResp(dbStruct repository.User) (svcData dto.UserDetails) {
 	svcData.Id = dbStruct.Id
 	svcData.FirstName = dbStruct.FirstName
 	svcData.LastName = dbStruct.LastName

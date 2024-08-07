@@ -118,11 +118,11 @@ func (_m *UserStorer) GetUserByEmail(ctx context.Context, email string) (reposit
 }
 
 // ListUsers provides a mock function with given fields: ctx, reqData
-func (_m *UserStorer) ListUsers(ctx context.Context, reqData dto.UserListReq) ([]repository.User, int64, error) {
+func (_m *UserStorer) ListUsers(ctx context.Context, reqData dto.ListUsersReq) ([]repository.User, int64, error) {
 	ret := _m.Called(ctx, reqData)
 
 	var r0 []repository.User
-	if rf, ok := ret.Get(0).(func(context.Context, dto.UserListReq) []repository.User); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, dto.ListUsersReq) []repository.User); ok {
 		r0 = rf(ctx, reqData)
 	} else {
 		if ret.Get(0) != nil {
@@ -131,14 +131,14 @@ func (_m *UserStorer) ListUsers(ctx context.Context, reqData dto.UserListReq) ([
 	}
 
 	var r1 int64
-	if rf, ok := ret.Get(1).(func(context.Context, dto.UserListReq) int64); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, dto.ListUsersReq) int64); ok {
 		r1 = rf(ctx, reqData)
 	} else {
 		r1 = ret.Get(1).(int64)
 	}
 
 	var r2 error
-	if rf, ok := ret.Get(2).(func(context.Context, dto.UserListReq) error); ok {
+	if rf, ok := ret.Get(2).(func(context.Context, dto.ListUsersReq) error); ok {
 		r2 = rf(ctx, reqData)
 	} else {
 		r2 = ret.Error(2)

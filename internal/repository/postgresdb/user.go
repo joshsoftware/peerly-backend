@@ -192,15 +192,13 @@ func (us *userStore) SyncData(ctx context.Context, updateData dto.User) (err err
 
 }
 
-func (us *userStore) GetTotalUserCount(ctx context.Context, reqData dto.UserListReq) (totalCount int64, err error) {
+func (us *userStore) GetTotalUserCount(ctx context.Context, reqData dto.ListUsersReq) (totalCount int64, err error) {
 
-	queryBuilder := repository.Sq.Select("count(*)").From("users")
+	queryBuilder := repository.Sq.Select("count(*)").From(us.UsersTable)
 	conditions := []squirrel.Sqlizer{}
 	for _, name := range reqData.Name {
-		if name != "" {
-			conditions = append(conditions, squirrel.Like{"lower(first_name)": "%" + name + "%"})
-			conditions = append(conditions, squirrel.Like{"lower(last_name)": "%" + name + "%"})
-		}
+		conditions = append(conditions, squirrel.Like{"lower(first_name)": "%" + name + "%"})
+		conditions = append(conditions, squirrel.Like{"lower(last_name)": "%" + name + "%"})
 	}
 	if len(conditions) > 0 {
 		queryBuilder = queryBuilder.Where(squirrel.Or(conditions))
@@ -212,20 +210,16 @@ func (us *userStore) GetTotalUserCount(ctx context.Context, reqData dto.UserList
 		return
 	}
 
-	var resp []int64
-
-	err = us.DB.Select(&resp, getUserCountQuery, args...)
+	err = us.DB.GetContext(ctx, &totalCount, getUserCountQuery, args...)
 	if err != nil {
 		err = fmt.Errorf("error in getUserCountQuery, err:%w", err)
 		return
 	}
 
-	totalCount = resp[0]
-
 	return
 }
 
-func (us *userStore) ListUsers(ctx context.Context, reqData dto.UserListReq) (resp []repository.User, count int64, err error) {
+func (us *userStore) ListUsers(ctx context.Context, reqData dto.ListUsersReq) (resp []repository.User, count int64, err error) {
 
 	count, err = us.GetTotalUserCount(ctx, reqData)
 	if err != nil {
@@ -235,10 +229,8 @@ func (us *userStore) ListUsers(ctx context.Context, reqData dto.UserListReq) (re
 	queryBuilder := repository.Sq.Select(userColumns...).From(us.UsersTable).OrderBy("first_name")
 	conditions := []squirrel.Sqlizer{}
 	for _, name := range reqData.Name {
-		if name != "" {
-			conditions = append(conditions, squirrel.Like{"lower(first_name)": "%" + name + "%"})
-			conditions = append(conditions, squirrel.Like{"lower(last_name)": "%" + name + "%"})
-		}
+		conditions = append(conditions, squirrel.Like{"lower(first_name)": "%" + name + "%"})
+		conditions = append(conditions, squirrel.Like{"lower(last_name)": "%" + name + "%"})
 	}
 	if len(conditions) > 0 {
 		queryBuilder = queryBuilder.Where(squirrel.Or(conditions))

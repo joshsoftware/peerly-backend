@@ -344,21 +344,21 @@ func TestLoginUser(t *testing.T) {
 	}
 }
 
-func TestGetUserList(t *testing.T) {
+func TestListUsers(t *testing.T) {
 	userRepo := mocks.NewUserStorer(t)
 	service := NewService(userRepo)
 
 	tests := []struct {
 		name            string
 		context         context.Context
-		reqData         dto.UserListReq
+		reqData         dto.ListUsersReq
 		setup           func(userMock *mocks.UserStorer)
 		isErrorExpected bool
 	}{
 		{
 			name:    "Success for get user list",
 			context: context.Background(),
-			reqData: dto.UserListReq{},
+			reqData: dto.ListUsersReq{},
 			setup: func(userMock *mocks.UserStorer) {
 				userMock.On("ListUsers", mock.Anything, mock.Anything).Return([]repository.User{}, int64(10), nil).Once()
 
@@ -368,7 +368,7 @@ func TestGetUserList(t *testing.T) {
 		{
 			name:    "Faliure for get user list",
 			context: context.Background(),
-			reqData: dto.UserListReq{},
+			reqData: dto.ListUsersReq{},
 			setup: func(userMock *mocks.UserStorer) {
 				userMock.On("ListUsers", mock.Anything, mock.Anything).Return([]repository.User{}, int64(10), apperrors.InternalServerError).Once()
 			},

@@ -174,7 +174,7 @@ func listUsersHandler(userSvc user.Service) http.HandlerFunc {
 			return
 		}
 		names := strings.Split(req.URL.Query().Get("name"), " ")
-		userListReq := dto.UserListReq{
+		userListReq := dto.ListUsersReq{
 			Name:     names,
 			Page:     pageInt,
 			PageSize: perPageInt,

@@ -14,7 +14,7 @@ type UserStorer interface {
 	GetGradeByName(ctx context.Context, name string) (grade Grade, err error)
 	GetRewardMultiplier(ctx context.Context) (value int64, err error)
 	SyncData(ctx context.Context, updateData dto.User) (err error)
-	ListUsers(ctx context.Context, reqData dto.UserListReq) (resp []User, count int64, err error)
+	ListUsers(ctx context.Context, reqData dto.ListUsersReq) (resp []User, count int64, err error)
 }
 
 // User - basic struct representing a User
