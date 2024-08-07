@@ -58,6 +58,8 @@ const (
 	SelfAppreciationError              = CustomError("self-appreciation is not allowed")
 	InvalidCoreValueID                 = CustomError("invalid corevalue id")
 	InvalidReceiverID                  = CustomError("invalid receiver id")
+	InvalidPageSize                    = CustomError("invalid page size")
+	InvalidPage                        = CustomError("invalid page value")
 )
 
 // ErrKeyNotSet - Returns error object specific to the key value passed in
@@ -72,7 +74,7 @@ func GetHTTPStatusCode(err error) int {
 		return http.StatusInternalServerError
 	case OrganizationConfigNotFound, OrganizationNotFound, InvalidCoreValueData, InvalidOrgId, AppreciationNotFound, PageParamNotFound:
 		return http.StatusNotFound
-	case BadRequest, InvalidId, JSONParsingErrorReq, TextFieldBlank, InvalidParentValue, DescFieldBlank, UniqueCoreValue, InvalidIntranetData, IntranetValidationFailed, RepeatedUser, SelfAppreciationError, InvalidCoreValueID, InvalidReceiverID, InvalidRewardMultiplier, InvalidRewardQuotaRenewalFrequency, InvalidTimezone, GradeNotFound:
+	case BadRequest, InvalidId, JSONParsingErrorReq, TextFieldBlank, InvalidParentValue, DescFieldBlank, UniqueCoreValue, InvalidIntranetData, IntranetValidationFailed, RepeatedUser, SelfAppreciationError, InvalidCoreValueID, InvalidReceiverID, InvalidRewardMultiplier, InvalidRewardQuotaRenewalFrequency, InvalidTimezone, GradeNotFound, InvalidPageSize, InvalidPage:
 		return http.StatusBadRequest
 	case InvalidAuthToken, RoleUnathorized:
 		return http.StatusUnauthorized

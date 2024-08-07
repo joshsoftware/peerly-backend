@@ -293,15 +293,10 @@ func (us *service) ListUsers(ctx context.Context, reqData dto.UserListReq) (resp
 
 	reqData.Name = names
 
-	totalCount, err := us.userRepo.GetTotalUserCount(ctx, reqData)
+	dbResp, totalCount, err := us.userRepo.ListUsers(ctx, reqData)
 	if err != nil {
 		logger.Errorf(err.Error())
 		err = apperrors.InternalServerError
-		return
-	}
-
-	dbResp, err := us.userRepo.ListUsers(ctx, reqData)
-	if err != nil {
 		return
 	}
 

@@ -225,9 +225,14 @@ func (us *userStore) GetTotalUserCount(ctx context.Context, reqData dto.UserList
 	return
 }
 
-func (us *userStore) ListUsers(ctx context.Context, reqData dto.UserListReq) (resp []repository.User, err error) {
+func (us *userStore) ListUsers(ctx context.Context, reqData dto.UserListReq) (resp []repository.User, count int64, err error) {
 
-	queryBuilder := repository.Sq.Select(userColumns...).From(us.UsersTable)
+	count, err = us.GetTotalUserCount(ctx, reqData)
+	if err != nil {
+		return
+	}
+
+	queryBuilder := repository.Sq.Select(userColumns...).From(us.UsersTable).OrderBy("first_name")
 	conditions := []squirrel.Sqlizer{}
 	for _, name := range reqData.Name {
 		if name != "" {
@@ -243,8 +248,7 @@ func (us *userStore) ListUsers(ctx context.Context, reqData dto.UserListReq) (re
 
 	listUsersQuery, args, err := queryBuilder.ToSql()
 	if err != nil {
-		logger.Errorf("error in generating squirrel query, err: %s", err.Error())
-		err = apperrors.InternalServerError
+		err = fmt.Errorf("error in generating squirrel query, err: %w", err)
 		return
 	}
 
@@ -255,8 +259,7 @@ func (us *userStore) ListUsers(ctx context.Context, reqData dto.UserListReq) (re
 			err = nil
 			return
 		}
-		logger.Errorf("error in fetching users from database, err: %s", err.Error())
-		err = apperrors.InternalServerError
+		err = fmt.Errorf("error in fetching users from database, err: %w", err)
 		return
 	}
 

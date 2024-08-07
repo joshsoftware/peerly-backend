@@ -96,27 +96,6 @@ func (_m *UserStorer) GetRoleByName(ctx context.Context, name string) (int64, er
 	return r0, r1
 }
 
-// GetTotalUserCount provides a mock function with given fields: ctx, reqData
-func (_m *UserStorer) GetTotalUserCount(ctx context.Context, reqData dto.UserListReq) (int64, error) {
-	ret := _m.Called(ctx, reqData)
-
-	var r0 int64
-	if rf, ok := ret.Get(0).(func(context.Context, dto.UserListReq) int64); ok {
-		r0 = rf(ctx, reqData)
-	} else {
-		r0 = ret.Get(0).(int64)
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, dto.UserListReq) error); ok {
-		r1 = rf(ctx, reqData)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetUserByEmail provides a mock function with given fields: ctx, email
 func (_m *UserStorer) GetUserByEmail(ctx context.Context, email string) (repository.User, error) {
 	ret := _m.Called(ctx, email)
@@ -139,7 +118,7 @@ func (_m *UserStorer) GetUserByEmail(ctx context.Context, email string) (reposit
 }
 
 // ListUsers provides a mock function with given fields: ctx, reqData
-func (_m *UserStorer) ListUsers(ctx context.Context, reqData dto.UserListReq) ([]repository.User, error) {
+func (_m *UserStorer) ListUsers(ctx context.Context, reqData dto.UserListReq) ([]repository.User, int64, error) {
 	ret := _m.Called(ctx, reqData)
 
 	var r0 []repository.User
@@ -151,14 +130,21 @@ func (_m *UserStorer) ListUsers(ctx context.Context, reqData dto.UserListReq) ([
 		}
 	}
 
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, dto.UserListReq) error); ok {
+	var r1 int64
+	if rf, ok := ret.Get(1).(func(context.Context, dto.UserListReq) int64); ok {
 		r1 = rf(ctx, reqData)
 	} else {
-		r1 = ret.Error(1)
+		r1 = ret.Get(1).(int64)
 	}
 
-	return r0, r1
+	var r2 error
+	if rf, ok := ret.Get(2).(func(context.Context, dto.UserListReq) error); ok {
+		r2 = rf(ctx, reqData)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // SyncData provides a mock function with given fields: ctx, updateData
