@@ -44,6 +44,8 @@ const (
 	UsersTable              = "users"
 	CoreValuesTable         = "core_values"
 	OrganizationConfigTable = "organization_config"
+	GradesTable             = "grades"
+	RolesTable              = "roles"
 )
 
 const DefaultOrgID = 1

@@ -5,8 +5,8 @@ import (
 	corevalues "github.com/joshsoftware/peerly-backend/internal/app/coreValues"
 	reportappreciations "github.com/joshsoftware/peerly-backend/internal/app/reportAppreciations"
 
-	reward "github.com/joshsoftware/peerly-backend/internal/app/reward"
 	organizationConfig "github.com/joshsoftware/peerly-backend/internal/app/organizationConfig"
+	reward "github.com/joshsoftware/peerly-backend/internal/app/reward"
 
 	user "github.com/joshsoftware/peerly-backend/internal/app/users"
 
@@ -37,10 +37,10 @@ func NewService(db *sqlx.DB) Dependencies {
 	orgConfigRepo := repository.NewOrganizationConfigRepo(db)
 
 	coreValueService := corevalues.NewService(coreValueRepo)
-	appreciationService := appreciation.NewService(appreciationRepo, coreValueRepo,userRepo)
+	appreciationService := appreciation.NewService(appreciationRepo, coreValueRepo, userRepo)
 	userService := user.NewService(userRepo)
-	reportAppreciationService := reportappreciations.NewService(reportAppreciationRepo, userRepo,appreciationRepo)
-	rewardService := reward.NewService(rewardRepo, appreciationRepo,userRepo)
+	reportAppreciationService := reportappreciations.NewService(reportAppreciationRepo, userRepo, appreciationRepo)
+	rewardService := reward.NewService(rewardRepo, appreciationRepo, userRepo)
 	orgConfigService := organizationConfig.NewService(orgConfigRepo)
 
 	return Dependencies{
