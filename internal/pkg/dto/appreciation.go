@@ -33,10 +33,12 @@ type AppreciationResponse struct {
 	Description         string `json:"description"`
 	TotalRewardPoints   int32  `json:"total_reward_points"`
 	Quarter             int8   `json:"quarter"`
+	SenderID            int64  `json:"sender_id"`
 	SenderFirstName     string `json:"sender_first_name"`
 	SenderLastName      string `json:"sender_last_name"`
 	SenderImageURL      string `json:"sender_image_url"`
 	SenderDesignation   string `json:"sender_designation"`
+	ReceiverID          int64  `json:"receiver_id"`
 	ReceiverFirstName   string `json:"receiver_first_name"`
 	ReceiverLastName    string `json:"receiver_last_name"`
 	ReceiverImageURL    string `json:"receiver_image_url"`
@@ -72,6 +74,10 @@ func (appr *Appreciation) ValidateCreateAppreciation() (err error) {
 		return apperrors.DescFieldBlank
 	}
 
+	if len(appr.Description) > 500{
+		return apperrors.DescriptionLengthExceed
+	}
+	
 	if appr.Receiver <= 0 {
 		return apperrors.InvalidReceiverID
 	}

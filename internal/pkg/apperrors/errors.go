@@ -48,7 +48,6 @@ const (
 	GradeNotFound               = CustomError("grade not found")
 	AppreciationNotFound        = CustomError("appreciation not found")
 	BadRequest                  = CustomError("bad request")
-	InternalServer              = CustomError("internal Server")
 	FailedToCreateDriver        = CustomError("failure to create driver obj")
 	MigrationFailure            = CustomError("migrate failure")
 	SelfAppreciationError       = CustomError("self-appreciation is not allowed")
@@ -63,11 +62,13 @@ const (
 	TimeExceeded                       = CustomError("time exceeded")
 	ErrOTPAlreadyExists                = CustomError("otp already exists")
 	ErrOTPAttemptsExceeded             = CustomError("attempts exceeded for organization")
+	InternalServer                     = CustomError("internal server error")
 	ErrRecordNotFound                  = CustomError("Database record not found")
 	OrganizationConfigAlreadyPresent   = CustomError("organization config already present")
 	InvalidRewardMultiplier            = CustomError("reward multiplier should greater than 1")
 	InvalidRewardQuotaRenewalFrequency = CustomError("reward renewal frequency should greater than 1")
 	InvalidTimezone                    = CustomError("enter valid timezone")
+	DescriptionLengthExceed            = CustomError("maximum character length exceeded 500")
 )
 
 // ErrKeyNotSet - Returns error object specific to the key value passed in
@@ -82,7 +83,7 @@ func GetHTTPStatusCode(err error) int {
 		return http.StatusInternalServerError
 	case OrganizationConfigNotFound,OrganizationNotFound, InvalidOrgId, GradeNotFound, AppreciationNotFound, PageParamNotFound, InvalidCoreValueData, InvalidIntranetData:
 		return http.StatusNotFound
-	case BadRequest, InvalidId, JSONParsingErrorReq, TextFieldBlank, InvalidParentValue, DescFieldBlank, UniqueCoreValue, SelfAppreciationError, CannotReportOwnAppreciation, RepeatedReport, InvalidCoreValueID, InvalidReceiverID,InvalidRewardMultiplier,InvalidRewardQuotaRenewalFrequency,InvalidTimezone, InvalidRewardPoint, InvalidEmail, InvalidPassword:
+	case BadRequest, InvalidId, JSONParsingErrorReq, TextFieldBlank, InvalidParentValue, DescFieldBlank, UniqueCoreValue, SelfAppreciationError, CannotReportOwnAppreciation, RepeatedReport, InvalidCoreValueID, InvalidReceiverID,InvalidRewardMultiplier,InvalidRewardQuotaRenewalFrequency,InvalidTimezone, InvalidRewardPoint, InvalidEmail, InvalidPassword,DescriptionLengthExceed :
 		return http.StatusBadRequest
 	case InvalidContactEmail, InvalidDomainName, UserAlreadyPresent, RewardAlreadyPresent, RepeatedUser:
 		return http.StatusConflict
