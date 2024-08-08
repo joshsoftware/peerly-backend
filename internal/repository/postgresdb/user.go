@@ -382,7 +382,7 @@ func (us *userStore) GetUserById(ctx context.Context, reqData dto.GetUserByIdReq
 
 	getUserById := `select users.id, users.first_name, users.last_name, users.email, users.profile_image_url, users.designation, users.reward_quota_balance, users.grade_id, users.employee_id, 
 		(
-		select count(*) 
+		select sum(total_reward_points) 
 		from appreciations
 		where
 		receiver = users.id
@@ -423,7 +423,7 @@ func (us *userStore) GetUserById(ctx context.Context, reqData dto.GetUserByIdReq
 		user.RewardQuotaBalance = userList[0].RewardQuotaBalance
 		user.GradeId = userList[0].GradeId
 		user.EmployeeId = userList[0].EmployeeId
-		user.TotalPoints = userList[0].TotalPoints
+		user.TotalPoints = userList[0].TotalPoints.Int64
 		user.Badge = userList[0].Badge.String
 		user.BadgeCreatedAt = userList[0].BadgeCreatedAt.Int64
 	}
