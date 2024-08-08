@@ -10,7 +10,7 @@ set :user, 'ubuntu'
 set :forward_agent, true
 
 set :shared_files, [ 
-  '.env'
+  '.env', 'serviceAccountKey.json'
 ]
 
 task :staging do 
@@ -27,7 +27,9 @@ end
 
 task :setup do
    command %{mkdir -p "#{fetch(:deploy_to)}/releases"}
+  #  npm install pm2 -g
   #  command %{createdb -U postgres peerly}
+  #  command %{pm2 start main --name peerly-backend -- start}
 end
 
 task :loadData do
@@ -39,19 +41,20 @@ task :deploy do
   deploy do
     invoke :'git:clone'
     command "git checkout #{fetch(:branch)}"
+    command "git pull origin #{fetch(:branch)}"
     invoke :'deploy:link_shared_paths'
 
     command %{export PATH=$PATH:/usr/local/go/bin}
-    command %[echo "-----> go get"]
     command %{go mod tidy}
-    command %[echo "-----> go mod vendor"]
     command %{go mod vendor}
-    command %[echo "-----> Creating build"]
     command %{go build cmd/main.go}
-    command %[echo "-----> Build Done"]
     # command %{make migrate}
-    
-    command %{sudo systemctl restart golang.service}  
     invoke :'deploy:cleanup' 
+
+    on :launch do
+      command %{source ~/.nvm/nvm.sh}
+      command %{pm2 restart ~/peerly-ecosystem.config.js}
+    end
+    
   end
 end
