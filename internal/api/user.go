@@ -17,14 +17,7 @@ import (
 func loginUser(userSvc user.Service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
 
-		var notificationToken dto.IntranetUserData
-		// err := json.NewDecoder(req.Body).Decode(&notificationToken)
-		// if err != nil {
-		// 	logger.Errorf("error while decoding request data. err: %s", err.Error())
-		// 	err = apperrors.JSONParsingErrorReq
-		// 	dto.ErrorRepsonse(rw, err)
-		// 	return
-		// }
+		notificationToken := req.URL.Query().Get("notification_token")
 		authToken := req.Header.Get(constants.IntranetAuth)
 		if authToken == "" {
 			err := apperrors.InvalidAuthToken
@@ -57,7 +50,7 @@ func loginUser(userSvc user.Service) http.HandlerFunc {
 			return
 		}
 
-		user.NotificationToken = notificationToken.NotificationToken
+		user.NotificationToken = notificationToken
 		resp, err := userSvc.LoginUser(ctx, user)
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)
