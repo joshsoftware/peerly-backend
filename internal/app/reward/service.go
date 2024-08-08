@@ -2,7 +2,6 @@ package reward
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/joshsoftware/peerly-backend/internal/app/notification"
 	user "github.com/joshsoftware/peerly-backend/internal/app/users"
