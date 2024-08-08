@@ -6,26 +6,26 @@
     <title>Appreciation Email</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
-    <link href='https://fonts.googleapis.com/css?family=Inter' rel='stylesheet'>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Nunito+Sans:ital,opsz,wght@0,6..12,200..1000;1,6..12,200..1000&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Nunito+Sans:wght@400;700&display=swap" rel="stylesheet">
 </head>
-<body style="font-family: Arial, sans-serif; background-color: #f9f0ec; margin: 0; padding: 0;">
-    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" height="100%" style="table-layout: fixed; background-color: #f9f0ec; width: 100%; height: 100%; margin: 0; padding: 0; border-spacing: 0;">
+<body style="font-family: 'Montserrat', sans-serif; background-color: #f9f0ec; margin: 0; padding: 0;">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" height="100%" style="background-color: #f9f0ec; padding: 20px 0;">
         <tr>
             <td align="center" valign="top">
-                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="max-width: 600px; background-color: #ffffff; border-radius: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); overflow: hidden;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="background-color: #ffffff; border-radius: 10px; box-shadow: 0 0 20px rgba(0, 0, 0, 0.1); overflow: hidden;">
                     <tr>
-                        <td align="center" valign="top" style="background-color: #4779F3; padding: 20px; text-align: center; color: white;">
-                            <h1 style="font-family: 'Inter', sans-serif; margin: 0; font-size: 24px;">Peerly</h1>
-                                    <img src="https://pg-stage-intranet.joshsoftware.com/peerly/assets/goldBadge.svg" alt="appreciation">
-                            <p style="font-family: 'Montserrat', sans-serif; font-size: 24px; font-weight: 500; line-height: 29.26px; text-align: center; color: white;">Hi {{.EmployeeName}}</p>
-                            <p style="font-family: 'Montserrat', sans-serif; font-size: 24px; font-weight: 500; line-height: 29.26px; text-align: center; color: white;">Congratulations!<br>You have achieved {{.BadgeName}} badge for accumulating {{.AppreciationPoints}} points.</p>
+                        <td align="center" style="background-color: #4779F3; padding: 40px 20px;">
+                            <h1 style="font-family: 'Inter', sans-serif; margin: 0; font-size: 24px; font-weight: 700; color: white; line-height: 29.05px; margin-bottom: 20px;">Peerly</h1>
+                            <img src="https://pg-stage-intranet.joshsoftware.com/peerly/assets/{{.BadgeImageName}}.png" alt="Badge Image" style="margin: 20px 0;">
+                            <p style="font-family: 'Montserrat', sans-serif; font-size: 24px; font-weight: 500; line-height: 29.26px; color: white;">Hi {{.EmployeeName}}</p>
+                            <p style="font-family: 'Montserrat', sans-serif; font-size: 24px; font-weight: 500; line-height: 29.26px; color: white; margin-top: 20px;">Congratulations!<br>You have achieved the {{.BadgeName}} badge for accumulating {{.AppreciationPoints}} points.</p>
                         </td>
                     </tr>
                     <tr>
-                        <td align="center" valign="top" style="background-color: #f9f9f9; padding: 20px; text-align: center; align-items: center; justify-content: center; color: #333333;">
-                            <div style="width: 100%;font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 300; line-height: 19.5px; text-align: center;">This is a fantastic achievement and a testament to your<br>hard work and dedication. We're proud to have you on our<br> team. Keep up the great work and continue to earn more<br> points and badges!</div>
+                        <td align="center" style="background-color: #f9f9f9; padding: 40px 20px;">
+                            <div style="font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 400; color: #333333; text-align: center; line-height: 19.5px;">
+                                This is a fantastic achievement and a testament to your<br>hard work and dedication. We're proud to have you on our<br>team. Keep up the great work and continue to earn more<br>points and badges!
+                            </div>
                         </td>
                     </tr>
                 </table>
@@ -34,4 +34,3 @@
     </table>
 </body>
 </html>
-
