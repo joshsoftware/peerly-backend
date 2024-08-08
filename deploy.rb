@@ -4,12 +4,12 @@ require 'mina/deploy'
 require 'mina/git'
 
 
-set :repository, 'git@github.com:joshsoftware/peerly-backend.git'
+set :repository, 'https://github.com/joshsoftware/peerly-backend.git'
 set :user, 'ubuntu'
 set :forward_agent, true
 
 set :shared_files, [ 
-  '.env'
+  '.env', 'serviceAccountKey.json'
 ]
 
 task :staging do 
@@ -25,22 +25,35 @@ task :production do
 end
 
 task :setup do
-   command %{createdb -U postgres peerly}
+   command %{mkdir -p "#{fetch(:deploy_to)}/releases"}
+  #  npm install pm2 -g
+  #  command %{createdb -U postgres peerly}
+  #  command %{pm2 start main --name peerly-backend -- start}
 end
 
 task :loadData do
-	command %{make seed}
-	command %{make loadUser}
+  command %{make seed}
+  command %{make loadUser}
 end
 
 task :deploy do
   deploy do
     invoke :'git:clone'
+    command "git checkout #{fetch(:branch)}"
+    command "git pull origin #{fetch(:branch)}"
     invoke :'deploy:link_shared_paths'
+
+    command %{export PATH=$PATH:/usr/local/go/bin}
+    command %{go mod tidy}
+    command %{go mod vendor}
     command %{go build cmd/main.go}
-    command %{make migrate}
-    
-    command %{sudo systemctl restart golang.service}	
+    # command %{make migrate}
     invoke :'deploy:cleanup' 
+
+    on :launch do
+      command %{source ~/.nvm/nvm.sh}
+      command %{pm2 restart ~/peerly-ecosystem.config.js}
+    end
+    
   end
 end
