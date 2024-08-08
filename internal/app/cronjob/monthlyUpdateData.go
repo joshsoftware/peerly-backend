@@ -15,7 +15,7 @@ const MONTHLY_CRON_JOB_INTERVAL_MONTHS = 1
 
 var MonthlyJobTiming = JobTime{
 	hours:   3,
-	minutes: 35,
+	minutes: 38,
 	seconds: 0,
 }
 
