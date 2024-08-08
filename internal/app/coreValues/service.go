@@ -47,7 +47,7 @@ func (cs *service) ListCoreValues(ctx context.Context) (resp []dto.CoreValue, er
 func (cs *service) GetCoreValue(ctx context.Context, coreValueID string) (coreValue dto.CoreValue, err error) {
 
 	coreValId, err := utils.VarsStringToInt(coreValueID, "coreValueId")
-	if err != err {
+	if err != nil {
 		return
 	}
 
@@ -142,7 +142,7 @@ func (cs *service) UpdateCoreValue(ctx context.Context, coreValueID string, reqD
 func (cs *service) validateParentCoreValue(ctx context.Context, coreValueID int64) (ok bool) {
 	coreValue, err := cs.coreValuesRepo.GetCoreValue(ctx, coreValueID)
 	if err != nil {
-		logger.Errorf("parent core value id not present, err: %s", err)
+		logger.Errorf("parent core value id not present, err: %s", err.Error())
 		return
 	}
 

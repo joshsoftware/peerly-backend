@@ -77,28 +77,30 @@ type GetUserListReq struct {
 	Page      int64
 }
 
-type UserListResp struct {
+type UserDetails struct {
 	Id        int64  `json:"id"`
 	Email     string `json:"email"`
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
 }
 
-type UserListMetadata struct {
-	TotalCount  int64 `json:"total_count"`
-	CurrentPage int64 `json:"page"`
-	PageCount   int64 `json:"page_size"`
+type PageToken struct {
+	CurrentPage  int64 `json:"page"`
+	TotalPage    int64 `json:"total_page"`
+	PageSize     int64 `json:"page_size"`
+	TotalRecords int64 `json:"total_records"`
 }
 
-type UserListWithMetadata struct {
-	UserList []UserListResp   `json:"user_list"`
-	MetaData UserListMetadata `json:"metadata"`
+type ListUsersResp struct {
+	UserList []UserDetails `json:"user_list"`
+	MetaData PageToken     `json:"metadata"`
 }
 
-type GetUserListRespData struct {
+type ListIntranetUsersRespData struct {
 	Data []IntranetUserData `json:"data"`
 }
-type UserListReq struct {
+
+type ListUsersReq struct {
 	Page     int64
 	PageSize int64
 	Name     []string

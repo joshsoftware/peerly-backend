@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"strings"
 
 	"net/http"
@@ -31,7 +32,7 @@ type Service interface {
 	LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.LoginUserResp, error)
 	RegisterUser(ctx context.Context, u dto.IntranetUserData) (user dto.User, err error)
 	ListIntranetUsers(ctx context.Context, reqData dto.GetUserListReq) (data []dto.IntranetUserData, err error)
-	ListUsers(ctx context.Context, reqData dto.UserListReq) (resp dto.UserListWithMetadata, err error)
+	ListUsers(ctx context.Context, reqData dto.ListUsersReq) (resp dto.ListUsersResp, err error)
 	GetUserById(ctx context.Context) (user dto.GetUserByIdResp, err error)
 	UpdateRewardQuota(ctx context.Context) (err error)
 	GetActiveUserList(ctx context.Context) ([]dto.ActiveUser, error)
@@ -99,13 +100,13 @@ func (us *service) GetIntranetUserData(ctx context.Context, req dto.GetIntranetU
 	resp, err := client.Do(intranetReq)
 	if err != nil {
 		logger.Errorf("error in intranet get user api. status returned: %d, err: %s  ", resp.StatusCode, err.Error())
-		logger.Errorf("error response: %v",resp)
+		logger.Errorf("error response: %v", resp)
 		err = apperrors.InternalServerError
 		return
 	}
 	if resp.StatusCode != http.StatusOK {
 		logger.Errorf("error in intranet get user api. status returned: %d ", resp.StatusCode)
-		logger.Errorf("error response: %v",resp)
+		logger.Errorf("error response: %v", resp)
 		err = apperrors.InternalServerError
 		return
 	}
@@ -196,9 +197,9 @@ func (us *service) LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.L
 	resp.User = user
 	resp.AuthToken = tokenString
 
-	err = us.userRepo.AddDeviceToken(ctx,user.Id,u.NotificationToken)
-	if err != nil{
-		logger.Errorf("err in adding device token: %v",err)
+	err = us.userRepo.AddDeviceToken(ctx, user.Id, u.NotificationToken)
+	if err != nil {
+		logger.Errorf("err in adding device token: %v", err)
 	}
 	return resp, nil
 
@@ -279,7 +280,7 @@ func (us *service) ListIntranetUsers(ctx context.Context, reqData dto.GetUserLis
 	}
 	defer resp.Body.Close()
 
-	var respData dto.GetUserListRespData
+	var respData dto.ListIntranetUsersRespData
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -298,26 +299,25 @@ func (us *service) ListIntranetUsers(ctx context.Context, reqData dto.GetUserLis
 	return
 }
 
-func (us *service) ListUsers(ctx context.Context, reqData dto.UserListReq) (resp dto.UserListWithMetadata, err error) {
+func (us *service) ListUsers(ctx context.Context, reqData dto.ListUsersReq) (resp dto.ListUsersResp, err error) {
 
 	var names []string
 	for _, data := range reqData.Name {
-		names = append(names, strings.ToLower(data))
+		if data != "" {
+			names = append(names, strings.ToLower(data))
+		}
 	}
 
-	totalCount, err := us.userRepo.GetTotalUserCount(ctx, reqData)
+	reqData.Name = names
+
+	dbResp, totalCount, err := us.userRepo.ListUsers(ctx, reqData)
 	if err != nil {
 		logger.Errorf(err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
 
-	dbResp, err := us.userRepo.ListUsers(ctx, reqData)
-	if err != nil {
-		return
-	}
-
-	var users []dto.UserListResp
+	var users []dto.UserDetails
 
 	for _, dbUser := range dbResp {
 		user := mapDbUserToUserListResp(dbUser)
@@ -325,9 +325,10 @@ func (us *service) ListUsers(ctx context.Context, reqData dto.UserListReq) (resp
 	}
 
 	resp.UserList = users
-	resp.MetaData.TotalCount = totalCount
+	resp.MetaData.TotalRecords = totalCount
 	resp.MetaData.CurrentPage = reqData.Page
-	resp.MetaData.PageCount = reqData.PageSize
+	resp.MetaData.PageSize = reqData.PageSize
+	resp.MetaData.TotalPage = int64(math.Ceil(float64(totalCount) / float64(reqData.PageSize)))
 
 	return
 }
@@ -416,14 +417,6 @@ func mapUserDbToService(dbStruct repository.User) (svcStruct dto.User) {
 	return svcStruct
 }
 
-func mapDbUserToUserListResp(dbStruct repository.User) (svcData dto.UserListResp) {
-	svcData.Id = dbStruct.Id
-	svcData.FirstName = dbStruct.FirstName
-	svcData.LastName = dbStruct.LastName
-	svcData.Email = dbStruct.Email
-	return svcData
-}
-
 func (us *service) GetUserById(ctx context.Context) (user dto.GetUserByIdResp, err error) {
 
 	id := ctx.Value(constants.UserId)
@@ -490,7 +483,7 @@ func (us *service) GetActiveUserList(ctx context.Context) ([]dto.ActiveUser, err
 func (us *service) UpdateRewardQuota(ctx context.Context) error {
 	err := us.userRepo.UpdateRewardQuota(ctx, nil)
 
-	if err == nil{
+	if err == nil {
 		us.sendRewardQuotaRefillEmailToAll(ctx)
 	}
 	return err
@@ -540,44 +533,51 @@ func mapIntranetUserDataToSvcUser(intranetData dto.IntranetUserData) (svcData dt
 	return svcData
 }
 
-func  (us *service) sendRewardQuotaRefillEmailToAll(ctx context.Context){
+func (us *service) sendRewardQuotaRefillEmailToAll(ctx context.Context) {
 
-	reqData := dto.UserListReq  {
-		Page     :1,
-		PageSize :1000,
+	reqData := dto.ListUsersReq{
+		Page:     1,
+		PageSize: 1000,
 	}
-	dbUsers,err := us.userRepo.ListUsers(ctx,reqData)
-	if err != nil{
+	dbUsers, _, err := us.userRepo.ListUsers(ctx, reqData)
+	if err != nil {
 		logger.Errorf("error in getting users for email")
 		return
 	}
 
-	usersEmails := make([]string,0)
-	for _, user := range dbUsers{
+	usersEmails := make([]string, 0)
+	for _, user := range dbUsers {
 		usersEmails = append(usersEmails, user.Email)
 	}
 
 	logger.Info("user emails : ")
 
-	for _,userEmail := range usersEmails{
-		logger.Infoln("email: ",userEmail)
+	for _, userEmail := range usersEmails {
+		logger.Infoln("email: ", userEmail)
 	}
 
 	templateData := struct {
-		UserName    string
+		UserName string
 	}{
-		UserName:    fmt.Sprint("first name ", " ", "lastname"),
+		UserName: fmt.Sprint("first name ", " ", "lastname"),
 	}
 
 	mailReq := email.NewMail([]string{"samnitpatil9882@gmail.com"}, []string{"samnitpatil@gmail.com"}, []string{"samirpatil9882@gmail.com"}, "Reward Quota Refilled")
 	err = mailReq.ParseTemplate("./internal/app/email/templates/rewardQuotaReset.html", templateData)
-	if err != nil{
-		logger.Errorf("err in creating html file : %v",err)
+	if err != nil {
+		logger.Errorf("err in creating html file : %v", err)
 		return
 	}
 	err = mailReq.Send("reward quota renewal")
 	if err != nil {
 		logger.Errorf("err: %v", err)
-		return 
+		return
 	}
+}
+func mapDbUserToUserListResp(dbStruct repository.User) (svcData dto.UserDetails) {
+	svcData.Id = dbStruct.Id
+	svcData.FirstName = dbStruct.FirstName
+	svcData.LastName = dbStruct.LastName
+	svcData.Email = dbStruct.Email
+	return svcData
 }

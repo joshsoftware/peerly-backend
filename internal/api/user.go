@@ -167,19 +167,40 @@ func listUsersHandler(userSvc user.Service) http.HandlerFunc {
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
-		pageInt, _ := strconv.Atoi(page)
+		pageInt, err := strconv.ParseInt(page, 10, 64)
+		if err != nil {
+			logger.Errorf("error in page  string to int64 conversion, err:%s", err.Error())
+			err = apperrors.InternalServerError
+			dto.ErrorRepsonse(rw, err)
+		}
+		if pageInt <= 0 {
+			err := apperrors.InvalidPage
+			dto.ErrorRepsonse(rw, err)
+			return
+		}
+
 		perPage := req.URL.Query().Get("page_size")
-		var perPageInt int
+		var perPageInt int64
 		if perPage == "" {
 			perPageInt = constants.DefaultPageSize
 		} else {
-			perPageInt, _ = strconv.Atoi(perPage)
+			perPageInt, err = strconv.ParseInt(perPage, 10, 64)
+			if err != nil {
+				logger.Errorf("error in page size string to int64 conversion, err:%s", err.Error())
+				err = apperrors.InternalServerError
+				dto.ErrorRepsonse(rw, err)
+			}
+		}
+		if perPageInt <= 0 {
+			err := apperrors.InvalidPageSize
+			dto.ErrorRepsonse(rw, err)
+			return
 		}
 		names := strings.Split(req.URL.Query().Get("name"), " ")
-		userListReq := dto.UserListReq{
+		userListReq := dto.ListUsersReq{
 			Name:     names,
-			Page:     int64(pageInt),
-			PageSize: int64(perPageInt),
+			Page:     pageInt,
+			PageSize: perPageInt,
 		}
 		resp, err := userSvc.ListUsers(req.Context(), userListReq)
 		if err != nil {
