@@ -182,7 +182,12 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 	queryBuilder = queryBuilder.RemoveColumns()
 	queryBuilder = queryBuilder.Columns(
 		"a.id",
-		"cv.name AS core_value_name",
+		"cv.name AS core_value_name",    fmt.Sprintf(
+			`COALESCE((
+				SELECT SUM(r2.point) 
+				FROM rewards r2 
+				WHERE r2.appreciation_id = a.id AND r2.sender = %d
+			), 0) AS given_reward_point`, userID),
 		"cv.description AS core_value_description",
 		"a.description",
 		"a.is_valid",
@@ -203,7 +208,7 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 		"COUNT(r.id) AS total_rewards",
 		fmt.Sprintf(
 			`COALESCE((
-				SELECT r2.point 
+				SELECT SUM(r2.point) 
 				FROM rewards r2 
 				WHERE r2.appreciation_id = a.id AND r2.sender = %d
 			), 0) AS given_reward_point`, userID),
