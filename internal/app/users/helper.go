@@ -6,10 +6,6 @@ import (
 )
 
 func MapActiveUserDbtoDto(activeUserDb repository.ActiveUser) dto.ActiveUser {
-	badgeName := ""
-	if activeUserDb.BadgeName.Valid {
-		badgeName = activeUserDb.BadgeName.String
-	}
 	profileImageURL := ""
 	if activeUserDb.ProfileImageURL.Valid {
 		profileImageURL = activeUserDb.ProfileImageURL.String
@@ -19,7 +15,5 @@ func MapActiveUserDbtoDto(activeUserDb repository.ActiveUser) dto.ActiveUser {
 		FirstName:          activeUserDb.FirstName,
 		LastName:           activeUserDb.LastName,
 		ProfileImageURL:    profileImageURL,
-		BadgeName:          badgeName,
-		AppreciationPoints: activeUserDb.AppreciationPoints,
 	}
 }
