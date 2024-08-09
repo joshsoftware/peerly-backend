@@ -40,6 +40,7 @@ func (ms *Mail) Send(plainTextContent string) error {
 		logger.Error("SENDGRID_API_KEY environment variable is not set")
 		return fmt.Errorf("sendgrid API key not configured")
 	}
+	logger.Info("from_------------->, ",senderEmail)
 
 	fromEmail := mail.NewEmail("Peerly", senderEmail)
 	content := mail.NewContent("text/html", ms.body)
