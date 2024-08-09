@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/joshsoftware/peerly-backend/internal/app/email"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
@@ -15,6 +16,7 @@ import (
 type service struct {
 	reportAppreciationRepo repository.ReportAppreciationStorer
 	userRepo               repository.UserStorer
+	appreciationRepo       repository.AppreciationStorer
 }
 
 type Service interface {
@@ -23,10 +25,11 @@ type Service interface {
 	DeleteAppreciation(ctx context.Context, reqData dto.ModerationReq) (err error)
 }
 
-func NewService(reportAppreciationRepo repository.ReportAppreciationStorer, userRepo repository.UserStorer) Service {
+func NewService(reportAppreciationRepo repository.ReportAppreciationStorer, userRepo repository.UserStorer, appreciationRepo repository.AppreciationStorer) Service {
 	return &service{
 		reportAppreciationRepo: reportAppreciationRepo,
 		userRepo:               userRepo,
+		appreciationRepo:       appreciationRepo,
 	}
 }
 
@@ -77,6 +80,30 @@ func (rs *service) ReportAppreciation(ctx context.Context, reqData dto.ReportApp
 		err = apperrors.InternalServerError
 		return
 	}
+
+	quaterTimeStamp := GetQuarterStartUnixTime()
+
+	reqGetUserById := dto.GetUserByIdReq{
+		UserId:          data,
+		QuaterTimeStamp: quaterTimeStamp,
+	}
+	senderInfo, err := rs.userRepo.GetUserById(ctx, reqGetUserById)
+	if err != nil {
+		return
+	}
+
+	apprInfo, err := rs.appreciationRepo.GetAppreciationById(ctx, nil, int32(reqData.AppreciationId))
+	if err != nil {
+		return
+	}
+	err = sendReportEmail(senderInfo.Email,
+		senderInfo.FirstName,
+		senderInfo.LastName,
+		apprInfo.SenderFirstName,
+		apprInfo.SenderLastName,
+		apprInfo.ReceiverFirstName,
+		apprInfo.ReceiverLastName,
+		reqData.ReportingComment)
 
 	return
 }
@@ -215,4 +242,29 @@ func mapDbAppreciationsToSvcAppreciations(dbApp repository.ListReportedAppreciat
 		svcApp.ModeratorComment = dbApp.ModeratorComment.String
 	}
 	return
+}
+
+func sendReportEmail(senderEmail string, senderFirstName string, senderLastName string, apprSenderFirstName string, apprSenderLastName string, apprReceiverFirstName string, apprReceiverLastName string, reportingComment string) error {
+	// Plain text content
+	plainTextContent := "Samnit " + "123456"
+
+	templateData := struct {
+		SenderName               string
+		ReportingComment         string
+		AppreciationSenderName   string
+		AppreciationReceiverName string
+	}{
+		SenderName:       fmt.Sprint(senderFirstName, " ", senderLastName),
+		ReportingComment: reportingComment,
+		AppreciationSenderName: fmt.Sprint(apprSenderFirstName, " ", apprSenderLastName),
+		AppreciationReceiverName: fmt.Sprint(apprReceiverFirstName, " ", apprReceiverLastName),
+	}
+	mailReq := email.NewMail([]string{"samnitpatil9882@gmail.com"}, []string{"samnitpatil@gmail.com"}, []string{"samirpatil9882@gmail.com"}, "Appreciaion Reported")
+	mailReq.ParseTemplate("./internal/app/email/templates/reportAppreciation.html", templateData)
+	err := mailReq.Send(plainTextContent)
+	if err != nil {
+		logger.Errorf("err: %v", err)
+		return err
+	}
+	return nil
 }

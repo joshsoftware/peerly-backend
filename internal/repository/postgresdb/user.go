@@ -8,6 +8,7 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
+	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
 	logger "github.com/sirupsen/logrus"
@@ -29,11 +30,10 @@ type userStore struct {
 func NewUserRepo(db *sqlx.DB) repository.UserStorer {
 	return &userStore{
 		BaseRepository: BaseRepository{db},
-		UserTable:      "users",
-		UsersTable:     "users",
-		GradesTable:    "grades",
-		RolesTable:     "roles",
-		OrgConfigTable: "organization_config",
+		UsersTable:     constants.UsersTable,
+		GradesTable:    constants.GradesTable,
+		RolesTable:     constants.RolesTable,
+		OrgConfigTable: constants.OrganizationConfigTable,
 	}
 }
 
@@ -197,15 +197,13 @@ func (us *userStore) SyncData(ctx context.Context, updateData dto.User) (err err
 
 }
 
-func (us *userStore) GetTotalUserCount(ctx context.Context, reqData dto.UserListReq) (totalCount int64, err error) {
+func (us *userStore) GetTotalUserCount(ctx context.Context, reqData dto.ListUsersReq) (totalCount int64, err error) {
 
-	queryBuilder := repository.Sq.Select("count(*)").From("users")
+	queryBuilder := repository.Sq.Select("count(*)").From(us.UsersTable)
 	conditions := []squirrel.Sqlizer{}
 	for _, name := range reqData.Name {
-		if name != "" {
-			conditions = append(conditions, squirrel.Like{"lower(first_name)": "%" + name + "%"})
-			conditions = append(conditions, squirrel.Like{"lower(last_name)": "%" + name + "%"})
-		}
+		conditions = append(conditions, squirrel.Like{"lower(first_name)": "%" + name + "%"})
+		conditions = append(conditions, squirrel.Like{"lower(last_name)": "%" + name + "%"})
 	}
 	if len(conditions) > 0 {
 		queryBuilder = queryBuilder.Where(squirrel.Or(conditions))
@@ -217,9 +215,7 @@ func (us *userStore) GetTotalUserCount(ctx context.Context, reqData dto.UserList
 		return
 	}
 
-	var resp []int64
-
-	err = us.DB.Select(&resp, getUserCountQuery, args...)
+	err = us.DB.GetContext(ctx, &totalCount, getUserCountQuery, args...)
 	if err != nil {
 		err = fmt.Errorf("error in getUserCountQuery, err:%w", err)
 		return
@@ -227,15 +223,18 @@ func (us *userStore) GetTotalUserCount(ctx context.Context, reqData dto.UserList
 	return
 }
 
-func (us *userStore) ListUsers(ctx context.Context, reqData dto.UserListReq) (resp []repository.User, err error) {
+func (us *userStore) ListUsers(ctx context.Context, reqData dto.ListUsersReq) (resp []repository.User, count int64, err error) {
 
-	queryBuilder := repository.Sq.Select(userColumns...).From(us.UsersTable)
+	count, err = us.GetTotalUserCount(ctx, reqData)
+	if err != nil {
+		return
+	}
+
+	queryBuilder := repository.Sq.Select(userColumns...).From(us.UsersTable).OrderBy("first_name")
 	conditions := []squirrel.Sqlizer{}
 	for _, name := range reqData.Name {
-		if name != "" {
-			conditions = append(conditions, squirrel.Like{"lower(first_name)": "%" + name + "%"})
-			conditions = append(conditions, squirrel.Like{"lower(last_name)": "%" + name + "%"})
-		}
+		conditions = append(conditions, squirrel.Like{"lower(first_name)": "%" + name + "%"})
+		conditions = append(conditions, squirrel.Like{"lower(last_name)": "%" + name + "%"})
 	}
 	if len(conditions) > 0 {
 		queryBuilder = queryBuilder.Where(squirrel.Or(conditions))
@@ -245,8 +244,7 @@ func (us *userStore) ListUsers(ctx context.Context, reqData dto.UserListReq) (re
 
 	listUsersQuery, args, err := queryBuilder.ToSql()
 	if err != nil {
-		logger.Errorf("error in generating squirrel query, err: %s", err.Error())
-		err = apperrors.InternalServerError
+		err = fmt.Errorf("error in generating squirrel query, err: %w", err)
 		return
 	}
 
@@ -257,8 +255,7 @@ func (us *userStore) ListUsers(ctx context.Context, reqData dto.UserListReq) (re
 			err = nil
 			return
 		}
-		logger.Errorf("error in fetching users from database, err: %s", err.Error())
-		err = apperrors.InternalServerError
+		err = fmt.Errorf("error in fetching users from database, err: %w", err)
 		return
 	}
 
@@ -288,13 +285,13 @@ func (us *userStore) GetActiveUserList(ctx context.Context, tx repository.Transa
         (SELECT sender AS user_id, COUNT(*) AS total_sent_appreciations 
          FROM appreciations
 		 WHERE
-        Appreciations.is_valid = true AND appreciations.created_at >=$2 
+        Appreciations.is_valid = true AND appreciations.created_at >=$2
          GROUP BY sender) AS sent ON u.id = sent.user_id
     LEFT JOIN 
         (SELECT sender AS user_id, COUNT(*) AS total_given_rewards 
          FROM rewards
 		 WHERE
-		 rewards.created_at >=$3 
+		 rewards.created_at >=$3
          GROUP BY sender) AS given ON u.id = given.user_id
     WHERE
         COALESCE(received.total_received_appreciations, 0) > 0 OR
@@ -325,8 +322,10 @@ LEFT JOIN
     (SELECT ub.user_id, b.name
      FROM user_badges ub 
      JOIN badges b ON ub.badge_id = b.id
-     WHERE ub.id = (SELECT MAX(id) FROM user_badges WHERE user_id = ub.user_id)) AS b ON u.id = b.user_id;
+     WHERE ub.id = (SELECT MAX(id) FROM user_badges WHERE user_id = ub.user_id)) AS b ON u.id = b.user_id
+LIMIT 10;
 `
+	logger.Info("afterTime: ", afterTime)
 
 	rows, err := queryExecutor.Query(query, afterTime, afterTime, afterTime)
 	if err != nil {
@@ -381,7 +380,7 @@ func (us *userStore) GetUserById(ctx context.Context, reqData dto.GetUserByIdReq
 
 	getUserById := `select users.id, users.first_name, users.last_name, users.email, users.profile_image_url, users.designation, users.reward_quota_balance, users.grade_id, users.employee_id, 
 		(
-		select count(*) 
+		select sum(total_reward_points) 
 		from appreciations
 		where
 		receiver = users.id
@@ -422,7 +421,7 @@ func (us *userStore) GetUserById(ctx context.Context, reqData dto.GetUserByIdReq
 		user.RewardQuotaBalance = userList[0].RewardQuotaBalance
 		user.GradeId = userList[0].GradeId
 		user.EmployeeId = userList[0].EmployeeId
-		user.TotalPoints = userList[0].TotalPoints
+		user.TotalPoints = userList[0].TotalPoints.Int64
 		user.Badge = userList[0].Badge.String
 		user.BadgeCreatedAt = userList[0].BadgeCreatedAt.Int64
 	}
@@ -487,6 +486,51 @@ func (us *userStore) GetAdmin(ctx context.Context, email string) (user repositor
 		}
 		logger.Errorf("error in get admin query, err: %s", err.Error())
 		err = apperrors.InternalServerError
+		return
+	}
+	return
+}
+
+func (us *userStore) AddDeviceToken(ctx context.Context, userID int64, notificationToken string) (err error) {
+
+	if notificationToken == "" {
+		return nil
+	}
+	insertQuery, args, err := repository.Sq.
+		Insert("notification_tokens").Columns("user_id", "notification_token").
+		Values(userID, notificationToken).
+		Suffix("RETURNING id,user_id,notification_token").
+		ToSql()
+	if err != nil {
+		logger.Errorf("error in generating squirrel query, err: %v", err)
+		return apperrors.InternalServerError
+	}
+
+	type Device struct {
+		ID                int32  `db:"id"`
+		UserID            int64  `db:"user_id"`
+		NotificationToken string `db:"notification_token"`
+	}
+
+	var device Device
+	// Execute the query
+	err = us.DB.QueryRowx(insertQuery, args...).StructScan(&device)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			logger.Error("device not found")
+			return apperrors.InternalServerError
+		}
+		logger.Errorf("failed to execute query: %v", err)
+		return apperrors.InternalServerError
+	}
+	return nil
+}
+
+func (us *userStore) ListDeviceTokensByUserID(ctx context.Context, userID int64) (notificationTokens []string, err error) {
+	notificationTokenQuery := "SELECT notification_token FROM notification_tokens WHERE user_id = $1"
+	err = us.DB.Select(&notificationTokens, notificationTokenQuery, userID)
+	if err != nil {
+		err = fmt.Errorf("error in ListDeviceTokensByUserID: %w", err)
 		return
 	}
 	return

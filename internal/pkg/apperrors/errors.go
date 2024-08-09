@@ -57,19 +57,22 @@ const (
 	InvalidPassword                    = CustomError("invalid password")
 	InvalidEmail                       = CustomError("invalid email")
 	OrganizationConfigNotFound         = CustomError("organizationconfig  not found")
-	InvalidReferenceId                 = CustomError("Invalid reference id")
+	InvalidReferenceId                 = CustomError("invalid reference id")
 	AttemptExceeded                    = CustomError(" 3 attempts exceeded ")
 	InvalidOTP                         = CustomError("invalid otp")
 	TimeExceeded                       = CustomError("time exceeded")
 	ErrOTPAlreadyExists                = CustomError("otp already exists")
 	ErrOTPAttemptsExceeded             = CustomError("attempts exceeded for organization")
-	ErrRecordNotFound                  = CustomError("Database record not found")
+	ErrRecordNotFound                  = CustomError("database record not found")
 	OrganizationConfigAlreadyPresent   = CustomError("organization config already present")
 	InvalidRewardMultiplier            = CustomError("reward multiplier should greater than 1")
 	InvalidRewardQuotaRenewalFrequency = CustomError("reward renewal frequency should greater than 1")
 	InvalidTimezone                    = CustomError("enter valid timezone")
 	NegativeGradePoints                = CustomError("grade points cannot be negative")
 	NegativeBadgePoints                = CustomError("badge reward points cannot be negative")
+	DescriptionLengthExceed            = CustomError("maximum character length exceeded 500")
+	InvalidPageSize                    = CustomError("invalid page size")
+	InvalidPage                        = CustomError("invalid page value")
 )
 
 // ErrKeyNotSet - Returns error object specific to the key value passed in
@@ -84,7 +87,7 @@ func GetHTTPStatusCode(err error) int {
 		return http.StatusInternalServerError
 	case OrganizationConfigNotFound, OrganizationNotFound, InvalidOrgId, GradeNotFound, AppreciationNotFound, PageParamNotFound, InvalidCoreValueData, InvalidIntranetData:
 		return http.StatusNotFound
-	case BadRequest, InvalidId, JSONParsingErrorReq, TextFieldBlank, InvalidParentValue, DescFieldBlank, UniqueCoreValue, SelfAppreciationError, CannotReportOwnAppreciation, RepeatedReport, InvalidCoreValueID, InvalidReceiverID, InvalidRewardMultiplier, InvalidRewardQuotaRenewalFrequency, InvalidTimezone, InvalidRewardPoint, InvalidEmail, InvalidPassword, NegativeGradePoints:
+	case BadRequest, InvalidId, JSONParsingErrorReq, TextFieldBlank, InvalidParentValue, DescFieldBlank, UniqueCoreValue, SelfAppreciationError, CannotReportOwnAppreciation, RepeatedReport, InvalidCoreValueID, InvalidReceiverID, InvalidRewardMultiplier, InvalidRewardQuotaRenewalFrequency, InvalidTimezone, InvalidRewardPoint, InvalidEmail, InvalidPassword, DescriptionLengthExceed, InvalidPageSize, InvalidPage, NegativeGradePoints:
 		return http.StatusBadRequest
 	case InvalidContactEmail, InvalidDomainName, UserAlreadyPresent, RewardAlreadyPresent, RepeatedUser:
 		return http.StatusConflict

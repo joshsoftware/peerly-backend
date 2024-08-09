@@ -16,15 +16,16 @@ type UserStorer interface {
 	GetGradeByName(ctx context.Context, name string) (grade Grade, err error)
 	GetRewardMultiplier(ctx context.Context) (value int64, err error)
 	SyncData(ctx context.Context, updateData dto.User) (err error)
-	ListUsers(ctx context.Context, reqData dto.UserListReq) (resp []User, err error)
+	ListUsers(ctx context.Context, reqData dto.ListUsersReq) (resp []User, count int64, err error)
 
 	UpdateRewardQuota(ctx context.Context, tx Transaction) (err error)
 	GetActiveUserList(ctx context.Context, tx Transaction) (activeUsers []ActiveUser, err error)
-	GetTotalUserCount(ctx context.Context, reqData dto.UserListReq) (totalCount int64, err error)
 	GetUserById(ctx context.Context, reqData dto.GetUserByIdReq) (user dto.GetUserByIdResp, err error)
 	GetTop10Users(ctx context.Context, quarterTimestamp int64) (users []Top10Users, err error)
 	GetGradeById(ctx context.Context, id int64) (grade Grade, err error)
 	GetAdmin(ctx context.Context, email string) (user User, err error)
+	AddDeviceToken(ctx context.Context, userID int64, deviceToken string) (err error)
+	ListDeviceTokensByUserID(ctx context.Context, userID int64) (notificationTokens []string, err error)
 }
 
 // User - basic struct representing a User
@@ -68,4 +69,14 @@ type Top10Users struct {
 	ProfileImageURL    sql.NullString `db:"profile_image_url"`
 	BadgeName          sql.NullString `db:"name"`
 	AppreciationPoints int            `db:"ap"`
+}
+
+type UserBadgeDetails struct {
+	ID          int64          `db:"id"`
+	FirstName   string         `db:"first_name"`
+	LastName    string         `db:"last_name"`
+	Email       string         `db:"email"`
+	BadgeID     int8           `db:"badge_id"`
+	BadgeName   sql.NullString `db:"badge_name"`
+	BadgePoints int32          `db:"badge_points"`
 }

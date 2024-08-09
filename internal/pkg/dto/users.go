@@ -22,10 +22,11 @@ type EmployeeDetail struct {
 	Grade       string      `json:"grade"`
 }
 type IntranetUserData struct {
-	Id             int64          `json:"id"`
-	Email          string         `json:"email"`
-	PublicProfile  PublicProfile  `json:"public_profile"`
-	EmpolyeeDetail EmployeeDetail `json:"employee_detail"`
+	Id                int64          `json:"id"`
+	Email             string         `json:"email"`
+	PublicProfile     PublicProfile  `json:"public_profile"`
+	EmpolyeeDetail    EmployeeDetail `json:"employee_detail"`
+	NotificationToken string         `json:"notification_token,omitempty"`
 }
 
 type IntranetGetUserDataResp struct {
@@ -76,28 +77,30 @@ type GetUserListReq struct {
 	Page      int64
 }
 
-type UserListResp struct {
+type UserDetails struct {
 	Id        int64  `json:"id"`
 	Email     string `json:"email"`
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
 }
 
-type UserListMetadata struct {
-	TotalCount  int64 `json:"total_count"`
-	CurrentPage int64 `json:"page"`
-	PageCount   int64 `json:"page_size"`
+type PageToken struct {
+	CurrentPage  int64 `json:"page"`
+	TotalPage    int64 `json:"total_page"`
+	PageSize     int64 `json:"page_size"`
+	TotalRecords int64 `json:"total_records"`
 }
 
-type UserListWithMetadata struct {
-	UserList []UserListResp   `json:"user_list"`
-	MetaData UserListMetadata `json:"metadata"`
+type ListUsersResp struct {
+	UserList []UserDetails `json:"user_list"`
+	MetaData PageToken     `json:"metadata"`
 }
 
-type GetUserListRespData struct {
+type ListIntranetUsersRespData struct {
 	Data []IntranetUserData `json:"data"`
 }
-type UserListReq struct {
+
+type ListUsersReq struct {
 	Page     int64
 	PageSize int64
 	Name     []string
@@ -134,7 +137,7 @@ type GetUserByIdDbResp struct {
 	RewardQuotaBalance int64          `json:"reward_quota_balance" db:"reward_quota_balance"`
 	GradeId            int64          `json:"grade_id" db:"grade_id"`
 	EmployeeId         string         `json:"employee_id" db:"employee_id"`
-	TotalPoints        int64          `json:"total_points" db:"total_points"`
+	TotalPoints        sql.NullInt64  `json:"total_points" db:"total_points"`
 	Badge              sql.NullString `json:"badge" db:"name"`
 	BadgeCreatedAt     sql.NullInt64  `json:"badge_created_at" db:"badge_created_at"`
 }

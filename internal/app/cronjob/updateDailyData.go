@@ -13,9 +13,9 @@ const DAILY_JOB = "DAILY_JOB"
 const SAY_HELLO_DAILY_CRON_JOB_INTERVAL_DAYS = 1
 
 var SayHelloDailyJobTiming = JobTime{
-	hours:   23,
-	minutes: 15,
-	seconds: 00,
+	hours:   0,
+	minutes: 0,
+	seconds: 0,
 }
 
 type DailyJob struct {

@@ -17,9 +17,7 @@ import (
 func JwtAuthMiddleware(next http.Handler, roles []string) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		jwtKey := config.JWTKey()
-		// logger.Infof("sp: jwtkey: %v",jwtKey)
 		authToken := req.Header.Get(constants.AuthorizationHeader)
-		// logger.Infof("sp: authtoken: %v",authToken)
 		if authToken == "" {
 			logger.Error("Empty auth token")
 			err := apperrors.InvalidAuthToken
@@ -28,14 +26,11 @@ func JwtAuthMiddleware(next http.Handler, roles []string) http.Handler {
 		}
 
 		authToken = strings.TrimPrefix(authToken, "Bearer ")
-		// logger.Infof("sp: trimAuthToken: %v",authToken)
 		claims := &dto.Claims{}
 
 		tkn, err := jwt.ParseWithClaims(authToken, claims, func(t *jwt.Token) (interface{}, error) {
 			return jwtKey, nil
 		})
-		// logger.Infof("sp: Token: %v",tkn)
-		// logger.Infof("sp: Token err: %v",err)
 
 		if err != nil {
 			logger.WithField("err", err.Error()).Error("Error in parse with claims function")

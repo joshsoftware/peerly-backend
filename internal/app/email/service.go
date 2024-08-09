@@ -42,22 +42,30 @@ func (ms *Mail) Send(plainTextContent string) error {
 	}
 
 	fromEmail := mail.NewEmail("Peerly", senderEmail)
-	toEmail := mail.NewEmail("Example User", ms.to[0])
-	// cc1 := mail.NewEmail("Example CC", "samnitpatil@gmail.com")
 	content := mail.NewContent("text/html", ms.body)
-	if toEmail == nil {
-		logger.Error("Recipient email is invalid")
-		return fmt.Errorf("recipient email is invalid")
-	}
 
 	// create new *SGMailV3
 	m := mail.NewV3Mail()
 	m.SetFrom(fromEmail)
 	m.AddContent(content)
-	
+
 	personalization := mail.NewPersonalization()
-	personalization.AddTos(toEmail)
-	// personalization.AddCCs(cc1)
+
+	for _,email := range ms.to{
+		toEmail := mail.NewEmail("to", email)
+		personalization.AddTos(toEmail)
+	}
+
+	for _,email := range ms.CC{
+		ccEmail := mail.NewEmail("cc", email)
+		personalization.AddCCs(ccEmail)
+	}
+
+	for _,email := range ms.BCC{
+		bccEmail := mail.NewEmail("bcc", email)
+		personalization.AddBCCs(bccEmail)
+	}
+	
 	personalization.Subject = ms.subject
 	m.AddPersonalizations(personalization)
 
@@ -69,7 +77,7 @@ func (ms *Mail) Send(plainTextContent string) error {
 		return err
 	}
 
-	logger.Info("Email sent successfully!")
+	logger.Info("Email request sent successfully!")
 	logger.Infof("Response status code: %v", response.StatusCode)
 	logger.Infof("Response body: %v", response.Body)
 	logger.Infof("Response headers: %v", response.Headers)

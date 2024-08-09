@@ -1,54 +1,37 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            color: #333333;
-            line-height: 1.6;
-        }
-        .content {
-            padding: 20px;
-            background-color: #f9f9f9;
-            border: 1px solid #dddddd;
-            border-radius: 5px;
-        }
-        .header {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 20px;
-        }
-        .footer {
-            margin-top: 30px;
-            font-size: 14px;
-            color: #555555;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appreciation Email</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500&family=Nunito+Sans:wght@400&family=Inter:wght@500&display=swap" rel="stylesheet">
 </head>
-<body>
-    <div class="content">
-        <div>
-            <div>Peerly</div>
-            <div><img src="./assets/Recived Star.svg" alt="received Star image"></div>
-            <div>
-                <p>Bravo!<br>
-                    You have received a deserved<br>
-                    word of appreciation.<br>
-                    Keep inspiring those around you!</p>
-            </div>
-        </div>
-        <div>
-            <div>
-                <div>{{.SenderName}},appreciated you.</div>
-                <div>Core Value</div>
-                <div>{{.CorevalueName}}</div>
-            </div>
-            <div>
-                <div>Words by {{.SenderName}}</div>
-                <div>{{.CorevalueDescription}}</div>
-            </div>
-        </div>
-    </div>
+<body style="font-family: Arial, sans-serif; background-color: #f9f0ec; margin: 0; padding: 0;">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" height="100%" style="table-layout: fixed; background-color: #f9f0ec; width: 100%; height: 100%; margin: 0; padding: 20px 0; border-spacing: 0;">
+        <tr>
+            <td align="center" valign="middle" style="padding: 20px 0;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="max-width: 600px; background-color: #ffffff; border-radius: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); overflow: hidden;">
+                    <tr>
+                        <td align="center" valign="top" style="background-color: #4779F3; padding: 40px 20px; text-align: center; color: white;">
+                            <h1 style="font-family: 'Inter', sans-serif; margin: 0; font-size: 24px;">Peerly</h1>
+                            <img src="https://pg-stage-intranet.joshsoftware.com/peerly/assets/createAppreciation.png" alt="appreciation" style="margin: 20px 0;">
+                            <p style="font-family: 'Montserrat', sans-serif; font-size: 24px; font-weight: 500; line-height: 1.4; margin: 0;">Bravo!<br>You have received a deserved<br>word of appreciation.<br>Keep inspiring those around you!</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td align="center" valign="top" style="background-color: #f9f9f9; padding: 30px; text-align: center; color: #333333;">
+                            <div style="font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 300; line-height: 1.2;">{{.SenderName}} appreciated you</div>
+                            <div style="margin: 15px 0; font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 300; line-height: 1.2;">Core Value</div>
+                            <div style="display: inline-block; padding: 10px 20px; background-color: #F5E6D6; color: #000000; border-radius: 20px; font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 400; line-height: 1.2;">{{.CoreValueName}}</div>
+                            <div style="margin-top: 20px; font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 300; line-height: 1.2;">Words by <b>{{.SenderName}}</b></div>
+                            <div style="margin-top: 10px; color: #000000; font-family: 'Nunito Sans', sans-serif; font-size: 14px; font-weight: 400; line-height: 1.4;">{{.Description}}</div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>

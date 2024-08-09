@@ -182,7 +182,12 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 	queryBuilder = queryBuilder.RemoveColumns()
 	queryBuilder = queryBuilder.Columns(
 		"a.id",
-		"cv.name AS core_value_name",
+		"cv.name AS core_value_name",    fmt.Sprintf(
+			`COALESCE((
+				SELECT SUM(r2.point) 
+				FROM rewards r2 
+				WHERE r2.appreciation_id = a.id AND r2.sender = %d
+			), 0) AS given_reward_point`, userID),
 		"cv.description AS core_value_description",
 		"a.description",
 		"a.is_valid",
@@ -203,7 +208,7 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 		"COUNT(r.id) AS total_rewards",
 		fmt.Sprintf(
 			`COALESCE((
-				SELECT r2.point 
+				SELECT SUM(r2.point) 
 				FROM rewards r2 
 				WHERE r2.appreciation_id = a.id AND r2.sender = %d
 			), 0) AS given_reward_point`, userID),
@@ -227,9 +232,14 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 
 	queryExecutor = appr.InitiateQueryExecutor(tx)
 	res := make([]repository.AppreciationResponse, 0)
+
+	logger.Info("sp : filter: ",filter)
+	logger.Info("sp : sql: ",sql)
+	logger.Info("sp : args: ",args)
 	err = sqlx.Select(queryExecutor, &res, sql, args...)
 	if err != nil {
-		logger.Error("failed to execute query: ", err.Error())
+		logger.Error("failed to execute query appreciation: ", err.Error())
+		logger.Error("err res data: ",res)
 		return nil, repository.Pagination{}, apperrors.InternalServerError
 	}
 
@@ -333,12 +343,10 @@ WHERE app.id = agg.appreciation_id;
 	return true, nil
 }
 
-func (appr *appreciationsStore) UpdateUserBadgesBasedOnTotalRewards(ctx context.Context, tx repository.Transaction) (bool, error) {
+func (appr *appreciationsStore) UpdateUserBadgesBasedOnTotalRewards(ctx context.Context, tx repository.Transaction) ([]repository.UserBadgeDetails, error) {
 	queryExecutor := appr.InitiateQueryExecutor(tx)
-	// Example function to get the quarter start time (you should replace this with your logic)
 	afterTime := GetQuarterStartUnixTime()
 
-	// Construct the plain SQL query
 	query := `
 		-- Calculate total reward points for each receiver
 WITH receiver_points AS (
@@ -348,7 +356,7 @@ WITH receiver_points AS (
     FROM
         appreciations
     WHERE
-        Appreciations.is_valid = true AND appreciations.created_at >=$1
+        Appreciations.is_valid = true AND appreciations.created_at >= $1
     GROUP BY
         receiver
 ),
@@ -365,7 +373,7 @@ eligible_badges AS (
         badges b ON rp.total_points >= b.reward_points
 ),
 
--- Check for existing badges created within the last 7 days
+-- Check for existing badges created within the same period
 existing_recent_badges AS (
     SELECT DISTINCT ON (ub.user_id, ub.badge_id)
         ub.user_id,
@@ -374,10 +382,10 @@ existing_recent_badges AS (
     FROM
         user_badges ub
     WHERE
-        ub.created_at >=$2
+        ub.created_at >= $2
 ),
 
--- Filter eligible badges that are not conflicted within the last 7 days
+-- Filter eligible badges that are not conflicted 
 eligible_non_conflicted_badges AS (
     SELECT
         eb.user_id,
@@ -389,22 +397,55 @@ eligible_non_conflicted_badges AS (
         existing_recent_badges erb ON eb.user_id = erb.user_id AND eb.badge_id = erb.badge_id
     WHERE
         erb.user_id IS NULL
-)
+),
 
 -- Insert eligible non-conflicting badges into user_badges
-INSERT INTO user_badges (badge_id, user_id, created_at)
+inserted_badges AS (
+    INSERT INTO user_badges (badge_id, user_id, created_at)
+    SELECT
+        badge_id,
+        user_id,
+        created_at
+    FROM
+        eligible_non_conflicted_badges
+    RETURNING user_id, badge_id
+)
+
+-- Retrieve user details and badge points for new badges
 SELECT
-    badge_id,
-    user_id,
-    created_at
+	u.id,
+    u.email,
+    u.first_name,
+    u.last_name,
+    b.id AS badge_id,
+	b.name AS badge_name,
+    b.reward_points AS badge_points
 FROM
-    eligible_non_conflicted_badges;
+    inserted_badges ib
+JOIN
+    users u ON ib.user_id = u.id
+JOIN
+    badges b ON ib.badge_id = b.id;
 	`
-	// Execute the query within the transaction context
-	_, err := queryExecutor.Exec(query, afterTime, afterTime)
+
+	rows, err := queryExecutor.Query(query, afterTime, afterTime)
 	if err != nil {
-		return false, err
+		return []repository.UserBadgeDetails{}, err
+	}
+	defer rows.Close()
+
+	var userBadgeDetails []repository.UserBadgeDetails
+	for rows.Next() {
+		var detail repository.UserBadgeDetails
+		if err := rows.Scan(&detail.ID,&detail.Email, &detail.FirstName, &detail.LastName, &detail.BadgeID,&detail.BadgeName, &detail.BadgePoints); err != nil {
+			return []repository.UserBadgeDetails{}, err
+		}
+		userBadgeDetails = append(userBadgeDetails, detail)
 	}
 
-	return true, nil
+	if err = rows.Err(); err != nil {
+		return []repository.UserBadgeDetails{}, err
+	}
+
+	return userBadgeDetails, nil
 }
