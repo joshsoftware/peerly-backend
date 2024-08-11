@@ -94,7 +94,7 @@ func (appr *appreciationsStore) GetAppreciationById(ctx context.Context, tx repo
 		"COUNT(r.id) AS total_rewards",
 		fmt.Sprintf(
 			`COALESCE((
-				SELECT r2.point 
+				SELECT SUM(r2.point) 
 				FROM rewards r2 
 				WHERE r2.appreciation_id = a.id AND r2.sender = %d
 			), 0) AS given_reward_point`, userID),
@@ -203,7 +203,7 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 		"COUNT(r.id) AS total_rewards",
 		fmt.Sprintf(
 			`COALESCE((
-				SELECT r2.point 
+				SELECT SUM(r2.point) 
 				FROM rewards r2 
 				WHERE r2.appreciation_id = a.id AND r2.sender = %d
 			), 0) AS given_reward_point`, userID),

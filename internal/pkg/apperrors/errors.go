@@ -58,7 +58,7 @@ const (
 	SelfAppreciationError              = CustomError("self-appreciation is not allowed")
 	InvalidCoreValueID                 = CustomError("invalid corevalue id")
 	InvalidReceiverID                  = CustomError("invalid receiver id")
-	DescriptionLengthExceed            = CustomError("maximum character length exceeded 500")
+	DescriptionLengthExceed            = CustomError("maximum character length of 500 exceeded")
 )
 
 // ErrKeyNotSet - Returns error object specific to the key value passed in
