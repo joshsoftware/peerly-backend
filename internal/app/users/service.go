@@ -13,6 +13,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/joshsoftware/peerly-backend/internal/app/email"
+	"github.com/joshsoftware/peerly-backend/internal/app/notification"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/config"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
@@ -39,6 +40,7 @@ type Service interface {
 	GetTop10Users(ctx context.Context) (users []dto.Top10User, err error)
 	AdminLogin(ctx context.Context, loginReq dto.AdminLoginReq) (resp dto.LoginUserResp, err error)
 	sendRewardQuotaRefillEmailToAll(ctx context.Context)
+	NotificationByAdmin(ctx context.Context, msg notification.Message, id int64, all bool) (err error)
 }
 
 func NewService(userRepo repository.UserStorer) Service {
@@ -580,4 +582,31 @@ func mapDbUserToUserListResp(dbStruct repository.User) (svcData dto.UserDetails)
 	svcData.LastName = dbStruct.LastName
 	svcData.Email = dbStruct.Email
 	return svcData
+}
+
+func (us *service) NotificationByAdmin(ctx context.Context, msg notification.Message, id int64, all bool) (err error) {
+
+	notificationTokens, err := us.userRepo.ListDeviceTokensByUserID(ctx, id)
+	if err != nil {
+		logger.Errorf("err in getting device tokens: %v", err)
+		err = apperrors.InternalServerError
+		return
+	}
+
+	if all {
+		err = msg.SendNotificationToTopic("peerly")
+		if err != nil {
+			return
+		}
+		return
+	}
+
+	for _, notificationToken := range notificationTokens {
+		msg.SendNotificationToNotificationToken(notificationToken)
+		if err != nil {
+			return
+		}
+	}
+
+	return
 }

@@ -533,5 +533,8 @@ func (us *userStore) ListDeviceTokensByUserID(ctx context.Context, userID int64)
 		err = fmt.Errorf("error in ListDeviceTokensByUserID: %w", err)
 		return
 	}
+	if len(notificationTokens) <= 0 {
+		fmt.Println("notification tokens: ", notificationTokens)
+	}
 	return
 }

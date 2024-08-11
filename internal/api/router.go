@@ -29,13 +29,14 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 	//corevalues
 	peerlySubrouter.Handle("/core_values/{id:[0-9]+}", middleware.JwtAuthMiddleware(getCoreValueHandler(deps.CoreValueService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
 
-	peerlySubrouter.Handle("/core_values", middleware.JwtAuthMiddleware(listCoreValuesHandler(deps.CoreValueService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
+	peerlySubrouter.Handle("/core_values", middleware.JwtAuthMiddleware(listCoreValuesHandler(deps.CoreValueService), []string{constants.UserRole, constants.AdminRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
 
 	peerlySubrouter.Handle("/core_values", middleware.JwtAuthMiddleware(createCoreValueHandler(deps.CoreValueService), []string{constants.UserRole})).Methods(http.MethodPost).Headers(versionHeader, v1)
 
-	peerlySubrouter.Handle("/core_values/{id:[0-9]+}", middleware.JwtAuthMiddleware(updateCoreValueHandler(deps.CoreValueService), []string{constants.UserRole})).Methods(http.MethodPut).Headers(versionHeader, v1)
+	peerlySubrouter.Handle("/core_values/{id:[0-9]+}", middleware.JwtAuthMiddleware(updateCoreValueHandler(deps.CoreValueService), []string{constants.UserRole, constants.AdminRole})).Methods(http.MethodPut).Headers(versionHeader, v1)
 
-	//login
+	//users
+
 	peerlySubrouter.Handle("/user/register", registerUser(deps.UserService)).Methods(http.MethodPost)
 
 	peerlySubrouter.Handle("/user/login", loginUser(deps.UserService)).Methods(http.MethodGet).Headers(versionHeader, v1)
@@ -51,6 +52,8 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 	peerlySubrouter.Handle("/users/active", getActiveUserListHandler(deps.UserService)).Methods(http.MethodGet)
 
 	peerlySubrouter.Handle("/users/top10", middleware.JwtAuthMiddleware(getTop10UserHandler(deps.UserService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
+
+	peerlySubrouter.Handle("/admin/notification", middleware.JwtAuthMiddleware(adminNotificationHandler(deps.UserService), []string{constants.UserRole, constants.AdminRole})).Methods(http.MethodPost).Headers(versionHeader, v1)
 
 	//appreciations
 
