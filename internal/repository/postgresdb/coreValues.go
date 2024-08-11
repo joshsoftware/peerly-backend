@@ -31,7 +31,7 @@ func NewCoreValueRepo(db *sqlx.DB) repository.CoreValueStorer {
 }
 
 func (cs *coreValueStore) ListCoreValues(ctx context.Context) (coreValues []repository.CoreValue, err error) {
-	queryBuilder := sq.Select(CoreValueColumns...).From(cs.TableName)
+	queryBuilder := sq.Select(CoreValueColumns...).From(cs.TableName).OrderBy("id")
 	listCoreValuesQuery, _, err := queryBuilder.ToSql()
 	if err != nil {
 		err = fmt.Errorf("error in generating squirrel query, err: %w", err)
