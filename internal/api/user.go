@@ -2,6 +2,8 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -13,6 +15,7 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 	logger "github.com/sirupsen/logrus"
+	"github.com/xuri/excelize/v2"
 )
 
 func loginUser(userSvc user.Service) http.HandlerFunc {
@@ -266,5 +269,62 @@ func adminNotificationHandler(userSvc user.Service) http.HandlerFunc {
 		}
 
 		dto.SuccessRepsonse(rw, 200, "Notification sent successfully", nil)
+	}
+}
+
+type User struct {
+	Name string
+	Age  int
+}
+
+func downloadExcelReport(userSvc user.Service) http.HandlerFunc {
+	return func(rw http.ResponseWriter, req *http.Request) {
+		users := []User{
+			{Name: "Alice", Age: 30},
+			{Name: "Bob", Age: 25},
+			{Name: "Charlie", Age: 35},
+		}
+
+		// Create a new Excel file
+		f := excelize.NewFile()
+
+		// Create a new sheet
+		sheetName := "Users"
+		index, err := f.NewSheet(sheetName)
+		if err != nil {
+			logger.Errorf("err in generating newsheet, err: ", err)
+			return
+		}
+
+		// Set header
+		headers := []string{"Name", "Age"}
+		for colIndex, header := range headers {
+			cell := fmt.Sprintf("%s1", string('A'+colIndex))
+			f.SetCellValue(sheetName, cell, header)
+		}
+
+		// Add data to the sheet
+		for rowIndex, user := range users {
+			row := rowIndex + 2 // Starting from row 2
+			f.SetCellValue(sheetName, fmt.Sprintf("A%d", row), user.Name)
+			f.SetCellValue(sheetName, fmt.Sprintf("B%d", row), user.Age)
+		}
+
+		// Set the active sheet
+		f.SetActiveSheet(index)
+
+		// Save the Excel file temporarily
+		tempFileName := "users.xlsx"
+		if err := f.SaveAs(tempFileName); err != nil {
+			log.Fatalf("Failed to save file: %v", err)
+		}
+
+		http.ServeFile(rw, req, tempFileName)
+
+		if err != nil {
+			dto.ErrorRepsonse(rw, err)
+			return
+		}
+		dto.SuccessRepsonse(rw, 200, "Excel downloaded successfully", nil)
 	}
 }

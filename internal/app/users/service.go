@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"math"
 	"strings"
 
@@ -20,6 +21,7 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
 	logger "github.com/sirupsen/logrus"
+	"github.com/xuri/excelize/v2"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -41,6 +43,7 @@ type Service interface {
 	AdminLogin(ctx context.Context, loginReq dto.AdminLoginReq) (resp dto.LoginUserResp, err error)
 	sendRewardQuotaRefillEmailToAll(ctx context.Context)
 	NotificationByAdmin(ctx context.Context, msg notification.Message, id int64, all bool) (err error)
+	DownloadExcel(ctx context.Context) (err error)
 }
 
 func NewService(userRepo repository.UserStorer) Service {
@@ -607,6 +610,63 @@ func (us *service) NotificationByAdmin(ctx context.Context, msg notification.Mes
 			return
 		}
 	}
+
+	return
+}
+
+type User struct {
+	Name string
+	Age  int
+}
+
+func (us *service) DownloadExcel(ctx context.Context) (err error) {
+	users := []User{
+		{Name: "Alice", Age: 30},
+		{Name: "Bob", Age: 25},
+		{Name: "Charlie", Age: 35},
+	}
+
+	// Create a new Excel file
+	f := excelize.NewFile()
+
+	// Create a new sheet
+	sheetName := "Users"
+	index, err := f.NewSheet(sheetName)
+	if err != nil {
+		logger.Errorf("err in generating newsheet, err: ", err)
+		return
+	}
+
+	// Set header
+	headers := []string{"Name", "Age"}
+	for colIndex, header := range headers {
+		cell := fmt.Sprintf("%s1", string('A'+colIndex))
+		f.SetCellValue(sheetName, cell, header)
+	}
+
+	// Add data to the sheet
+	for rowIndex, user := range users {
+		row := rowIndex + 2 // Starting from row 2
+		f.SetCellValue(sheetName, fmt.Sprintf("A%d", row), user.Name)
+		f.SetCellValue(sheetName, fmt.Sprintf("B%d", row), user.Age)
+	}
+
+	// Set the active sheet
+	f.SetActiveSheet(index)
+
+	// Save the Excel file temporarily
+	tempFileName := "users.xlsx"
+	if err := f.SaveAs(tempFileName); err != nil {
+		log.Fatalf("Failed to save file: %v", err)
+	}
+
+	// Serve the file via HTTP
+	// http.HandleFunc("/download", func(w http.ResponseWriter, r *http.Request) {
+	// 	http.ServeFile(w, r, tempFileName)
+	// })
+
+	// fmt.Println("Server starting at http://localhost:8080/download")
+	// log.Fatal(http.ListenAndServe(":8080", nil))
 
 	return
 }
