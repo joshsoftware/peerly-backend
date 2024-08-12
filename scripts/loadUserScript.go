@@ -47,7 +47,7 @@ func LoadUserScript() error {
 	scriptErr := apperrors.InternalServerError
 
 	client := &http.Client{}
-	url := fmt.Sprintf(config.PeerlyBaseUrl()+"/intranet/users?page=%d", 1)
+	url := fmt.Sprintf(config.PeerlyBaseUrl()+"/peerly/intranet/users?page=%d", 1)
 	req, err := http.NewRequest(GET, url, nil)
 	if err != nil {
 		fmt.Printf("Error in creating new request, err %+v", err)
@@ -85,7 +85,7 @@ func LoadUserScript() error {
 
 	for i := 0; i < len(data); i++ {
 		client := &http.Client{}
-		url := fmt.Sprintf(config.PeerlyBaseUrl() + "/user/register")
+		url := fmt.Sprintf(config.PeerlyBaseUrl() + "/peerly/user/register")
 		jsonData, err := json.Marshal(data[i])
 		if err != nil {
 			fmt.Println("err in json data marshalling")
