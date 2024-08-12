@@ -47,7 +47,7 @@ func LoadUserScript() error {
 	scriptErr := apperrors.InternalServerError
 
 	client := &http.Client{}
-	url := fmt.Sprintf(config.PeerlyBaseUrl()+"/users?page=%d", 1)
+	url := fmt.Sprintf(config.PeerlyBaseUrl()+"/intranet/users?page=%d", 1)
 	req, err := http.NewRequest(GET, url, nil)
 	if err != nil {
 		fmt.Printf("Error in creating new request, err %+v", err)
