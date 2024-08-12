@@ -259,7 +259,9 @@ func sendReportEmail(senderEmail string, senderFirstName string, senderLastName 
 		AppreciationSenderName: fmt.Sprint(apprSenderFirstName, " ", apprSenderLastName),
 		AppreciationReceiverName: fmt.Sprint(apprReceiverFirstName, " ", apprReceiverLastName),
 	}
-	mailReq := email.NewMail([]string{"samnitpatil9882@gmail.com"}, []string{"samnitpatil@gmail.com"}, []string{"samirpatil9882@gmail.com"}, "Appreciaion Reported")
+
+	logger.Info("report sender email: ---------> ",senderEmail)
+	mailReq := email.NewMail([]string{senderEmail}, []string{"samnitpatil@gmail.com"}, []string{"samirpatil9882@gmail.com"}, "Appreciaion Reported")
 	mailReq.ParseTemplate("./internal/app/email/templates/reportAppreciation.html", templateData)
 	err := mailReq.Send(plainTextContent)
 	if err != nil {

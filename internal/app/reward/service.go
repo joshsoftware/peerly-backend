@@ -2,7 +2,6 @@ package reward
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/joshsoftware/peerly-backend/internal/app/notification"
 	user "github.com/joshsoftware/peerly-backend/internal/app/users"
@@ -147,7 +146,7 @@ func (rwrdSvc *service) sendRewardNotificationToSender(ctx context.Context, user
 
 	msg := notification.Message{
 		Title: "Reward Give Successfully",
-		Body:  fmt.Sprintf("You have successfully given a reward! \nYou now have %d reward points left.",user.RewardQuotaBalance),
+		Body:  "You have successfully given a reward! ",
 	}
 
 	for _, notificationToken := range notificationTokens {
