@@ -68,9 +68,10 @@ const (
 	InvalidRewardMultiplier            = CustomError("reward multiplier should greater than 1")
 	InvalidRewardQuotaRenewalFrequency = CustomError("reward renewal frequency should greater than 1")
 	InvalidTimezone                    = CustomError("enter valid timezone")
-	DescriptionLengthExceed            = CustomError("maximum character length exceeded 500")
+	DescriptionLengthExceed            = CustomError("maximum character length of 500 exceeded")
 	InvalidPageSize                    = CustomError("invalid page size")
 	InvalidPage                        = CustomError("invalid page value")
+	
 )
 
 // ErrKeyNotSet - Returns error object specific to the key value passed in
