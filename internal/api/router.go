@@ -45,7 +45,7 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 
 	peerlySubrouter.Handle("/intranet/users", listIntranetUsersHandler(deps.UserService)).Methods(http.MethodGet)
 
-	peerlySubrouter.Handle("/users", middleware.JwtAuthMiddleware(listUsersHandler(deps.UserService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
+	peerlySubrouter.Handle("/users", middleware.JwtAuthMiddleware(listUsersHandler(deps.UserService), []string{constants.UserRole, constants.AdminRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
 
 	peerlySubrouter.Handle("/user_profile", middleware.JwtAuthMiddleware(getUserByIdHandler(deps.UserService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
 

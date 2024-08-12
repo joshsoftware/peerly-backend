@@ -24,8 +24,7 @@ import (
 )
 
 type service struct {
-	userRepo         repository.UserStorer
-	appreciationRepo repository.AppreciationStorer
+	userRepo repository.UserStorer
 }
 
 type Service interface {
