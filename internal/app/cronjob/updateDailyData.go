@@ -14,7 +14,7 @@ const SAY_HELLO_DAILY_CRON_JOB_INTERVAL_DAYS = 1
 
 var SayHelloDailyJobTiming = JobTime{
 	hours:   11,
-	minutes: 40,
+	minutes: 45,
 	seconds: 0,
 }
 
