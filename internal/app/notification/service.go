@@ -11,7 +11,7 @@ import (
 )
 
 type NotificationService interface {
-	SendNotificationToNotificationToken(notificationToken string)
+	SendNotificationToNotificationToken(notificationToken string) (err error)
 	SendNotificationToTopic(topic string) (err error)
 	// SendNotificationToNotificationTokens(userId int64)
 }
@@ -22,7 +22,7 @@ type Message struct {
 	ImageURL string `json:"image,omitempty"`
 }
 
-func (notificationSvc *Message) SendNotificationToNotificationToken(notificationToken string) {
+func (notificationSvc *Message) SendNotificationToNotificationToken(notificationToken string) (err error) {
 
 	// Path to your service account key file
 	serviceAccountKey := "serviceAccountKey.json"
@@ -32,6 +32,7 @@ func (notificationSvc *Message) SendNotificationToNotificationToken(notification
 	app, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {
 		logger.Errorf("Error initializing app: %v", err)
+		err = apperrors.InternalServerError
 		return
 	}
 
@@ -39,6 +40,7 @@ func (notificationSvc *Message) SendNotificationToNotificationToken(notification
 	client, err := app.Messaging(context.Background())
 	if err != nil {
 		logger.Errorf("Error getting Messaging client: %v", err)
+		err = apperrors.InternalServerError
 		return
 	}
 	// Create a message to send
@@ -54,9 +56,11 @@ func (notificationSvc *Message) SendNotificationToNotificationToken(notification
 	response, err := client.Send(context.Background(), message)
 	if err != nil {
 		logger.Errorf("Error sending message: %v", err)
+		err = apperrors.InternalServerError
 		return
 	}
 	logger.Infof("Successfully sent message: %v", response)
+	return
 }
 
 func (notificationSvc *Message) SendNotificationToTopic(topic string) (err error) {

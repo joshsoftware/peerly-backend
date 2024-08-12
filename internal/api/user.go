@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/joshsoftware/peerly-backend/internal/api/validation"
-	"github.com/joshsoftware/peerly-backend/internal/app/notification"
 	user "github.com/joshsoftware/peerly-backend/internal/app/users"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
@@ -250,8 +249,8 @@ func getTop10UserHandler(userSvc user.Service) http.HandlerFunc {
 
 func adminNotificationHandler(userSvc user.Service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
-		var msg notification.Message
-		err := json.NewDecoder(req.Body).Decode(&msg)
+		var notificationReq dto.AdminNotificationReq
+		err := json.NewDecoder(req.Body).Decode(&notificationReq)
 		if err != nil {
 			logger.Errorf("error while decoding request data. err: %s", err.Error())
 			err = apperrors.JSONParsingErrorReq
@@ -259,7 +258,7 @@ func adminNotificationHandler(userSvc user.Service) http.HandlerFunc {
 			return
 		}
 
-		err = userSvc.NotificationByAdmin(req.Context(), msg, 214, false)
+		err = userSvc.NotificationByAdmin(req.Context(), notificationReq)
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)
 			return
