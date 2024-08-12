@@ -33,7 +33,7 @@ func SeedData() (err error) {
 		`INSERT INTO grades (id,name, points) VALUES (10,'J12',100)`,
 
 		//corevalues
-		`INSERT INTO core_values (id,name,description, parent_core_value_id) VALUES (1,'Trust','We foster trust by being transparent,reliable, and accountable in all our actions.',null)`,
+		`INSERT INTO core_values (id,name,description, parent_core_value_id) VALUES (1,'Trust','We foster trust by being transparent, reliable, and accountable in all our actions.',null)`,
 		`INSERT INTO core_values (id,name,description, parent_core_value_id) VALUES (2,'Technical Excellence','We are committed to delivering excellence in every product, service, and experience we provide, striving for continuous improvement.',null)`,
 		`INSERT INTO core_values (id,name,description, parent_core_value_id) VALUES (3,'Integrity & Ethics','We uphold integrity in every action, ensuring our decisions align with the highest moral standards.',null)`,
 		`INSERT INTO core_values (id,name,description, parent_core_value_id) VALUES (4, 'Customer Focus', 'We prioritize understanding and meeting our customers'' needs, exceeding expectations with every interaction.', null)`,
