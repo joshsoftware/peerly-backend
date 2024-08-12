@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/joshsoftware/peerly-backend/internal/api/validation"
+	"github.com/joshsoftware/peerly-backend/internal/app/appreciation"
 	"github.com/joshsoftware/peerly-backend/internal/app/notification"
 	user "github.com/joshsoftware/peerly-backend/internal/app/users"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
@@ -269,10 +270,22 @@ func adminNotificationHandler(userSvc user.Service) http.HandlerFunc {
 	}
 }
 
-func downloadExcelReport(userSvc user.Service) http.HandlerFunc {
+func downloadExcelReport(userSvc user.Service, appreciationSvc appreciation.Service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
 
-		tempFileName, err := userSvc.DownloadExcel(req.Context())
+		filter := dto.AppreciationFilter{
+			Self:  false,
+			Limit: constants.DefaultPageSize,
+			Page:  1,
+		}
+
+		appreciationResp, err := appreciationSvc.ListAppreciations(req.Context(), filter)
+		if err != nil {
+			dto.ErrorRepsonse(rw, err)
+			return
+		}
+
+		tempFileName, err := userSvc.DownloadExcel(req.Context(), appreciationResp.Appreciations)
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)
 			return
@@ -280,10 +293,6 @@ func downloadExcelReport(userSvc user.Service) http.HandlerFunc {
 
 		http.ServeFile(rw, req, tempFileName)
 
-		if err != nil {
-			dto.ErrorRepsonse(rw, err)
-			return
-		}
-		dto.SuccessRepsonse(rw, 200, "Excel downloaded successfully", nil)
+		// dto.SuccessRepsonse(rw, 200, "Excel downloaded successfully", nil)
 	}
 }

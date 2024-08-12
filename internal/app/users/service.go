@@ -25,7 +25,8 @@ import (
 )
 
 type service struct {
-	userRepo repository.UserStorer
+	userRepo         repository.UserStorer
+	appreciationRepo repository.AppreciationStorer
 }
 
 type Service interface {
@@ -42,7 +43,7 @@ type Service interface {
 	AdminLogin(ctx context.Context, loginReq dto.AdminLoginReq) (resp dto.LoginUserResp, err error)
 	sendRewardQuotaRefillEmailToAll(ctx context.Context)
 	NotificationByAdmin(ctx context.Context, msg notification.Message, id int64, all bool) (err error)
-	DownloadExcel(ctx context.Context) (tempFileName string, err error)
+	DownloadExcel(ctx context.Context, appreciations []dto.AppreciationResponse) (tempFileName string, err error)
 }
 
 func NewService(userRepo repository.UserStorer) Service {
@@ -613,23 +614,13 @@ func (us *service) NotificationByAdmin(ctx context.Context, msg notification.Mes
 	return
 }
 
-type User struct {
-	Name string
-	Age  int
-}
-
-func (us *service) DownloadExcel(ctx context.Context) (tempFileName string, err error) {
-	users := []User{
-		{Name: "Alice", Age: 30},
-		{Name: "Bob", Age: 25},
-		{Name: "Charlie", Age: 35},
-	}
+func (us *service) DownloadExcel(ctx context.Context, appreciations []dto.AppreciationResponse) (tempFileName string, err error) {
 
 	// Create a new Excel file
 	f := excelize.NewFile()
 
 	// Create a new sheet
-	sheetName := "Users"
+	sheetName := "Appreciations"
 	index, err := f.NewSheet(sheetName)
 	if err != nil {
 		logger.Errorf("err in generating newsheet, err: %v", err)
@@ -637,24 +628,33 @@ func (us *service) DownloadExcel(ctx context.Context) (tempFileName string, err 
 	}
 
 	// Set header
-	headers := []string{"Name", "Age"}
+	headers := []string{"Core value", "Core value description", "Appreciation description", "Sender first name", "Sender last name", "Sender designation", "Receiver first name", "Receiver last name", "Receiver designation", "Total rewards", "Total reward points"}
 	for colIndex, header := range headers {
 		cell := fmt.Sprintf("%s1", string('A'+colIndex))
 		f.SetCellValue(sheetName, cell, header)
 	}
 
 	// Add data to the sheet
-	for rowIndex, user := range users {
+	for rowIndex, app := range appreciations {
 		row := rowIndex + 2 // Starting from row 2
-		f.SetCellValue(sheetName, fmt.Sprintf("A%d", row), user.Name)
-		f.SetCellValue(sheetName, fmt.Sprintf("B%d", row), user.Age)
+		f.SetCellValue(sheetName, fmt.Sprintf("A%d", row), app.CoreValueName)
+		f.SetCellValue(sheetName, fmt.Sprintf("B%d", row), app.CoreValueDesc)
+		f.SetCellValue(sheetName, fmt.Sprintf("C%d", row), app.Description)
+		f.SetCellValue(sheetName, fmt.Sprintf("D%d", row), app.SenderFirstName)
+		f.SetCellValue(sheetName, fmt.Sprintf("E%d", row), app.SenderLastName)
+		f.SetCellValue(sheetName, fmt.Sprintf("F%d", row), app.SenderDesignation)
+		f.SetCellValue(sheetName, fmt.Sprintf("G%d", row), app.ReceiverFirstName)
+		f.SetCellValue(sheetName, fmt.Sprintf("H%d", row), app.ReceiverLastName)
+		f.SetCellValue(sheetName, fmt.Sprintf("I%d", row), app.ReceiverDesignation)
+		f.SetCellValue(sheetName, fmt.Sprintf("J%d", row), app.TotalRewards)
+		f.SetCellValue(sheetName, fmt.Sprintf("K%d", row), app.TotalRewardPoints)
 	}
 
 	// Set the active sheet
 	f.SetActiveSheet(index)
 
 	// Save the Excel file temporarily
-	tempFileName = "users.xlsx"
+	tempFileName = "report.xlsx"
 	if err = f.SaveAs(tempFileName); err != nil {
 		logger.Errorf("Failed to save file: %v", err)
 		return
