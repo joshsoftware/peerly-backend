@@ -390,7 +390,7 @@ func (us *userStore) GetTop10Users(ctx context.Context, quarterTimestamp int64) 
 		return
 	}
 
-	getUserBadge := `select badges.name from badges join user_badges on user_badges.badge_id = badges.id where user_badges.user_id = $1 and created_at >= $2 group by badges.id, user_badges.created_at  order by created_at desc limit 1`
+	getUserBadge := `select badges.name from badges join user_badges on user_badges.badge_id = badges.id where user_badges.user_id = $1 and created_at >= $2 group by badges.id, user_badges.created_at, user_badges.badge_id order by user_badges.badge_id desc limit 1`
 
 	for i, user := range users {
 		var badge []sql.NullString
