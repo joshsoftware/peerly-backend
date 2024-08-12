@@ -71,7 +71,6 @@ const (
 	DescriptionLengthExceed            = CustomError("maximum character length of 500 exceeded")
 	InvalidPageSize                    = CustomError("invalid page size")
 	InvalidPage                        = CustomError("invalid page value")
-	
 )
 
 // ErrKeyNotSet - Returns error object specific to the key value passed in
