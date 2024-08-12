@@ -13,7 +13,6 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/joshsoftware/peerly-backend/internal/app/email"
-	"github.com/joshsoftware/peerly-backend/internal/app/notification"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/config"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
@@ -42,7 +41,7 @@ type Service interface {
 	GetTop10Users(ctx context.Context) (users []dto.Top10User, err error)
 	AdminLogin(ctx context.Context, loginReq dto.AdminLoginReq) (resp dto.LoginUserResp, err error)
 	sendRewardQuotaRefillEmailToAll(ctx context.Context)
-	NotificationByAdmin(ctx context.Context, msg notification.Message, id int64, all bool) (err error)
+	NotificationByAdmin(ctx context.Context, notificationReq dto.AdminNotificationReq) (err error)
 	DownloadExcel(ctx context.Context, appreciations []dto.AppreciationResponse) (tempFileName string, err error)
 }
 
@@ -587,17 +586,17 @@ func mapDbUserToUserListResp(dbStruct repository.User) (svcData dto.UserDetails)
 	return svcData
 }
 
-func (us *service) NotificationByAdmin(ctx context.Context, msg notification.Message, id int64, all bool) (err error) {
+func (us *service) NotificationByAdmin(ctx context.Context, notificationReq dto.AdminNotificationReq) (err error) {
 
-	notificationTokens, err := us.userRepo.ListDeviceTokensByUserID(ctx, id)
+	notificationTokens, err := us.userRepo.ListDeviceTokensByUserID(ctx, notificationReq.Id)
 	if err != nil {
 		logger.Errorf("err in getting device tokens: %v", err)
 		err = apperrors.InternalServerError
 		return
 	}
 
-	if all {
-		err = msg.SendNotificationToTopic("peerly")
+	if notificationReq.All {
+		err = notificationReq.Message.SendNotificationToTopic("peerly")
 		if err != nil {
 			return
 		}
@@ -605,7 +604,7 @@ func (us *service) NotificationByAdmin(ctx context.Context, msg notification.Mes
 	}
 
 	for _, notificationToken := range notificationTokens {
-		msg.SendNotificationToNotificationToken(notificationToken)
+		err = notificationReq.Message.SendNotificationToNotificationToken(notificationToken)
 		if err != nil {
 			return
 		}
