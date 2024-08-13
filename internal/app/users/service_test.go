@@ -358,9 +358,35 @@ func TestListUsers(t *testing.T) {
 		{
 			name:    "Success for get user list",
 			context: context.Background(),
-			reqData: dto.ListUsersReq{},
+			reqData: dto.ListUsersReq{
+				Page:     1,
+				PageSize: 10,
+				Name:     []string{"sharyu"},
+			},
 			setup: func(userMock *mocks.UserStorer) {
-				userMock.On("ListUsers", mock.Anything, mock.Anything).Return([]repository.User{}, int64(10), nil).Once()
+				userMock.On("ListUsers", mock.Anything, dto.ListUsersReq{
+					Page:     1,
+					PageSize: 10,
+					Name:     []string{"sharyu"},
+				}).Return([]repository.User{
+					{
+						Id:         300,
+						EmployeeId: "JIN0141",
+						FirstName:  "Sharyu",
+						LastName:   "Marwadi",
+						Email:      "sharyu.marwadi@joshsoftware.com",
+						ProfileImageURL: sql.NullString{
+							Valid:  false,
+							String: "",
+						},
+						GradeId:             10,
+						Designation:         "Trainee",
+						RoleID:              2,
+						RewardsQuotaBalance: 1000,
+						Status:              1,
+						CreatedAt:           1721817903625,
+					},
+				}, int64(1), nil).Once()
 
 			},
 			isErrorExpected: false,
@@ -368,9 +394,17 @@ func TestListUsers(t *testing.T) {
 		{
 			name:    "Faliure for get user list",
 			context: context.Background(),
-			reqData: dto.ListUsersReq{},
+			reqData: dto.ListUsersReq{
+				Page:     1,
+				PageSize: 10,
+				Name:     []string{"sharyu"},
+			},
 			setup: func(userMock *mocks.UserStorer) {
-				userMock.On("ListUsers", mock.Anything, mock.Anything).Return([]repository.User{}, int64(10), apperrors.InternalServerError).Once()
+				userMock.On("ListUsers", mock.Anything, dto.ListUsersReq{
+					Page:     1,
+					PageSize: 10,
+					Name:     []string{"sharyu"},
+				}).Return([]repository.User{}, int64(0), apperrors.InternalServerError).Once()
 			},
 			isErrorExpected: true,
 		},
@@ -380,7 +414,6 @@ func TestListUsers(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			test.setup(userRepo)
 
-			// test service
 			_, err := service.ListUsers(test.context, test.reqData)
 
 			if (err != nil) != test.isErrorExpected {

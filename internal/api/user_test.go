@@ -322,7 +322,6 @@ func TestListUsersHandler(t *testing.T) {
 		page_size          string
 		paramName          string
 		setup              func(mock *mocks.Service)
-		responseData       dto.ListUsersReq
 		expectedStatusCode int
 	}{
 		{
