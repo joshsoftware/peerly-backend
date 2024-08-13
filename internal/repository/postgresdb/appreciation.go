@@ -94,7 +94,7 @@ func (appr *appreciationsStore) GetAppreciationById(ctx context.Context, tx repo
 		"COUNT(r.id) AS total_rewards",
 		fmt.Sprintf(
 			`COALESCE((
-				SELECT r2.point 
+				SELECT SUM(r2.point) 
 				FROM rewards r2 
 				WHERE r2.appreciation_id = a.id AND r2.sender = %d
 			), 0) AS given_reward_point`, userID),
@@ -327,7 +327,7 @@ FROM (
     JOIN grades g ON u.grade_id = g.id
     WHERE a.is_valid = true
       AND r.created_at >= EXTRACT(EPOCH FROM TIMESTAMP 'yesterday'::TIMESTAMP) * 1000
-     AND r.created_at < EXTRACT(EPOCH FROM TIMESTAMP 'today'::TIMESTAMP) * 1000
+     AND r.created_at >= EXTRACT(EPOCH FROM TIMESTAMP 'today'::TIMESTAMP) * 1000
     GROUP BY appreciation_id
 ) AS agg
 WHERE app.id = agg.appreciation_id;
