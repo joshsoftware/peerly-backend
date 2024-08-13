@@ -226,7 +226,7 @@ func sendAppreciationEmail(emailData repository.AppreciationResponse,senderEmail
 
 	logger.Info("appreciation sender email: -----------> ",senderEmail)
 	logger.Info("appreciation receiver email: -----------> ",receiverEmail)
-	mailReq := email.NewMail([]string{receiverEmail}, []string{senderEmail}, []string{}, "Received an Appreciation")
+	mailReq := email.NewMail([]string{receiverEmail}, []string{senderEmail}, []string{}, fmt.Sprintf("%s %s appreciated %s %s",emailData.SenderFirstName,emailData.SenderLastName,emailData.ReceiverFirstName,emailData.ReceiverLastName))
 	err := mailReq.ParseTemplate("./internal/app/email/templates/createAppreciation.html", templateData)
 	if err != nil {
 		logger.Errorf("err in creating html file : %v", err)
