@@ -216,10 +216,12 @@ func sendAppreciationEmail(emailData repository.AppreciationResponse,senderEmail
 
 	templateData := struct {
 		SenderName    string
+		ReceiverName string
 		Description   string
 		CoreValueName string
 	}{
 		SenderName:    fmt.Sprint(emailData.SenderFirstName, " ", emailData.SenderLastName),
+		ReceiverName: fmt.Sprint(emailData.ReceiverFirstName, " ", emailData.ReceiverLastName),
 		Description:   emailData.Description,
 		CoreValueName: emailData.CoreValueName,
 	}
