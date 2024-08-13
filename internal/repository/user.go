@@ -53,12 +53,6 @@ type Role struct {
 	Name string `db:"name"`
 }
 
-type Grade struct {
-	Id     int64  `db:"id"`
-	Name   string `db:"name"`
-	Points int64  `db:"points"`
-}
-
 type ActiveUser struct {
 	ID                 int            `db:"id"`
 	FirstName          string         `db:"first_name"`

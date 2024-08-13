@@ -31,7 +31,7 @@ func JwtAuthMiddleware(next http.Handler, roles []string) http.Handler {
 		tkn, err := jwt.ParseWithClaims(authToken, claims, func(t *jwt.Token) (interface{}, error) {
 			return jwtKey, nil
 		})
-		
+
 		if err != nil {
 			logger.WithField("err", err.Error()).Error("Error in parse with claims function")
 			err = apperrors.InvalidAuthToken

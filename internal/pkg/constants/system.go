@@ -43,8 +43,9 @@ const (
 	RewardsTable            = "rewards"
 	UsersTable              = "users"
 	CoreValuesTable         = "core_values"
-	OrganizationConfigTable = "organization_config"
 	GradesTable             = "grades"
+	OrganizationConfigTable = "organization_config"
+	BadgeTable              = "badges"
 	RolesTable              = "roles"
 )
 

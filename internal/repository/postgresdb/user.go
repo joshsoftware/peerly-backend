@@ -41,7 +41,6 @@ var (
 	userColumns      = []string{"id", "employee_id", "first_name", "last_name", "email", "profile_image_url", "role_id", "reward_quota_balance", "designation", "grade_id"}
 	adminColumns     = []string{"id", "employee_id", "first_name", "last_name", "email", "password", "profile_image_url", "role_id", "reward_quota_balance", "designation", "grade_id"}
 	rolesColumns     = []string{"id"}
-	gradeColumns     = []string{"id", "name", "points"}
 	orgConfigColumns = []string{"reward_multiplier"}
 )
 
@@ -533,6 +532,9 @@ func (us *userStore) ListDeviceTokensByUserID(ctx context.Context, userID int64)
 	if err != nil {
 		err = fmt.Errorf("error in ListDeviceTokensByUserID: %w", err)
 		return
+	}
+	if len(notificationTokens) <= 0 {
+		fmt.Println("notification tokens: ", notificationTokens)
 	}
 	return
 }

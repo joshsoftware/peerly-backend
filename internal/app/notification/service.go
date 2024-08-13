@@ -5,13 +5,14 @@ import (
 
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/messaging"
+	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	logger "github.com/sirupsen/logrus"
 	"google.golang.org/api/option"
 )
 
 type NotificationService interface {
-	SendNotificationToNotificationToken(notificationToken string)
-	SendNotificationToTopic(topic string)
+	SendNotificationToNotificationToken(notificationToken string) (err error)
+	SendNotificationToTopic(topic string) (err error)
 	// SendNotificationToNotificationTokens(userId int64)
 }
 
@@ -21,7 +22,7 @@ type Message struct {
 	ImageURL string `json:"image,omitempty"`
 }
 
-func (notificationSvc *Message) SendNotificationToNotificationToken(notificationToken string) {
+func (notificationSvc *Message) SendNotificationToNotificationToken(notificationToken string) (err error) {
 
 	// Path to your service account key file
 	serviceAccountKey := "serviceAccountKey.json"
@@ -31,6 +32,7 @@ func (notificationSvc *Message) SendNotificationToNotificationToken(notification
 	app, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {
 		logger.Errorf("Error initializing app: %v", err)
+		err = apperrors.InternalServerError
 		return
 	}
 
@@ -38,6 +40,7 @@ func (notificationSvc *Message) SendNotificationToNotificationToken(notification
 	client, err := app.Messaging(context.Background())
 	if err != nil {
 		logger.Errorf("Error getting Messaging client: %v", err)
+		err = apperrors.InternalServerError
 		return
 	}
 	// Create a message to send
@@ -53,12 +56,14 @@ func (notificationSvc *Message) SendNotificationToNotificationToken(notification
 	response, err := client.Send(context.Background(), message)
 	if err != nil {
 		logger.Errorf("Error sending message: %v", err)
+		err = apperrors.InternalServerError
 		return
 	}
 	logger.Infof("Successfully sent message: %v", response)
+	return
 }
 
-func (notificationSvc *Message) SendNotificationToTopic(topic string) {
+func (notificationSvc *Message) SendNotificationToTopic(topic string) (err error) {
 
 	// Path to your service account key file
 	serviceAccountKey := "serviceAccountKey.json"
@@ -67,14 +72,16 @@ func (notificationSvc *Message) SendNotificationToTopic(topic string) {
 	opt := option.WithCredentialsFile(serviceAccountKey)
 	app, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {
-		logger.Errorf("Error initializing app: %v", err)
+		logger.Errorf("error initializing app: %v", err)
+		err = apperrors.InternalServerError
 		return
 	}
 
 	// Obtain a messaging client from the Firebase app
 	client, err := app.Messaging(context.Background())
 	if err != nil {
-		logger.Errorf("Error getting Messaging client: %v", err)
+		logger.Errorf("error getting Messaging client: %v", err)
+		err = apperrors.InternalServerError
 		return
 	}
 
@@ -90,10 +97,14 @@ func (notificationSvc *Message) SendNotificationToTopic(topic string) {
 	// Send the message
 	response, err := client.Send(context.Background(), message)
 	if err != nil {
-		logger.Errorf("Error sending message: %v", err)
+		logger.Errorf("error sending message: %v", err)
+		err = apperrors.InternalServerError
 		return
 	}
+
 	logger.Infof("Successfully sent message: %v", response)
+
+	return
 }
 
 // func (notificationSvc *Message) SendNotificationToNotificationTokens(userId int64) {

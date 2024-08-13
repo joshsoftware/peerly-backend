@@ -4,6 +4,7 @@ import (
 	"database/sql"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/joshsoftware/peerly-backend/internal/app/notification"
 )
 
 type PublicProfile struct {
@@ -161,4 +162,10 @@ type GetUserByIdResp struct {
 type AdminLoginReq struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+type AdminNotificationReq struct {
+	Message notification.Message `json:"message"`
+	All     bool                 `json:"all"`
+	Id      int64                `json:"id"`
 }

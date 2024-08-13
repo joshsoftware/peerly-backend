@@ -21,7 +21,6 @@ func VarsStringToInt(inp string, label string) (result int64, err error) {
 		logger.Errorf("error while parsing %s from url, err: %s", label, err.Error())
 		err = apperrors.InternalServerError
 		return
-
 	}
 
 	return

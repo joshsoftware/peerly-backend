@@ -29,13 +29,14 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 	//corevalues
 	peerlySubrouter.Handle("/core_values/{id:[0-9]+}", middleware.JwtAuthMiddleware(getCoreValueHandler(deps.CoreValueService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
 
-	peerlySubrouter.Handle("/core_values", middleware.JwtAuthMiddleware(listCoreValuesHandler(deps.CoreValueService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
+	peerlySubrouter.Handle("/core_values", middleware.JwtAuthMiddleware(listCoreValuesHandler(deps.CoreValueService), []string{constants.UserRole, constants.AdminRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
 
 	peerlySubrouter.Handle("/core_values", middleware.JwtAuthMiddleware(createCoreValueHandler(deps.CoreValueService), []string{constants.UserRole})).Methods(http.MethodPost).Headers(versionHeader, v1)
 
-	peerlySubrouter.Handle("/core_values/{id:[0-9]+}", middleware.JwtAuthMiddleware(updateCoreValueHandler(deps.CoreValueService), []string{constants.UserRole})).Methods(http.MethodPut).Headers(versionHeader, v1)
+	peerlySubrouter.Handle("/core_values/{id:[0-9]+}", middleware.JwtAuthMiddleware(updateCoreValueHandler(deps.CoreValueService), []string{constants.UserRole, constants.AdminRole})).Methods(http.MethodPut).Headers(versionHeader, v1)
 
-	//login
+	//users
+
 	peerlySubrouter.Handle("/user/register", registerUser(deps.UserService)).Methods(http.MethodPost)
 
 	peerlySubrouter.Handle("/user/login", loginUser(deps.UserService)).Methods(http.MethodGet).Headers(versionHeader, v1)
@@ -44,13 +45,17 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 
 	peerlySubrouter.Handle("/intranet/users", listIntranetUsersHandler(deps.UserService)).Methods(http.MethodGet)
 
-	peerlySubrouter.Handle("/users", middleware.JwtAuthMiddleware(listUsersHandler(deps.UserService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
+	peerlySubrouter.Handle("/users", middleware.JwtAuthMiddleware(listUsersHandler(deps.UserService), []string{constants.UserRole, constants.AdminRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
 
 	peerlySubrouter.Handle("/user_profile", middleware.JwtAuthMiddleware(getUserByIdHandler(deps.UserService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
 
 	peerlySubrouter.Handle("/users/active", getActiveUserListHandler(deps.UserService)).Methods(http.MethodGet)
 
 	peerlySubrouter.Handle("/users/top10", middleware.JwtAuthMiddleware(getTop10UserHandler(deps.UserService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
+
+	peerlySubrouter.Handle("/admin/notification", middleware.JwtAuthMiddleware(adminNotificationHandler(deps.UserService), []string{constants.UserRole, constants.AdminRole})).Methods(http.MethodPost).Headers(versionHeader, v1)
+
+	peerlySubrouter.Handle("/admin/report", middleware.JwtAuthMiddleware(downloadExcelReport(deps.UserService, deps.AppreciationService), []string{constants.UserRole, constants.AdminRole})).Methods(http.MethodGet)
 
 	//appreciations
 
@@ -69,16 +74,29 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 
 	peerlySubrouter.Handle("/moderate_appreciation/{id:[0-9]+}", middleware.JwtAuthMiddleware(moderateAppriciation(deps.ReportAppreciationService), []string{constants.UserRole, constants.AdminRole})).Methods(http.MethodPut).Headers(versionHeader, v1)
 
+	//grades
+	peerlySubrouter.Handle("/grades", middleware.JwtAuthMiddleware(listGradesHandler(deps.GradeService), []string{constants.UserRole, constants.AdminRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
+
+	peerlySubrouter.Handle("/grades/{id:[0-9]+}", middleware.JwtAuthMiddleware(editGradesHandler(deps.GradeService), []string{constants.UserRole, constants.AdminRole})).Methods(http.MethodPatch).Headers(versionHeader, v1)
+
 	// reward appreciation
 	peerlySubrouter.Handle("/reward/{id:[0-9]+}", middleware.JwtAuthMiddleware(giveRewardHandler(deps.RewardService), []string{constants.UserRole})).Methods(http.MethodPost).Headers(versionHeader, v1)
 
 	// organization config
-	peerlySubrouter.Handle("/organizationconfig", middleware.JwtAuthMiddleware(getOrganizationConfigHandler(deps.OrganizationConfigService), []string{constants.UserRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
+	peerlySubrouter.Handle("/organizationconfig", middleware.JwtAuthMiddleware(getOrganizationConfigHandler(deps.OrganizationConfigService), []string{constants.UserRole, constants.AdminRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
 
 	//organization config data inserted by seed file
 	// peerlySubrouter.Handle("/organizationconfig", middleware.JwtAuthMiddleware(createOrganizationConfigHandler(deps.OrganizationConfigService),[]string{constants.UserRole})).Methods(http.MethodPost).Headers(versionHeader, v1)
 
 	peerlySubrouter.Handle("/organizationconfig", middleware.JwtAuthMiddleware(updateOrganizationConfigHandler(deps.OrganizationConfigService), []string{constants.UserRole})).Methods(http.MethodPut).Headers(versionHeader, v1)
+
+	peerlySubrouter.Handle("/organizationconfig", middleware.JwtAuthMiddleware(updateOrganizationConfigHandler(deps.OrganizationConfigService), []string{constants.UserRole, constants.AdminRole})).Methods(http.MethodPut).Headers(versionHeader, v1)
+
+	//badges
+
+	peerlySubrouter.Handle("/badges", middleware.JwtAuthMiddleware(listBadgesHandler(deps.BadgeService), []string{constants.UserRole, constants.AdminRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
+
+	peerlySubrouter.Handle("/badges/{id:[0-9]+}", middleware.JwtAuthMiddleware(editBadgesHandler(deps.BadgeService), []string{constants.UserRole, constants.AdminRole})).Methods(http.MethodPatch).Headers(versionHeader, v1)
 
 	// No version requirement for /ping
 	peerlySubrouter.HandleFunc("/ping", pingHandler).Methods(http.MethodGet)
