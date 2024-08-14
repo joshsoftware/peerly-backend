@@ -1,5 +1,8 @@
 package constants
 
+type UserIdCtxKey string
+type RoleCtxKey string
+
 // System Constants used to setup environment and basic functionality
 const (
 	AppName                = "APP_NAME"

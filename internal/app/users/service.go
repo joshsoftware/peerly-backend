@@ -303,6 +303,8 @@ func (us *service) ListUsers(ctx context.Context, reqData dto.ListUsersReq) (res
 		return
 	}
 
+	// userId = ctx.Value(constants.UserId)
+
 	var users []dto.UserDetails
 
 	for _, dbUser := range dbResp {
