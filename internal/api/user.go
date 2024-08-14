@@ -8,6 +8,7 @@ import (
 
 	"github.com/joshsoftware/peerly-backend/internal/api/validation"
 	"github.com/joshsoftware/peerly-backend/internal/app/appreciation"
+	reportappreciations "github.com/joshsoftware/peerly-backend/internal/app/reportAppreciations"
 	user "github.com/joshsoftware/peerly-backend/internal/app/users"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
@@ -269,7 +270,7 @@ func adminNotificationHandler(userSvc user.Service) http.HandlerFunc {
 	}
 }
 
-func downloadExcelReport(userSvc user.Service, appreciationSvc appreciation.Service) http.HandlerFunc {
+func appreciationReportHandler(userSvc user.Service, appreciationSvc appreciation.Service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
 
 		filter := dto.AppreciationFilter{
@@ -284,7 +285,29 @@ func downloadExcelReport(userSvc user.Service, appreciationSvc appreciation.Serv
 			return
 		}
 
-		tempFileName, err := userSvc.DownloadExcel(req.Context(), appreciationResp.Appreciations)
+		tempFileName, err := userSvc.AllAppreciationReport(req.Context(), appreciationResp.Appreciations)
+		if err != nil {
+			dto.ErrorRepsonse(rw, err)
+			return
+		}
+
+		http.ServeFile(rw, req, tempFileName)
+
+		// dto.SuccessRepsonse(rw, 200, "Excel downloaded successfully", nil)
+	}
+}
+
+
+func reportedAppreciationReportHandler(userSvc user.Service, reportAppreciationSvc reportappreciations.Service) http.HandlerFunc {
+	return func(rw http.ResponseWriter, req *http.Request) {
+
+		reportedAppreciationResp, err := reportAppreciationSvc.ListReportedAppreciations(req.Context())
+		if err != nil {
+			dto.ErrorRepsonse(rw, err)
+			return
+		}
+
+		tempFileName, err := userSvc.ReportedAppreciationReport(req.Context(), reportedAppreciationResp.Appreciations)
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)
 			return

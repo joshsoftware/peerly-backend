@@ -41,7 +41,8 @@ type Service interface {
 	AdminLogin(ctx context.Context, loginReq dto.AdminLoginReq) (resp dto.LoginUserResp, err error)
 	sendRewardQuotaRefillEmailToAll(ctx context.Context)
 	NotificationByAdmin(ctx context.Context, notificationReq dto.AdminNotificationReq) (err error)
-	DownloadExcel(ctx context.Context, appreciations []dto.AppreciationResponse) (tempFileName string, err error)
+	AllAppreciationReport(ctx context.Context, appreciations []dto.AppreciationResponse) (tempFileName string, err error)
+	ReportedAppreciationReport(ctx context.Context, appreciations []dto.ReportedAppreciation) (tempFileName string, err error)
 }
 
 func NewService(userRepo repository.UserStorer) Service {
@@ -612,7 +613,7 @@ func (us *service) NotificationByAdmin(ctx context.Context, notificationReq dto.
 	return
 }
 
-func (us *service) DownloadExcel(ctx context.Context, appreciations []dto.AppreciationResponse) (tempFileName string, err error) {
+func (us *service) AllAppreciationReport(ctx context.Context, appreciations []dto.AppreciationResponse) (tempFileName string, err error) {
 
 	// Create a new Excel file
 	f := excelize.NewFile()
@@ -653,6 +654,60 @@ func (us *service) DownloadExcel(ctx context.Context, appreciations []dto.Apprec
 
 	// Save the Excel file temporarily
 	tempFileName = "report.xlsx"
+	if err = f.SaveAs(tempFileName); err != nil {
+		logger.Errorf("Failed to save file: %v", err)
+		return
+	}
+
+	return
+}
+
+func (us *service) ReportedAppreciationReport(ctx context.Context, appreciations []dto.ReportedAppreciation) (tempFileName string, err error) {
+
+	// Create a new Excel file
+	f := excelize.NewFile()
+
+	// Create a new sheet
+	sheetName := "ReportedAppreciations"
+	index, err := f.NewSheet(sheetName)
+	if err != nil {
+		logger.Errorf("err in generating newsheet, err: %v", err)
+		return
+	}
+
+	// Set header
+	headers := []string{"Core value", "Core value description", "Appreciation description", "Sender first name", "Sender last name", "Sender designation", "Receiver first name", "Receiver last name", "Receiver designation", "Reporting Comment", "Reported by first name", "Reported by last name", "Reported at", "Moderator comment", "Moderator first name", "Moderator last name"}
+	for colIndex, header := range headers {
+		cell := fmt.Sprintf("%s1", string('A'+colIndex))
+		f.SetCellValue(sheetName, cell, header)
+	}
+
+	// Add data to the sheet
+	for rowIndex, app := range appreciations {
+		row := rowIndex + 2 // Starting from row 2
+		f.SetCellValue(sheetName, fmt.Sprintf("A%d", row), app.CoreValueName)
+		f.SetCellValue(sheetName, fmt.Sprintf("B%d", row), app.CoreValueDesc)
+		f.SetCellValue(sheetName, fmt.Sprintf("C%d", row), app.AppreciationDesc)
+		f.SetCellValue(sheetName, fmt.Sprintf("D%d", row), app.SenderFirstName)
+		f.SetCellValue(sheetName, fmt.Sprintf("E%d", row), app.SenderLastName)
+		f.SetCellValue(sheetName, fmt.Sprintf("F%d", row), app.SenderDesignation)
+		f.SetCellValue(sheetName, fmt.Sprintf("G%d", row), app.ReceiverFirstName)
+		f.SetCellValue(sheetName, fmt.Sprintf("H%d", row), app.ReceiverLastName)
+		f.SetCellValue(sheetName, fmt.Sprintf("I%d", row), app.ReceiverDesignation)
+		f.SetCellValue(sheetName, fmt.Sprintf("J%d", row), app.ReportingComment)
+		f.SetCellValue(sheetName, fmt.Sprintf("K%d", row), app.ReportedByFirstName)
+		f.SetCellValue(sheetName, fmt.Sprintf("L%d", row), app.ReportedByLastName)
+		f.SetCellValue(sheetName, fmt.Sprintf("M%d", row), app.ReportedAt)
+		f.SetCellValue(sheetName, fmt.Sprintf("N%d", row), app.ModeratorComment)
+		f.SetCellValue(sheetName, fmt.Sprintf("O%d", row), app.ModeratedByFirstName)
+		f.SetCellValue(sheetName, fmt.Sprintf("P%d", row), app.ModeratedByLastName)
+	}
+
+	// Set the active sheet
+	f.SetActiveSheet(index)
+
+	// Save the Excel file temporarily
+	tempFileName = "reportedAppreciations.xlsx"
 	if err = f.SaveAs(tempFileName); err != nil {
 		logger.Errorf("Failed to save file: %v", err)
 		return
