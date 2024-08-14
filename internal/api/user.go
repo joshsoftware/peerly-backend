@@ -175,7 +175,7 @@ func listUsersHandler(userSvc user.Service) http.HandlerFunc {
 		}
 
 		names := strings.Split(req.URL.Query().Get("name"), " ")
-		self := req.URL.Query().Get("self")
+		self := req.URL.Query().Get("exclude_self")
 		selfBool := false
 		if self == "true" {
 			selfBool = true
