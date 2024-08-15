@@ -183,7 +183,7 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 	queryBuilder = queryBuilder.RemoveColumns()
 	queryBuilder = queryBuilder.Columns(
 		"a.id",
-		"cv.name AS core_value_name",    fmt.Sprintf(
+		"cv.name AS core_value_name", fmt.Sprintf(
 			`COALESCE((
 				SELECT SUM(r2.point) 
 				FROM rewards r2 
@@ -234,17 +234,18 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 	queryExecutor = appr.InitiateQueryExecutor(tx)
 	res := make([]repository.AppreciationResponse, 0)
 
-	logger.Info("sp : filter: ",filter)
-	logger.Info("sp : sql: ",sql)
-	logger.Info("sp : args: ",args)
+	logger.Info("sp : filter: ", filter)
+	logger.Info("sp : sql: ", sql)
+	logger.Info("sp : args: ", args)
 	err = sqlx.Select(queryExecutor, &res, sql, args...)
 	if err != nil {
 		logger.Error("failed to execute query appreciation: ", err.Error())
-		logger.Error("err res data: ",res)
+		logger.Error("err res data: ", res)
 		return nil, repository.Pagination{}, apperrors.InternalServerError
 	}
-
-	userId, ok := ctx.Value("userId").(int64)
+	id := ctx.Value(constants.UserId)
+	fmt.Println("id -> ", id)
+	userId, ok := ctx.Value(constants.UserId).(int64)
 	if !ok {
 		logger.Error("unable to convert context user id to int64")
 		return nil, repository.Pagination{}, apperrors.InternalServerError
@@ -460,7 +461,7 @@ JOIN
 	var userBadgeDetails []repository.UserBadgeDetails
 	for rows.Next() {
 		var detail repository.UserBadgeDetails
-		if err := rows.Scan(&detail.ID,&detail.Email, &detail.FirstName, &detail.LastName, &detail.BadgeID,&detail.BadgeName, &detail.BadgePoints); err != nil {
+		if err := rows.Scan(&detail.ID, &detail.Email, &detail.FirstName, &detail.LastName, &detail.BadgeID, &detail.BadgeName, &detail.BadgePoints); err != nil {
 			return []repository.UserBadgeDetails{}, err
 		}
 		userBadgeDetails = append(userBadgeDetails, detail)
