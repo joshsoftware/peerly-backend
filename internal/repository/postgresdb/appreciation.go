@@ -234,7 +234,7 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 		return nil, repository.Pagination{}, apperrors.InternalServerError
 	}
 
-	userId, ok := ctx.Value("userId").(int64)
+	userId, ok := ctx.Value(constants.UserId).(int64)
 	if !ok {
 		logger.Error("unable to convert context user id to int64")
 		return nil, repository.Pagination{}, apperrors.InternalServerError
