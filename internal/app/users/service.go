@@ -320,11 +320,24 @@ func (us *service) ListUsers(ctx context.Context, reqData dto.ListUsersReq) (res
 		return
 	}
 
+	userId := ctx.Value(constants.UserId)
+
 	var users []dto.UserDetails
 
 	for _, dbUser := range dbResp {
-		user := mapDbUserToUserListResp(dbUser)
-		users = append(users, user)
+		if reqData.Self {
+			if dbUser.Id != userId {
+				user := mapDbUserToUserListResp(dbUser)
+				users = append(users, user)
+			}
+		} else {
+			user := mapDbUserToUserListResp(dbUser)
+			users = append(users, user)
+		}
+	}
+
+	if reqData.Self && totalCount > 0 {
+		totalCount = totalCount - 1
 	}
 
 	resp.UserList = users

@@ -329,14 +329,13 @@ func TestListUsersHandler(t *testing.T) {
 			authToken: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjo2fQ.XaYo0qdBCdDh1-nEeuUSdTbtp0enWFIySKnw-oQpTBg",
 			page:      "1",
 			page_size: "2",
-			paramName: "sharyu marwadi",
+			paramName: "Shubham Kumar",
 			setup: func(mockSvc *mocks.Service) {
 				mockSvc.On("ListUsers", mock.Anything, dto.ListUsersReq{
 					Page:     1,
 					PageSize: 2,
-					Name:     []string{"sharyu", "marwadi"},
+					Name:     []string{"Shubham", "Kumar"},
 				}).Return(dto.ListUsersResp{
-
 					UserList: []dto.UserDetails{
 						{
 							Id:        9,
@@ -353,9 +352,9 @@ func TestListUsersHandler(t *testing.T) {
 					},
 					MetaData: dto.PageToken{
 						CurrentPage:  1,
-						TotalPage:    9,
+						TotalPage:    10,
 						PageSize:     2,
-						TotalRecords: 18,
+						TotalRecords: 19,
 					}}, nil).Once()
 			},
 			expectedStatusCode: http.StatusOK,
