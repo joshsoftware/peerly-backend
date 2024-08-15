@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/Masterminds/squirrel"
@@ -231,6 +232,28 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 	if err != nil {
 		logger.Error("failed to execute query: ", err.Error())
 		return nil, repository.Pagination{}, apperrors.InternalServerError
+	}
+
+	userId, ok := ctx.Value("userId").(int64)
+	if !ok {
+		logger.Error("unable to convert context user id to int64")
+		return nil, repository.Pagination{}, apperrors.InternalServerError
+	}
+
+	for idx, appreciation := range res {
+		var userIds []int64
+		queryBuilder = repository.Sq.Select("reported_by").From("resolutions").Where(squirrel.Eq{"appreciation_id": appreciation.ID})
+		query, args, err := queryBuilder.ToSql()
+		if err != nil {
+			logger.Errorf("error in generating squirrel query, err: %s", err.Error())
+			return nil, repository.Pagination{}, apperrors.InternalServerError
+		}
+		err = appr.DB.SelectContext(ctx, &userIds, query, args...)
+		if err != nil {
+			logger.Errorf("error in reported flag query, err: %s", err.Error())
+			return nil, repository.Pagination{}, apperrors.InternalServerError
+		}
+		res[idx].ReportedFlag = slices.Contains(userIds, userId)
 	}
 
 	return res, pagination, nil

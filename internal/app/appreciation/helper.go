@@ -42,6 +42,7 @@ func mapRepoGetAppreciationInfoToDTOGetAppreciationInfo(info repository.Apprecia
 		ReceiverDesignation: info.ReceiverDesignation,
 		TotalRewards:        info.TotalRewards,
 		GivenRewardPoint:    info.GivenRewardPoint,
+		ReportedFlag:        info.ReportedFlag,
 		CreatedAt:           info.CreatedAt,
 		UpdatedAt:           info.UpdatedAt,
 	}
