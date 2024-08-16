@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/joshsoftware/peerly-backend/internal/app/email"
+	// "github.com/joshsoftware/peerly-backend/internal/app/email"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/config"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
@@ -37,7 +37,7 @@ type Service interface {
 	GetActiveUserList(ctx context.Context) ([]dto.ActiveUser, error)
 	GetTop10Users(ctx context.Context) (users []dto.Top10User, err error)
 	AdminLogin(ctx context.Context, loginReq dto.AdminLoginReq) (resp dto.LoginUserResp, err error)
-	sendRewardQuotaRefillEmailToAll(ctx context.Context)
+	// sendRewardQuotaRefillEmailToAll(ctx context.Context)
 }
 
 func NewService(userRepo repository.UserStorer) Service {
@@ -491,7 +491,7 @@ func (us *service) UpdateRewardQuota(ctx context.Context) error {
 	err := us.userRepo.UpdateRewardQuota(ctx, nil)
 
 	if err == nil{
-		us.sendRewardQuotaRefillEmailToAll(ctx)
+		// us.sendRewardQuotaRefillEmailToAll(ctx)
 	}
 	return err
 }
@@ -540,44 +540,44 @@ func mapIntranetUserDataToSvcUser(intranetData dto.IntranetUserData) (svcData dt
 	return svcData
 }
 
-func  (us *service) sendRewardQuotaRefillEmailToAll(ctx context.Context){
+// func  (us *service) sendRewardQuotaRefillEmailToAll(ctx context.Context){
 
-	reqData := dto.UserListReq  {
-		Page     :1,
-		PageSize :1000,
-	}
-	dbUsers,err := us.userRepo.ListUsers(ctx,reqData)
-	if err != nil{
-		logger.Errorf("error in getting users for email")
-		return
-	}
+// 	reqData := dto.UserListReq  {
+// 		Page     :1,
+// 		PageSize :1000,
+// 	}
+// 	dbUsers,err := us.userRepo.ListUsers(ctx,reqData)
+// 	if err != nil{
+// 		logger.Errorf("error in getting users for email")
+// 		return
+// 	}
 
-	usersEmails := make([]string,0)
-	for _, user := range dbUsers{
-		usersEmails = append(usersEmails, user.Email)
-	}
+// 	usersEmails := make([]string,0)
+// 	for _, user := range dbUsers{
+// 		usersEmails = append(usersEmails, user.Email)
+// 	}
 
-	logger.Info("user emails : ")
+// 	logger.Info("user emails : ")
 
-	for _,userEmail := range usersEmails{
-		logger.Infoln("email: ",userEmail)
-	}
+// 	for _,userEmail := range usersEmails{
+// 		logger.Infoln("email: ",userEmail)
+// 	}
 
-	templateData := struct {
-		UserName    string
-	}{
-		UserName:    fmt.Sprint("first name ", " ", "lastname"),
-	}
+// 	templateData := struct {
+// 		UserName    string
+// 	}{
+// 		UserName:    fmt.Sprint("first name ", " ", "lastname"),
+// 	}
 
-	mailReq := email.NewMail([]string{"samnitpatil9882@gmail.com"}, []string{"samnitpatil@gmail.com"}, []string{"samirpatil9882@gmail.com"}, "Reward Quota Refilled")
-	err = mailReq.ParseTemplate("./internal/app/email/templates/rewardQuotaReset.html", templateData)
-	if err != nil{
-		logger.Errorf("err in creating html file : %v",err)
-		return
-	}
-	err = mailReq.Send("reward quota renewal")
-	if err != nil {
-		logger.Errorf("err: %v", err)
-		return 
-	}
-}
+// 	mailReq := email.NewMail([]string{}, []string{}, []string{}, "Reward Quota Refilled")
+// 	err = mailReq.ParseTemplate("./internal/app/email/templates/rewardQuotaReset.html", templateData)
+// 	if err != nil{
+// 		logger.Errorf("err in creating html file : %v",err)
+// 		return
+// 	}
+// 	err = mailReq.Send("reward quota renewal")
+// 	if err != nil {
+// 		logger.Errorf("err: %v", err)
+// 		return 
+// 	}
+// }
