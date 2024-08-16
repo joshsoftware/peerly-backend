@@ -16,9 +16,9 @@ func SeedData() (err error) {
 
 	seedQueries := []string{
 		//roles
-		`INSERT INTO roles (id, name) VALUES (1, 'Super Admin')`,
-		`INSERT INTO roles (id, name) VALUES (2, 'Admin')`,
-		`INSERT INTO roles (id, name) VALUES (3, 'User')`,
+		`INSERT INTO roles (id, name) VALUES (1, 'super admin')`,
+		`INSERT INTO roles (id, name) VALUES (2, 'admin')`,
+		`INSERT INTO roles (id, name) VALUES (3, 'user')`,
 
 		//grades
 		`INSERT INTO grades (id,name, points) VALUES (1, 'J1',1000)`,
@@ -33,8 +33,11 @@ func SeedData() (err error) {
 		`INSERT INTO grades (id,name, points) VALUES (10,'J12',100)`,
 
 		//corevalues
-		`INSERT INTO core_values (id,name,description, parent_core_value_id) VALUES (1,'Leadership','leadership quality',null)`,
-		`INSERT INTO core_values (id,name,description, parent_core_value_id) VALUES (2,'Technical Excellence','tech genius',null)`,
+		`INSERT INTO core_values (id,name,description, parent_core_value_id) VALUES (1,'Trust','We foster trust by being transparent,reliable, and accountable in all our actions.',null)`,
+		`INSERT INTO core_values (id,name,description, parent_core_value_id) VALUES (2,'Technical Excellence','We are committed to delivering excellence in every product, service, and experience we provide, striving for continuous improvement.',null)`,
+		`INSERT INTO core_values (id,name,description, parent_core_value_id) VALUES (3,'Integrity & Ethics','We uphold integrity in every action, ensuring our decisions align with the highest moral standards.',null)`,
+		`INSERT INTO core_values (id,name,description, parent_core_value_id) VALUES (4, 'Customer Focus', 'We prioritize understanding and meeting our customers'' needs, exceeding expectations with every interaction.', null)`,
+		`INSERT INTO core_values (id,name,description, parent_core_value_id) VALUES (5,'Respect','We respect individual opinions and believe in living up to and exceeding our own standards.',null)`,
 
 		//badges
 		`INSERT INTO badges (id,name,reward_points) VALUES (1,'Bronze',1500)`,
@@ -46,7 +49,7 @@ func SeedData() (err error) {
 		`INSERT INTO users (id,employee_id,first_name,last_name,email,designation,reward_quota_balance,role_id,grade_id)
 		VALUES (1,'26','Sameer','Tilak','sameer.tilak@joshsoftware.com','Digital Head',900,1,2)`,
 		//organization config
-		`INSERT INTO organization_config (id,reward_multiplier,reward_quota_renewal_frequency,timezone,created_by) VALUES (1,10,1,'UTC',1)`,
+		`INSERT INTO organization_config (id,reward_multiplier,reward_quota_renewal_frequency,timezone,created_by,updated_by) VALUES (1,10,1,'UTC',1,1)`,
 	}
 
 	for _, query := range seedQueries {

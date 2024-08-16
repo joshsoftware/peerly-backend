@@ -11,25 +11,19 @@ tags:
     description: Core Value cruds
   - name: Appreciation
     description: Appreciations CRUD
+  - name: OrganizaitonConfig
+    description: OrganizaitonConfig  
 
 paths:
-  /appreciation/{id}:
-    get:
+  /organizationconfig:
+    get:  
       security:
         - basicAuth: []
       tags: 
-        - Appreciation
-      summary: get appreciation by id
-      description: Display Appreciation
+        - OrganizaitonConfig
+      summary: get organization config information
+      description: Show Organization Config
       parameters:
-        - name: id
-          in: path
-          description: ID of appreciation
-          required: true
-          schema:
-            type: integer
-            format: int64
-          example: 28
         - in: header
           name: Accept-Version
           required: true
@@ -44,23 +38,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AppreciationSuccessResponse'  
-        '400':
-          description: Invalid input data
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                example-1:
-                  summary: Invalid input data
-                  value:
-                   success: false
-                   message: "Invalid input data"
-                   status: 400
-                   data: null
+                $ref: '#/components/schemas/OrganizationConfigSuccessResponse'
+                
         '404':
-          description: Appreciation not found
+          description: OrganizationConfig not found
           content:
             application/json:
               schema:
@@ -69,10 +50,8 @@ paths:
                 example-1:
                   summary: Appreciation not found
                   value:
-                   success: false
-                   message: "appreciation not found"
+                   message: "OrganizationConfig not found"
                    status: 404
-                   data: null
         '500':
           description: Internal server error
           content:
@@ -83,89 +62,19 @@ paths:
                 example-1:
                   summary: Internal server error
                   value:
-                   success: false
                    message: "Internal server error"
                    status: 500
-                   data: null
-    delete:
-      tags: 
-        - Appreciation
-      summary: Delete appreciation
-      description: Delete Appreciation
-      parameters:
-        - name: id
-          in: path
-          description: ID of appreciation
-          required: true
-          schema:
-            type: integer
-            format: int64
-          example: 28
-        - in: header
-          name: Accept-Version
-          required: true
-          description: Defines the version of the API endpoint
-          schema:
-            enum:
-              - 'application/vnd.peerly.v1'
-            type: string 
-      responses:
-        '200':
-          description: Successful operation
-        '400':
-          description: Invalid input data
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                example-1:
-                  summary: Invalid input data
-                  value:
-                   success: false
-                   message: "Invalid input data"
-                   status: 400
-                   data: null
-        '404':
-          description: Appreciation not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                example-1:
-                  summary: Appreciation not found
-                  value:
-                   success: false
-                   message: "appreciation not found"
-                   status: 404
-                   data: null
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                example-1:
-                  summary: Internal server error
-                  value:
-                   success: false
-                   message: "Internal server error"
-                   status: 500  
-                   data: null
-  /appreciation:
     post:
       tags: 
-        - Appreciation
-      summary: Create appreciation
-      description: Create Appreciation
+        - OrganizaitonConfig
+      summary: Create OrganizationConfig
+      description: Create OrganizationConfig
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateAppreciation'
+              $ref: '#/components/schemas/CreateOrganizationConfigRequest'
       parameters:
         - in: header
           name: Accept-Version
@@ -181,36 +90,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreateAppreciationResp' 
+                $ref: '#/components/schemas/OrganizationConfigSuccessResponse' 
 
         '400':
-          description: Appreciation data is not valid
+          description: Invalid input data
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                example-1:
-                  summary: Invalid Corevalue Id
-                  value:
-                   success: false
-                   message: "invalid corevalue id"
-                   status: 400
-                   data: null
-                example-2:
-                  summary: Invalid Receiver Id
-                  value:
-                    success: false
-                    message: "invalid receiver id"
-                    status: 400
-                    data: null
-                example-3:
-                  summary: Blank Description
-                  value:
-                    success: false
-                    message: "Description cannot be blank"
-                    status: 400
-                    data: null
+                $ref: '#/components/schemas/InvalidDataErrorResponse'
 
 
         '404':
@@ -223,17 +110,13 @@ paths:
                 example-1:
                   summary: User Not Found
                   value:
-                   success: false
                    message: "User Not Found"
                    status: 404
-                   data: null
                 example-2:
                   summary: Invalid corevalue data
                   value:
-                    success: false
                     message: "Invalid corevalue data"
                     status: 404
-                    data: null
         '500':
           description: Internal server error
           content:
@@ -244,16 +127,20 @@ paths:
                 example-1:
                   summary: Internal server error
                   value:
-                   success: false
                    message: "Internal server error"
                    status: 500
-                   data: null
-  /appreciations:
-    get:
+
+    put:
       tags: 
-        - Appreciation
-      summary: Get appreciation list
-      description: Get Appreciation
+        - OrganizaitonConfig
+      summary: Create OrganizationConfig
+      description: Create OrganizationConfig
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrganizationConfigRequest'
       parameters:
         - in: header
           name: Accept-Version
@@ -262,14 +149,40 @@ paths:
           schema:
             enum:
               - 'application/vnd.peerly.v1'
-            type: string
+            type: string 
       responses:
-        '200':
-          description: Successful operation
+        '201':
+          description: Create Successful operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AppreciationsSuccessResponse'
+                $ref: '#/components/schemas/OrganizationConfigSuccessResponse' 
+
+        '400':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvalidDataErrorResponse'
+
+
+        '404':
+          description: Appreciation not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                example-1:
+                  summary: User Not Found
+                  value:
+                   message: "User Not Found"
+                   status: 404
+                example-2:
+                  summary: Invalid corevalue data
+                  value:
+                    message: "Invalid corevalue data"
+                    status: 404
         '500':
           description: Internal server error
           content:
@@ -280,10 +193,8 @@ paths:
                 example-1:
                   summary: Internal server error
                   value:
-                   success: false
                    message: "Internal server error"
                    status: 500
-                   data: null
 
       
 components:
@@ -295,27 +206,32 @@ components:
     SuccessResponse:
       type: object
       properties:
-        success: 
-          type: boolean
-          example: true
-        message:
-          type: string
-        status_code:
-          type: string
         data:
           type: object
+
+    ErrorObject:
+      type: object
+      properties:
+        code:
+          type: string
+        messageObject:
+          $ref: '#/components/schemas/MessageObject'
+        fields:
+          type: object
+          additionalProperties:
+            type: string
+
+    MessageObject:
+      type: object
+      properties:
+        message:
+          type: string
 
     ErrorResponse:
       type: object
       properties:
-        success: 
-          type: boolean
-        message:
-          type: string
-        status_code:
-          type: string
-        data:
-          type: object
+        error:
+          $ref: '#/components/schemas/ErrorObject'
 
     Appreciation:
       type: object
@@ -380,12 +296,6 @@ components:
     AppreciationSuccessResponse:
       type: object
       properties:
-        success:
-          example: true
-        message:
-          example: "Appreciation data got successfully"
-        status_code:
-          example: 200
         data:
           $ref: '#/components/schemas/Appreciation'
     CreateAppreciation:
@@ -429,5 +339,75 @@ components:
           updated_at:
             type: integer
             example: 1719388759956
+    InvalidDataErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: invalid_data
+            message:
+              type: string
+              example: Please provide valid appreciation data
+            fields:
+              type: object
+              properties:
+                core_value_id:
+                  type: string
+                  example: enter valid core value id
+                description:
+                  type: string
+                  example: enter description
+                receiver:
+                  type: string
+                  example: enter valid receiver id
+    OrganizationConfig:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        reward_multiplier:
+          type: integer
+          example: 200
+        reward_quota_renewal_frequency:
+          type: integer
+          example: 12
+        timezone:
+          type: string
+          example: "ACT"
+        created_at:
+          type: integer
+          example: 1719918501194
+        created_by:
+          type: integer
+          example: 7
+        updated_at:
+          type: integer
+          example: 1719920402224
+        updated_by:
+          type: integer
+          example: 7
+    OrganizationConfigSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/OrganizationConfig'
+    CreateOrganizationConfigRequest:
+      type: object
+      properties:
+        reward_multiplier:
+          type: integer
+          example: 0
+        reward_quota_renewal_frequency:
+          type: integer
+          example: 5
+        timezone:
+          type: string
+          example: "UTC"
 
 

@@ -9,3 +9,11 @@ var CreateAppreciationColumns = []string{
 }
 
 var CreateRewardColumns = []string{"appreciation_id", "point", "sender"}
+var OrgConfigColumns = []string{
+	"id",
+	"reward_multiplier",
+	"reward_quota_renewal_frequency",
+	"timezone",
+	"created_by",
+	"updated_by",
+}

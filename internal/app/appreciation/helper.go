@@ -1,7 +1,6 @@
 package appreciation
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
@@ -9,52 +8,46 @@ import (
 )
 
 // Function to map AppreciationDB to AppreciationDTO
-func MapAppreciationDBToDTO(dbAppreciation repository.Appreciation) dto.Appreciation {
-
-	fmt.Println("db: ",dbAppreciation)
-	// fmt.Println("dto: ",)
+func mapAppreciationDBToDTO(dbAppreciation repository.Appreciation) dto.Appreciation {
 	return dto.Appreciation{
-		ID:           dbAppreciation.ID,
-		CoreValueID:  dbAppreciation.CoreValueID,
-		Description:  dbAppreciation.Description,
-		TotalRewards: dbAppreciation.TotalRewards,
-		Quarter:      dbAppreciation.Quarter,
-		Sender:       dbAppreciation.Sender,
-		Receiver:     dbAppreciation.Receiver,
-		CreatedAt:    dbAppreciation.CreatedAt,
-		UpdatedAt:    dbAppreciation.UpdatedAt,
+		ID:                dbAppreciation.ID,
+		CoreValueID:       dbAppreciation.CoreValueID,
+		Description:       dbAppreciation.Description,
+		TotalRewardPoints: dbAppreciation.TotalRewardPoints,
+		Quarter:           dbAppreciation.Quarter,
+		Sender:            dbAppreciation.Sender,
+		Receiver:          dbAppreciation.Receiver,
+		CreatedAt:         dbAppreciation.CreatedAt,
+		UpdatedAt:         dbAppreciation.UpdatedAt,
 	}
 }
 
-func mapRepoGetAppreciationInfoToDTOGetAppreciationInfo(info repository.AppreciationInfo) dto.ResponseAppreciation {
+func mapRepoGetAppreciationInfoToDTOGetAppreciationInfo(info repository.AppreciationResponse) dto.AppreciationResponse {
 
-	receiverImageURL := ""
-	if info.ReceiverImageURL.Valid {
-		receiverImageURL = info.ReceiverImageURL.String
+	receiverImageURL := info.ReceiverImageURL.String
+	senderImageURL := info.SenderImageURL.String
+
+	dtoApprResp := dto.AppreciationResponse{
+		ID:                  info.ID,
+		CoreValueName:       info.CoreValueName,
+		CoreValueDesc:       info.CoreValueDesc,
+		Description:         info.Description,
+		TotalRewardPoints:   info.TotalRewardPoints,
+		Quarter:             info.Quarter,
+		SenderFirstName:     info.SenderFirstName,
+		SenderLastName:      info.SenderLastName,
+		SenderImageURL:      senderImageURL,
+		SenderDesignation:   info.SenderDesignation,
+		ReceiverFirstName:   info.ReceiverFirstName,
+		ReceiverLastName:    info.ReceiverLastName,
+		ReceiverImageURL:    receiverImageURL,
+		ReceiverDesignation: info.ReceiverDesignation,
+		TotalRewards:        info.TotalRewards,
+		GivenRewardPoint:    info.GivenRewardPoint,
+		CreatedAt:           info.CreatedAt,
+		UpdatedAt:           info.UpdatedAt,
 	}
 
-	senderImageURL := ""
-	if info.SenderImageURL.Valid {
-		senderImageURL = info.SenderImageURL.String
-	}
-
-	var dtoApprResp dto.ResponseAppreciation
-
-	dtoApprResp.ID = info.ID
-	dtoApprResp.CoreValueName = info.CoreValueName
-	dtoApprResp.Description = info.Description
-	dtoApprResp.TotalRewards = info.TotalRewards
-	dtoApprResp.Quarter = info.Quarter
-	dtoApprResp.SenderFirstName = info.SenderFirstName
-	dtoApprResp.SenderLastName = info.SenderLastName
-	dtoApprResp.SenderImageURL = senderImageURL
-	dtoApprResp.SenderDesignation = info.SenderDesignation
-	dtoApprResp.ReceiverFirstName = info.ReceiverFirstName
-	dtoApprResp.ReceiverLastName = info.ReceiverLastName
-	dtoApprResp.ReceiverImageURL = receiverImageURL
-	dtoApprResp.ReceiverDesignation = info.ReceiverDesignation
-	dtoApprResp.CreatedAt = info.CreatedAt
-	dtoApprResp.UpdatedAt = info.UpdatedAt
 	return dtoApprResp
 }
 
@@ -72,13 +65,12 @@ func GetQuarter() int {
 	return -1
 }
 
-func DtoPagination (pagination repository.Pagination)dto.Pagination {
-	var pagenationResp dto.Pagination
-	pagenationResp.CurrentPage = pagination.CurrentPage
-	pagenationResp.Next = pagination.Next
-	pagenationResp.Previous = pagination.Previous
-	pagenationResp.RecordPerPage = pagination.RecordPerPage
-	pagenationResp.TotalPage =pagination.TotalPage
-	pagenationResp.TotalRecords = pagination.TotalRecords
-	return pagenationResp
+// DtoPagination returns modified response pagination struct
+func dtoPagination(pagination repository.Pagination) dto.Pagination {
+	return dto.Pagination{
+		CurrentPage:  pagination.CurrentPage,
+		TotalPage:    pagination.TotalPage,
+		PageSize:     pagination.RecordPerPage,
+		TotalRecords: pagination.TotalRecords,
+	}
 }

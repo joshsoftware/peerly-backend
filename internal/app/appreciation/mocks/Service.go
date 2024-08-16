@@ -14,9 +14,9 @@ type Service struct {
 	mock.Mock
 }
 
-// CreateAppreciation provides a mock function with given fields: ctx, apprecication
-func (_m *Service) CreateAppreciation(ctx context.Context, apprecication dto.Appreciation) (dto.Appreciation, error) {
-	ret := _m.Called(ctx, apprecication)
+// CreateAppreciation provides a mock function with given fields: ctx, _a1
+func (_m *Service) CreateAppreciation(ctx context.Context, _a1 dto.Appreciation) (dto.Appreciation, error) {
+	ret := _m.Called(ctx, _a1)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CreateAppreciation")
@@ -25,16 +25,16 @@ func (_m *Service) CreateAppreciation(ctx context.Context, apprecication dto.App
 	var r0 dto.Appreciation
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, dto.Appreciation) (dto.Appreciation, error)); ok {
-		return rf(ctx, apprecication)
+		return rf(ctx, _a1)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, dto.Appreciation) dto.Appreciation); ok {
-		r0 = rf(ctx, apprecication)
+		r0 = rf(ctx, _a1)
 	} else {
 		r0 = ret.Get(0).(dto.Appreciation)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, dto.Appreciation) error); ok {
-		r1 = rf(ctx, apprecication)
+		r1 = rf(ctx, _a1)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -42,54 +42,44 @@ func (_m *Service) CreateAppreciation(ctx context.Context, apprecication dto.App
 	return r0, r1
 }
 
-// GetAppreciation provides a mock function with given fields: ctx, filter
-func (_m *Service) GetAppreciation(ctx context.Context, filter dto.AppreciationFilter) (dto.GetAppreciationResponse, error) {
-	ret := _m.Called(ctx, filter)
+// DeleteAppreciation provides a mock function with given fields: ctx, apprId
+func (_m *Service) DeleteAppreciation(ctx context.Context, apprId int32) error {
+	ret := _m.Called(ctx, apprId)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetAppreciation")
+		panic("no return value specified for DeleteAppreciation")
 	}
 
-	var r0 dto.GetAppreciationResponse
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, dto.AppreciationFilter) (dto.GetAppreciationResponse, error)); ok {
-		return rf(ctx, filter)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, dto.AppreciationFilter) dto.GetAppreciationResponse); ok {
-		r0 = rf(ctx, filter)
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, int32) error); ok {
+		r0 = rf(ctx, apprId)
 	} else {
-		r0 = ret.Get(0).(dto.GetAppreciationResponse)
+		r0 = ret.Error(0)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, dto.AppreciationFilter) error); ok {
-		r1 = rf(ctx, filter)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }
 
 // GetAppreciationById provides a mock function with given fields: ctx, appreciationId
-func (_m *Service) GetAppreciationById(ctx context.Context, appreciationId int) (dto.ResponseAppreciation, error) {
+func (_m *Service) GetAppreciationById(ctx context.Context, appreciationId int32) (dto.AppreciationResponse, error) {
 	ret := _m.Called(ctx, appreciationId)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetAppreciationById")
 	}
 
-	var r0 dto.ResponseAppreciation
+	var r0 dto.AppreciationResponse
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, int) (dto.ResponseAppreciation, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, int32) (dto.AppreciationResponse, error)); ok {
 		return rf(ctx, appreciationId)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, int) dto.ResponseAppreciation); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, int32) dto.AppreciationResponse); ok {
 		r0 = rf(ctx, appreciationId)
 	} else {
-		r0 = ret.Get(0).(dto.ResponseAppreciation)
+		r0 = ret.Get(0).(dto.AppreciationResponse)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, int) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, int32) error); ok {
 		r1 = rf(ctx, appreciationId)
 	} else {
 		r1 = ret.Error(1)
@@ -98,55 +88,27 @@ func (_m *Service) GetAppreciationById(ctx context.Context, appreciationId int) 
 	return r0, r1
 }
 
-// UpdateAppreciation provides a mock function with given fields: ctx
-func (_m *Service) UpdateAppreciation(ctx context.Context) (bool, error) {
-	ret := _m.Called(ctx)
+// ListAppreciations provides a mock function with given fields: ctx, filter
+func (_m *Service) ListAppreciations(ctx context.Context, filter dto.AppreciationFilter) (dto.ListAppreciationsResponse, error) {
+	ret := _m.Called(ctx, filter)
 
 	if len(ret) == 0 {
-		panic("no return value specified for UpdateAppreciation")
+		panic("no return value specified for ListAppreciations")
 	}
 
-	var r0 bool
+	var r0 dto.ListAppreciationsResponse
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context) (bool, error)); ok {
-		return rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, dto.AppreciationFilter) (dto.ListAppreciationsResponse, error)); ok {
+		return rf(ctx, filter)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context) bool); ok {
-		r0 = rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, dto.AppreciationFilter) dto.ListAppreciationsResponse); ok {
+		r0 = rf(ctx, filter)
 	} else {
-		r0 = ret.Get(0).(bool)
+		r0 = ret.Get(0).(dto.ListAppreciationsResponse)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = rf(ctx)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// ValidateAppreciation provides a mock function with given fields: ctx, isValid, apprId
-func (_m *Service) ValidateAppreciation(ctx context.Context, isValid bool, apprId int) (bool, error) {
-	ret := _m.Called(ctx, isValid, apprId)
-
-	if len(ret) == 0 {
-		panic("no return value specified for ValidateAppreciation")
-	}
-
-	var r0 bool
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, bool, int) (bool, error)); ok {
-		return rf(ctx, isValid, apprId)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, bool, int) bool); ok {
-		r0 = rf(ctx, isValid, apprId)
-	} else {
-		r0 = ret.Get(0).(bool)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, bool, int) error); ok {
-		r1 = rf(ctx, isValid, apprId)
+	if rf, ok := ret.Get(1).(func(context.Context, dto.AppreciationFilter) error); ok {
+		r1 = rf(ctx, filter)
 	} else {
 		r1 = ret.Error(1)
 	}

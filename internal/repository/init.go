@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/config"
@@ -20,6 +21,7 @@ import (
 	// For database migrations
 	"github.com/golang-migrate/migrate"
 	"github.com/golang-migrate/migrate/database/postgres"
+
 	// golang-migrate reads migrations from sources and applies them in correct order to a database.
 	_ "github.com/golang-migrate/migrate/source/file"
 )
@@ -28,13 +30,17 @@ const (
 	dbDriver = "postgres"
 )
 
+var (
+	Sq = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
+)
+
 // InitializeDatabase initialize database and return database instance
 func InitializeDatabase() (db *sqlx.DB, err error) {
 	uri := config.ReadEnvString(constants.DBURI)
 
 	conn, err := sqlx.Connect(dbDriver, uri)
 	if err != nil {
-		logger.WithField("err", err.Error()).Error("Cannot initialize database")
+		logger.Errorf("Cannot initialize database: %v",err)
 		return
 	}
 	return conn, nil
@@ -48,13 +54,13 @@ func RunMigrations() (err error) {
 
 	driver, err := postgres.WithInstance(db, &postgres.Config{})
 	if err != nil {
-		logger.WithField("err", err.Error()).Error("failure to create driver obj")
+		logger.Errorf("failure to create driver obj: %v",err)
 		return apperrors.FailedToCreateDriver
 	}
 
 	m, err := migrate.NewWithDatabaseInstance(getMigrationPath(), dbDriver, driver)
 	if err != nil {
-		logger.WithField("err", err.Error()).Error("migrate failure")
+		logger.Errorf("migrate failure: %v",err)
 		return apperrors.MigrationFailure
 	}
 
