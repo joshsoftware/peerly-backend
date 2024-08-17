@@ -23,6 +23,7 @@ type Service interface {
 	ReportAppreciation(ctx context.Context, reqData dto.ReportAppreciationReq) (resp dto.ReportAppricaitionResp, err error)
 	ListReportedAppreciations(ctx context.Context) (dto.ListReportedAppreciationsResponse, error)
 	DeleteAppreciation(ctx context.Context, reqData dto.ModerationReq) (err error)
+	ResolveAppreciation(ctx context.Context, reqData dto.ModerationReq) (err error)
 }
 
 func NewService(reportAppreciationRepo repository.ReportAppreciationStorer, userRepo repository.UserStorer, appreciationRepo repository.AppreciationStorer) Service {
@@ -241,6 +242,7 @@ func mapDbAppreciationsToSvcAppreciations(dbApp repository.ListReportedAppreciat
 		svcApp.ModeratedByLastName = moderator.LastName
 		svcApp.ModeratorComment = dbApp.ModeratorComment.String
 	}
+	svcApp.Status = dbApp.Status
 	return
 }
 
@@ -254,13 +256,13 @@ func sendReportEmail(senderEmail string, senderFirstName string, senderLastName 
 		AppreciationSenderName   string
 		AppreciationReceiverName string
 	}{
-		SenderName:       fmt.Sprint(senderFirstName, " ", senderLastName),
-		ReportingComment: reportingComment,
-		AppreciationSenderName: fmt.Sprint(apprSenderFirstName, " ", apprSenderLastName),
+		SenderName:               fmt.Sprint(senderFirstName, " ", senderLastName),
+		ReportingComment:         reportingComment,
+		AppreciationSenderName:   fmt.Sprint(apprSenderFirstName, " ", apprSenderLastName),
 		AppreciationReceiverName: fmt.Sprint(apprReceiverFirstName, " ", apprReceiverLastName),
 	}
 
-	logger.Info("report sender email: ---------> ",senderEmail)
+	logger.Info("report sender email: ---------> ", senderEmail)
 	mailReq := email.NewMail([]string{senderEmail}, []string{"samnitpatil@gmail.com"}, []string{"samirpatil9882@gmail.com"}, "Appreciaion Reported")
 	mailReq.ParseTemplate("./internal/app/email/templates/reportAppreciation.html", templateData)
 	err := mailReq.Send(plainTextContent)
@@ -269,4 +271,35 @@ func sendReportEmail(senderEmail string, senderFirstName string, senderLastName 
 		return err
 	}
 	return nil
+}
+
+func (rs *service) ResolveAppreciation(ctx context.Context, reqData dto.ModerationReq) (err error) {
+	moderatorId := ctx.Value(constants.UserId)
+	fmt.Printf("moderatorId: %T", moderatorId)
+	data, ok := moderatorId.(int64)
+	if !ok {
+		logger.Error("Error in typecasting moderator id")
+		err = apperrors.InternalServerError
+		return
+	}
+	reqData.ModeratedBy = data
+	doesExist, appreciationId, err := rs.reportAppreciationRepo.CheckResolution(ctx, reqData.ResolutionId)
+	if err != nil {
+		logger.Error(err.Error())
+		err = apperrors.InternalServerError
+		return
+	}
+	if !doesExist {
+		logger.Errorf("No such resolution exists")
+		err = apperrors.InvalidId
+		return
+	}
+	reqData.AppreciationId = appreciationId
+	err = rs.reportAppreciationRepo.ResolveAppreciation(ctx, reqData)
+	if err != nil {
+		logger.Error(err.Error())
+		err = apperrors.InternalServerError
+		return
+	}
+	return
 }

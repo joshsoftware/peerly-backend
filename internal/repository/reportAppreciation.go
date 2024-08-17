@@ -15,6 +15,7 @@ type ReportAppreciationStorer interface {
 	ListReportedAppreciations(ctx context.Context) (reportedAppreciations []ListReportedAppreciations, err error)
 	DeleteAppreciation(ctx context.Context, moderationReq dto.ModerationReq) (err error)
 	CheckResolution(ctx context.Context, id int64) (doesExist bool, appreciation_id int64, err error)
+	ResolveAppreciation(ctx context.Context, moderationReq dto.ModerationReq) (err error)
 }
 
 type Resolution struct {
@@ -27,6 +28,7 @@ type Resolution struct {
 	ModeratorComment string `json:"moderator_comment" db:"moderator_comment"`
 	ModeratedBy      int64  `json:"moderated_by" db:"moderated_by"`
 	ModeratedAt      int64  `json:"moderated_at" db:"moderated_at"`
+	Status           string `json:"status" db:"status"`
 }
 
 type ListReportedAppreciations struct {
@@ -47,4 +49,5 @@ type ListReportedAppreciations struct {
 	ModeratorComment  sql.NullString `db:"moderator_comment"`
 	ModeratedBy       sql.NullInt64  `db:"moderated_by"`
 	ModeratedAt       sql.NullInt64  `db:"moderated_at"`
+	Status            string         `db:"status" json:"status"`
 }

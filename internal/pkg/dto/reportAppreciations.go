@@ -45,6 +45,7 @@ type ReportedAppreciation struct {
 	ModeratedByFirstName string `json:"moderated_by_first_name"`
 	ModeratedByLastName  string `json:"moderated_by_last_name"`
 	ModeratedAt          int64  `json:"moderated_at"`
+	Status               string `json:"status"`
 }
 
 type MetaData struct {
