@@ -211,8 +211,6 @@ func (apprSvc *service) UpdateAppreciation(ctx context.Context) (bool, error) {
 }
 
 func sendAppreciationEmail(emailData repository.AppreciationResponse,senderEmail string,receiverEmail string) error {
-	// Plain text content
-	plainTextContent := "Samnit " + "123456"
 
 	templateData := struct {
 		SenderName    string
@@ -234,7 +232,18 @@ func sendAppreciationEmail(emailData repository.AppreciationResponse,senderEmail
 		logger.Errorf("err in creating html file : %v", err)
 		return err
 	}
-	err = mailReq.Send(plainTextContent)
+	err = mailReq.Send()
+	if err != nil {
+		logger.Errorf("err: %v", err)
+		return err
+	}
+	mailReq = email.NewMail([]string{senderEmail}, []string{}, []string{}, fmt.Sprintf("%s %s appreciated %s %s",emailData.SenderFirstName,emailData.SenderLastName,emailData.ReceiverFirstName,emailData.ReceiverLastName))
+	err = mailReq.ParseTemplate("./internal/app/email/templates/senderAppreciation.html", templateData)
+	if err != nil {
+		logger.Errorf("err: %v",err)
+		return err
+	}
+	err = mailReq.Send()
 	if err != nil {
 		logger.Errorf("err: %v", err)
 		return err
@@ -307,7 +316,7 @@ func (apprSvc *service) sendEmailForBadgeAllocation(userBadgeDetails []repositor
 			logger.Errorf("err in creating html file : %v", err)
 			return
 		}
-		err = mailReq.Send("badge allocation")
+		err = mailReq.Send()
 		if err != nil {
 			logger.Errorf("err: %v", err)
 			return

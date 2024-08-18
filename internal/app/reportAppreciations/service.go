@@ -245,8 +245,6 @@ func mapDbAppreciationsToSvcAppreciations(dbApp repository.ListReportedAppreciat
 }
 
 func sendReportEmail(senderEmail string, senderFirstName string, senderLastName string, apprSenderFirstName string, apprSenderLastName string, apprReceiverFirstName string, apprReceiverLastName string, reportingComment string) error {
-	// Plain text content
-	plainTextContent := "Samnit " + "123456"
 
 	templateData := struct {
 		SenderName               string
@@ -261,9 +259,9 @@ func sendReportEmail(senderEmail string, senderFirstName string, senderLastName 
 	}
 
 	logger.Info("report sender email: ---------> ",senderEmail)
-	mailReq := email.NewMail([]string{senderEmail}, []string{"samnitpatil@gmail.com"}, []string{"samirpatil9882@gmail.com"}, "Appreciaion Reported")
+	mailReq := email.NewMail([]string{senderEmail}, []string{}, []string{}, "Appreciaion Reported")
 	mailReq.ParseTemplate("./internal/app/email/templates/reportAppreciation.html", templateData)
-	err := mailReq.Send(plainTextContent)
+	err := mailReq.Send()
 	if err != nil {
 		logger.Errorf("err: %v", err)
 		return err
