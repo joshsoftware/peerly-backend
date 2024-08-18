@@ -676,7 +676,7 @@ func (us *service) ReportedAppreciationReport(ctx context.Context, appreciations
 	}
 
 	// Set header
-	headers := []string{"Core value", "Core value description", "Appreciation description", "Sender first name", "Sender last name", "Sender designation", "Receiver first name", "Receiver last name", "Receiver designation", "Reporting Comment", "Reported by first name", "Reported by last name", "Reported at", "Moderator comment", "Moderator first name", "Moderator last name"}
+	headers := []string{"Core value", "Core value description", "Appreciation description", "Sender first name", "Sender last name", "Sender designation", "Receiver first name", "Receiver last name", "Receiver designation", "Reporting Comment", "Reported by first name", "Reported by last name", "Reported at", "Moderator comment", "Moderator first name", "Moderator last name", "Status"}
 	for colIndex, header := range headers {
 		cell := fmt.Sprintf("%s1", string('A'+colIndex))
 		f.SetCellValue(sheetName, cell, header)
@@ -701,6 +701,7 @@ func (us *service) ReportedAppreciationReport(ctx context.Context, appreciations
 		f.SetCellValue(sheetName, fmt.Sprintf("N%d", row), app.ModeratorComment)
 		f.SetCellValue(sheetName, fmt.Sprintf("O%d", row), app.ModeratedByFirstName)
 		f.SetCellValue(sheetName, fmt.Sprintf("P%d", row), app.ModeratedByLastName)
+		f.SetCellValue(sheetName, fmt.Sprintf("Q%d", row), app.Status)
 	}
 
 	// Set the active sheet
