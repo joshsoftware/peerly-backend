@@ -204,6 +204,9 @@ func (rs *service) DeleteAppreciation(ctx context.Context, reqData dto.Moderatio
 		err = apperrors.InternalServerError
 		return
 	}
+
+	err = sendDeleteEmail("sharayumarwadi11@gmail.com", reqData.ModeratorComment)
+
 	return
 }
 
@@ -302,4 +305,25 @@ func (rs *service) ResolveAppreciation(ctx context.Context, reqData dto.Moderati
 		return
 	}
 	return
+}
+
+func sendDeleteEmail(senderEmail string, moderatingComment string) error {
+	// Plain text content
+	plainTextContent := "Samnit " + "123456"
+
+	templateData := struct {
+		ModeratingComment string
+	}{
+		ModeratingComment: moderatingComment,
+	}
+
+	logger.Info("report sender email: ---------> ", senderEmail)
+	mailReq := email.NewMail([]string{senderEmail}, []string{"samnitpatil@gmail.com"}, []string{"samirpatil9882@gmail.com"}, "Appreciaion Deleted")
+	mailReq.ParseTemplate("../email/templates/deleteAppreciation.html", templateData)
+	err := mailReq.Send(plainTextContent)
+	if err != nil {
+		logger.Errorf("err: %v", err)
+		return err
+	}
+	return nil
 }

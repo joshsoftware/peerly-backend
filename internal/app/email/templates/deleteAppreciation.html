@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete Appreciation Notification</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Nunito+Sans:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body style="font-family: 'Montserrat', sans-serif; background-color: #f0f0f0; margin: 0; padding: 0;">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" height="100%" style="background-color: #f0f0f0; padding: 20px 0;">
+        <tr>
+            <td align="center" valign="top">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="background-color: #ffffff; border-radius: 10px; box-shadow: 0 0 20px rgba(0, 0, 0, 0.1); overflow: hidden;">
+                    <tr>
+                        <td align="center" style="background-color: #4779F3; padding: 40px 20px;">
+                            <h1 style="font-family: 'Inter', sans-serif; margin: 0; font-size: 24px; font-weight: 700; color: white; line-height: 29.05px; margin-bottom: 20px;">Peerly</h1>
+                            <img src="https://pg-stage-intranet.joshsoftware.com/peerly/assets/report.png" alt="Feedback Icon" style="margin: 20px 0;">
+                            <p style="font-family: 'Montserrat', sans-serif; font-size: 24px; font-weight: 500; line-height: 29.26px; color: white; margin-top: 20px;">Appreciation reported by you has been deleted, <br>thank you for your patience</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td align="center" style="background-color: #ffffff; padding: 40px 20px;">
+                            <div style="font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 500; color: #000000; text-align: center; line-height: 19.5px;">
+                                <!-- Hi {{.ReporterName}} -->
+                                Hi
+                            </div>
+                            <div style="margin-top: 20px; font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 500; color: #000000; text-align: center; line-height: 19.5px;">
+                                Your complaint regarding the appreciation has been addresed.
+                            </div>
+                            <div style="margin-top: 20px; font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 400; color: #000000; text-align: center; line-height: 19.5px;">
+                                The appreciation reported by you has been deleted.
+                                <!-- <br>for {{.AppreciationReceiverName}} given by {{.AppreciationSenderName}} has been addressed.<br> The appreciation has been successfully deleted. -->
+                            </div>
+                            <!-- <div style="margin-top: 30px; font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 600; color: #333333; text-align: center;">
+                                Complaint received:
+                            </div>
+                            <div style="margin-top: 10px; font-family: 'Nunito Sans', sans-serif; font-size: 14px; font-weight: 400; color: #000000; text-align: center;">
+                                {{.ReportingComment}}
+                            </div> -->
+                            <div style="margin-top: 30px; font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 600; color: #333333; text-align: center;">
+                                Moderator comment:
+                            </div>
+                            <div style="margin-top: 10px; font-family: 'Nunito Sans', sans-serif; font-size: 14px; font-weight: 400; color: #000000; text-align: center;">
+                                {{.ModeratingComment}}
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
