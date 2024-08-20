@@ -38,6 +38,7 @@ func SeedData() (err error) {
 		`INSERT INTO core_values (id,name,description, parent_core_value_id) VALUES (3,'Integrity & Ethics','We uphold integrity in every action, ensuring our decisions align with the highest moral standards.',null)`,
 		`INSERT INTO core_values (id,name,description, parent_core_value_id) VALUES (4, 'Customer Focus', 'We prioritize understanding and meeting our customers'' needs, exceeding expectations with every interaction.', null)`,
 		`INSERT INTO core_values (id,name,description, parent_core_value_id) VALUES (5,'Respect','We respect individual opinions and believe in living up to and exceeding our own standards.',null)`,
+		`INSERT INTO core_values (id,name,description, parent_core_value_id) VALUES (6,'Employee Focus','We create a sense of shared purpose and understand that the power of the collective and that of the team is bigger than the individual.',null)`,
 
 		//badges
 		`INSERT INTO badges (id,name,reward_points) VALUES (1,'Bronze',1500)`,
@@ -46,8 +47,14 @@ func SeedData() (err error) {
 		`INSERT INTO badges (id,name,reward_points) VALUES (4,'Platinum',7000)`,
 
 		//users
-		`INSERT INTO users (id,employee_id,first_name,last_name,email,designation,reward_quota_balance,role_id,grade_id)
-		VALUES (1,'26','Sameer','Tilak','sameer.tilak@joshsoftware.com','Digital Head',900,1,2)`,
+		`INSERT INTO users (id,employee_id,first_name,last_name,email,password, designation,reward_quota_balance,role_id,grade_id)
+		VALUES (1,'900','Saurabh','R', 'sindhu.r@joshsoftware.com','password','Manager - HR',5000 , 1, 6)`,
+
+		`INSERT INTO users (id,employee_id,first_name,last_name,email,password, designation,reward_quota_balance,role_id,grade_id)
+		VALUES (2,'281','Saurabh','Gaji', 'saurabh.gaji@joshsoftware.com','password','Senior Executive - HRBP',3000 , 1, 8)`,
+
+		`INSERT INTO users (id,employee_id,first_name,last_name,email,password, designation,reward_quota_balance,role_id,grade_id)
+		VALUES (3,'717','SriGayathriKavya','Ruttala','srigayathri.ruttala@joshsoftware.com','password','Executive - HRBP',2000 , 1, 9)`,
 		//organization config
 		`INSERT INTO organization_config (id,reward_multiplier,reward_quota_renewal_frequency,timezone,created_by,updated_by) VALUES (1,10,1,'UTC',1,1)`,
 	}
