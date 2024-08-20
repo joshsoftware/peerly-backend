@@ -2,8 +2,11 @@ package badges
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
+	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/utils"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
@@ -12,6 +15,7 @@ import (
 
 type service struct {
 	badgesRepo repository.BadgeStorer
+	userRepo   repository.UserStorer
 }
 
 type Service interface {
@@ -19,26 +23,46 @@ type Service interface {
 	EditBadge(ctx context.Context, id string, rewardPoints int64) (err error)
 }
 
-func NewService(badgesRepo repository.BadgeStorer) Service {
+func NewService(badgesRepo repository.BadgeStorer, userRepo repository.UserStorer) Service {
 	return &service{
 		badgesRepo: badgesRepo,
+		userRepo:   userRepo,
 	}
 }
 
-func (bs *service) ListBadges(ctx context.Context) (resp []dto.Badge, err error) {
+func (bs *service) ListBadges(ctx context.Context) ([]dto.Badge, error) {
+
+	var resp []dto.Badge
+
+	fmt.Println("In list badges")
 
 	dbResp, err := bs.badgesRepo.ListBadges(ctx)
 	if err != nil {
 		logger.Error(err.Error())
 		err = apperrors.InternalServerError
+		return nil, err
 	}
 
 	for _, item := range dbResp {
-		svcItem := mapDbToSvc(item)
-		resp = append(resp, svcItem)
+		fmt.Println("updated by: ", item.UpdatedBy)
+		if item.UpdatedBy.Valid {
+			reqData := dto.GetUserByIdReq{
+				UserId:          item.UpdatedBy.Int64,
+				QuaterTimeStamp: GetQuarterStartUnixTime(),
+			}
+			user, err := bs.userRepo.GetUserById(ctx, reqData)
+			if err != nil {
+				return nil, err
+			}
+			svcItem := mapDbToSvc(item, user)
+			resp = append(resp, svcItem)
+		} else {
+			svcItem := mapDbToSvc(item, dto.GetUserByIdResp{})
+			resp = append(resp, svcItem)
+		}
 	}
 
-	return
+	return resp, nil
 
 }
 
@@ -47,6 +71,7 @@ func (gs *service) EditBadge(ctx context.Context, id string, rewardPoints int64)
 	if err != nil {
 		return
 	}
+
 	var reqData dto.UpdateBadgeReq
 	reqData.Id = badgeId
 	if rewardPoints < 0 {
@@ -55,6 +80,14 @@ func (gs *service) EditBadge(ctx context.Context, id string, rewardPoints int64)
 		return
 	}
 	reqData.RewardPoints = rewardPoints
+	userId := ctx.Value(constants.UserId)
+	data, ok := userId.(int64)
+	if !ok {
+		logger.Error("Error in typecasting user id")
+		err = apperrors.InternalServerError
+		return
+	}
+	reqData.UserId = data
 	err = gs.badgesRepo.EditBadge(ctx, reqData)
 	if err != nil {
 		logger.Error(err.Error())
@@ -64,9 +97,17 @@ func (gs *service) EditBadge(ctx context.Context, id string, rewardPoints int64)
 	return
 }
 
-func mapDbToSvc(dbResp repository.Badge) (svcResp dto.Badge) {
+func mapDbToSvc(dbResp repository.Badge, user dto.GetUserByIdResp) (svcResp dto.Badge) {
 	svcResp.Id = dbResp.Id
 	svcResp.Name = dbResp.Name
 	svcResp.RewardPoints = dbResp.RewardPoints
+	svcResp.UpdatedBy = user.FirstName + " " + user.LastName
 	return
+}
+
+func GetQuarterStartUnixTime() int64 {
+	// Example function to get the Unix timestamp of the start of the quarter
+	now := time.Now()
+	quarterStart := time.Date(now.Year(), (now.Month()-1)/3*3+1, 1, 0, 0, 0, 0, time.UTC)
+	return quarterStart.Unix() * 1000 // convert to milliseconds
 }
