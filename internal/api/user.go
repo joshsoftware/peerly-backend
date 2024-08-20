@@ -198,12 +198,20 @@ func listUsersHandler(userSvc user.Service) http.HandlerFunc {
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
+
 		names := strings.Split(req.URL.Query().Get("name"), " ")
+		self := req.URL.Query().Get("exclude_self")
+		selfBool := false
+		if self == "true" {
+			selfBool = true
+		}
 		userListReq := dto.ListUsersReq{
+			Self:     selfBool,
 			Name:     names,
 			Page:     pageInt,
 			PageSize: perPageInt,
 		}
+
 		resp, err := userSvc.ListUsers(req.Context(), userListReq)
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)

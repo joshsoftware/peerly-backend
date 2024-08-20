@@ -45,6 +45,7 @@ type AppreciationResponse struct {
 	ReceiverDesignation string `json:"receiver_designation"`
 	TotalRewards        int32  `json:"total_rewards"`
 	GivenRewardPoint    int8   `json:"given_reward_point"`
+	ReportedFlag        bool   `json:"reported_flag"`
 	CreatedAt           int64  `json:"created_at"`
 	UpdatedAt           int64  `json:"updated_at"`
 }

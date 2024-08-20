@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/Masterminds/squirrel"
@@ -182,7 +183,7 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 	queryBuilder = queryBuilder.RemoveColumns()
 	queryBuilder = queryBuilder.Columns(
 		"a.id",
-		"cv.name AS core_value_name",    fmt.Sprintf(
+		"cv.name AS core_value_name", fmt.Sprintf(
 			`COALESCE((
 				SELECT SUM(r2.point) 
 				FROM rewards r2 
@@ -233,14 +234,37 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 	queryExecutor = appr.InitiateQueryExecutor(tx)
 	res := make([]repository.AppreciationResponse, 0)
 
-	logger.Info("sp : filter: ",filter)
-	logger.Info("sp : sql: ",sql)
-	logger.Info("sp : args: ",args)
+	logger.Info("sp : filter: ", filter)
+	logger.Info("sp : sql: ", sql)
+	logger.Info("sp : args: ", args)
 	err = sqlx.Select(queryExecutor, &res, sql, args...)
 	if err != nil {
 		logger.Error("failed to execute query appreciation: ", err.Error())
-		logger.Error("err res data: ",res)
+		logger.Error("err res data: ", res)
 		return nil, repository.Pagination{}, apperrors.InternalServerError
+	}
+	id := ctx.Value(constants.UserId)
+	fmt.Println("id -> ", id)
+	userId, ok := ctx.Value(constants.UserId).(int64)
+	if !ok {
+		logger.Error("unable to convert context user id to int64")
+		return nil, repository.Pagination{}, apperrors.InternalServerError
+	}
+
+	for idx, appreciation := range res {
+		var userIds []int64
+		queryBuilder = repository.Sq.Select("reported_by").From("resolutions").Where(squirrel.Eq{"appreciation_id": appreciation.ID})
+		query, args, err := queryBuilder.ToSql()
+		if err != nil {
+			logger.Errorf("error in generating squirrel query, err: %s", err.Error())
+			return nil, repository.Pagination{}, apperrors.InternalServerError
+		}
+		err = appr.DB.SelectContext(ctx, &userIds, query, args...)
+		if err != nil {
+			logger.Errorf("error in reported flag query, err: %s", err.Error())
+			return nil, repository.Pagination{}, apperrors.InternalServerError
+		}
+		res[idx].ReportedFlag = slices.Contains(userIds, userId)
 	}
 
 	return res, pagination, nil
@@ -327,7 +351,7 @@ FROM (
     JOIN grades g ON u.grade_id = g.id
     WHERE a.is_valid = true
       AND r.created_at >= EXTRACT(EPOCH FROM TIMESTAMP 'yesterday'::TIMESTAMP) * 1000
-     AND r.created_at >= EXTRACT(EPOCH FROM TIMESTAMP 'today'::TIMESTAMP) * 1000
+     AND r.created_at < EXTRACT(EPOCH FROM TIMESTAMP 'today'::TIMESTAMP) * 1000
     GROUP BY appreciation_id
 ) AS agg
 WHERE app.id = agg.appreciation_id;
@@ -437,7 +461,7 @@ JOIN
 	var userBadgeDetails []repository.UserBadgeDetails
 	for rows.Next() {
 		var detail repository.UserBadgeDetails
-		if err := rows.Scan(&detail.ID,&detail.Email, &detail.FirstName, &detail.LastName, &detail.BadgeID,&detail.BadgeName, &detail.BadgePoints); err != nil {
+		if err := rows.Scan(&detail.ID, &detail.Email, &detail.FirstName, &detail.LastName, &detail.BadgeID, &detail.BadgeName, &detail.BadgePoints); err != nil {
 			return []repository.UserBadgeDetails{}, err
 		}
 		userBadgeDetails = append(userBadgeDetails, detail)

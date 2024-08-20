@@ -50,7 +50,7 @@ func (us *userStore) GetUserByEmail(ctx context.Context, email string) (user rep
 	queryBuilder := repository.Sq.Select(userColumns...).From(us.UsersTable).Where(squirrel.Like{"email": email})
 	getUserByEmailQuery, args, err := queryBuilder.ToSql()
 	if err != nil {
-		logger.Errorf("error in generating squirrel query, err: %s", err.Error())
+		logger.Errorf("error in generating query, err: %s", err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
@@ -82,7 +82,7 @@ func (us *userStore) GetRoleByName(ctx context.Context, name string) (roleId int
 
 	getRoleByNameQuery, args, err := queryBuilder.ToSql()
 	if err != nil {
-		err = fmt.Errorf("error in generating squirrel query, err: %w", err)
+		err = fmt.Errorf("error in generating query, err: %w", err)
 		return
 	}
 
@@ -101,7 +101,7 @@ func (us *userStore) CreateNewUser(ctx context.Context, user dto.User) (resp rep
 
 	createUser, args, err := queryBuilder.ToSql()
 	if err != nil {
-		err = fmt.Errorf("error in generating squirrel query, err: %w", err)
+		err = fmt.Errorf("error in generating query, err: %w", err)
 		return
 	}
 
@@ -126,7 +126,7 @@ func (us *userStore) GetGradeByName(ctx context.Context, name string) (grade rep
 	queryBuilder := repository.Sq.Select(gradeColumns...).From(us.GradesTable).Where(squirrel.Like{"name": name})
 	getGradeId, args, err := queryBuilder.ToSql()
 	if err != nil {
-		logger.Errorf("error in generating squirrel query, err: %s", err)
+		logger.Errorf("error in generating query, err: %s", err)
 		err = apperrors.InternalServerError
 		return
 	}
@@ -149,7 +149,7 @@ func (us *userStore) GetRewardMultiplier(ctx context.Context) (value int64, err 
 	queryBuilder := repository.Sq.Select(orgConfigColumns...).From(us.OrgConfigTable).Where(squirrel.Eq{"id": 1})
 	getRewardMultiplier, args, err := queryBuilder.ToSql()
 	if err != nil {
-		err = fmt.Errorf("error in generating squirrel query, err: %w", err)
+		err = fmt.Errorf("error in generating query, err: %w", err)
 		return
 	}
 
@@ -177,7 +177,7 @@ func (us *userStore) SyncData(ctx context.Context, updateData dto.User) (err err
 
 	updateUserQuery, args, err := queryBuilder.ToSql()
 	if err != nil {
-		err = fmt.Errorf("error in generating squirrel query, err: %w", err)
+		err = fmt.Errorf("error in generating query, err: %w", err)
 		return
 	}
 
@@ -211,7 +211,7 @@ func (us *userStore) GetTotalUserCount(ctx context.Context, reqData dto.ListUser
 
 	getUserCountQuery, args, err := queryBuilder.ToSql()
 	if err != nil {
-		err = fmt.Errorf("error in generating squirrel query, err: %w", err)
+		err = fmt.Errorf("error in generating query, err: %w", err)
 		return
 	}
 
@@ -244,7 +244,7 @@ func (us *userStore) ListUsers(ctx context.Context, reqData dto.ListUsersReq) (r
 
 	listUsersQuery, args, err := queryBuilder.ToSql()
 	if err != nil {
-		err = fmt.Errorf("error in generating squirrel query, err: %w", err)
+		err = fmt.Errorf("error in generating query, err: %w", err)
 		return
 	}
 

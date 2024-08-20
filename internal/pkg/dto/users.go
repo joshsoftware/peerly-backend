@@ -102,6 +102,7 @@ type ListIntranetUsersRespData struct {
 }
 
 type ListUsersReq struct {
+	Self     bool
 	Page     int64
 	PageSize int64
 	Name     []string
