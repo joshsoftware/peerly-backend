@@ -48,13 +48,14 @@ func SeedData() (err error) {
 
 		//users
 		`INSERT INTO users (id,employee_id,first_name,last_name,email,password, designation,reward_quota_balance,role_id,grade_id)
-		VALUES (1,'900','Saurabh','R', 'sindhu.r@joshsoftware.com','password','Manager - HR',5000 , 1, 6)`,
+		VALUES (1,'900','Sindhu','R', 'sindhu.r@joshsoftware.com','$2a$14$5smJBNxiWYKDy2WK0tzo7OggboToB/lr2jM9Q6qSI63gHMr08/212','Manager - HR',5000 , 2, 6)`,
 
 		`INSERT INTO users (id,employee_id,first_name,last_name,email,password, designation,reward_quota_balance,role_id,grade_id)
-		VALUES (2,'281','Saurabh','Gaji', 'saurabh.gaji@joshsoftware.com','password','Senior Executive - HRBP',3000 , 1, 8)`,
+		VALUES (2,'281','Saurabh','Gaji', 'saurabh.gaji@joshsoftware.com','$2a$14$5smJBNxiWYKDy2WK0tzo7OggboToB/lr2jM9Q6qSI63gHMr08/212','Senior Executive - HRBP',3000 , 2, 8)`,
 
 		`INSERT INTO users (id,employee_id,first_name,last_name,email,password, designation,reward_quota_balance,role_id,grade_id)
-		VALUES (3,'717','SriGayathriKavya','Ruttala','srigayathri.ruttala@joshsoftware.com','password','Executive - HRBP',2000 , 1, 9)`,
+		VALUES (3,'717','SriGayathriKavya','Ruttala','srigayathri.ruttala@joshsoftware.com','$2a$14$5smJBNxiWYKDy2WK0tzo7OggboToB/lr2jM9Q6qSI63gHMr08/212','Executive - HRBP',2000 , 2, 9)`,
+
 		//organization config
 		`INSERT INTO organization_config (id,reward_multiplier,reward_quota_renewal_frequency,timezone,created_by,updated_by) VALUES (1,10,1,'UTC',1,1)`,
 	}
