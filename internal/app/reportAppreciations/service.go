@@ -186,18 +186,13 @@ func (rs *service) DeleteAppreciation(ctx context.Context, reqData dto.Moderatio
 		return
 	}
 	reqData.ModeratedBy = data
-	doesExist, appreciationId, err := rs.reportAppreciationRepo.CheckResolution(ctx, reqData.ResolutionId)
+
+	appreciation, err := rs.reportAppreciationRepo.GetResolution(ctx, reqData.ResolutionId)
 	if err != nil {
-		logger.Error(err.Error())
-		err = apperrors.InternalServerError
 		return
 	}
-	if !doesExist {
-		logger.Errorf("No such resolution exists")
-		err = apperrors.InvalidId
-		return
-	}
-	reqData.AppreciationId = appreciationId
+
+	reqData.AppreciationId = appreciation.Appreciation_id
 	err = rs.reportAppreciationRepo.DeleteAppreciation(ctx, reqData)
 	if err != nil {
 		logger.Error(err.Error())
@@ -205,7 +200,47 @@ func (rs *service) DeleteAppreciation(ctx context.Context, reqData dto.Moderatio
 		return
 	}
 
-	err = sendDeleteEmail("sharayumarwadi11@gmail.com", reqData.ModeratorComment)
+	senderDataReq := dto.GetUserByIdReq{
+		UserId:          appreciation.Sender,
+		QuaterTimeStamp: GetQuarterStartUnixTime(),
+	}
+
+	sender, err := rs.userRepo.GetUserById(ctx, senderDataReq)
+	if err != nil {
+		return
+	}
+
+	receiverDataReq := dto.GetUserByIdReq{
+		UserId:          appreciation.Receiver,
+		QuaterTimeStamp: GetQuarterStartUnixTime(),
+	}
+
+	receiver, err := rs.userRepo.GetUserById(ctx, receiverDataReq)
+	if err != nil {
+		return
+	}
+
+	reporterDataReq := dto.GetUserByIdReq{
+		UserId:          appreciation.ReportedBy,
+		QuaterTimeStamp: GetQuarterStartUnixTime(),
+	}
+
+	reporter, err := rs.userRepo.GetUserById(ctx, reporterDataReq)
+	if err != nil {
+		return
+	}
+
+	templateData := dto.DeleteAppreciationMail{
+		ModeratorComment: reqData.ModeratorComment,
+		AppreciationBy:   sender.FirstName + " " + sender.LastName,
+		AppreciationTo:   receiver.FirstName + " " + receiver.LastName,
+		ReportingComment: appreciation.ReportingComment,
+		AppreciationDesc: appreciation.AppreciationDesc,
+	}
+
+	fmt.Println("Reporter mail: ", reporter.Email)
+	err = sendDeleteEmail(reporter.Email, templateData)
+	// err = sendDeleteEmail("sharayumarwadi11@gmail.com", templateData)
 
 	return
 }
@@ -286,40 +321,84 @@ func (rs *service) ResolveAppreciation(ctx context.Context, reqData dto.Moderati
 		return
 	}
 	reqData.ModeratedBy = data
-	doesExist, appreciationId, err := rs.reportAppreciationRepo.CheckResolution(ctx, reqData.ResolutionId)
+	appreciation, err := rs.reportAppreciationRepo.GetResolution(ctx, reqData.ResolutionId)
 	if err != nil {
-		logger.Error(err.Error())
-		err = apperrors.InternalServerError
 		return
 	}
-	if !doesExist {
-		logger.Errorf("No such resolution exists")
-		err = apperrors.InvalidId
-		return
-	}
-	reqData.AppreciationId = appreciationId
+
+	reqData.AppreciationId = appreciation.Appreciation_id
 	err = rs.reportAppreciationRepo.ResolveAppreciation(ctx, reqData)
 	if err != nil {
 		logger.Error(err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
+
+	senderDataReq := dto.GetUserByIdReq{
+		UserId:          appreciation.Sender,
+		QuaterTimeStamp: GetQuarterStartUnixTime(),
+	}
+
+	sender, err := rs.userRepo.GetUserById(ctx, senderDataReq)
+	if err != nil {
+		return
+	}
+
+	receiverDataReq := dto.GetUserByIdReq{
+		UserId:          appreciation.Receiver,
+		QuaterTimeStamp: GetQuarterStartUnixTime(),
+	}
+
+	receiver, err := rs.userRepo.GetUserById(ctx, receiverDataReq)
+	if err != nil {
+		return
+	}
+
+	reporterDataReq := dto.GetUserByIdReq{
+		UserId:          appreciation.ReportedBy,
+		QuaterTimeStamp: GetQuarterStartUnixTime(),
+	}
+
+	reporter, err := rs.userRepo.GetUserById(ctx, reporterDataReq)
+	if err != nil {
+		return
+	}
+
+	templateData := dto.ResolveAppreciationMail{
+		ModeratorComment: reqData.ModeratorComment,
+		AppreciationBy:   sender.FirstName + " " + sender.LastName,
+		AppreciationTo:   receiver.FirstName + " " + receiver.LastName,
+		ReportingComment: appreciation.ReportingComment,
+		AppreciationDesc: appreciation.AppreciationDesc,
+	}
+
+	fmt.Println("Reporter mail: ", reporter.Email)
+	err = sendResolveEmail(reporter.Email, templateData)
 	return
 }
 
-func sendDeleteEmail(senderEmail string, moderatingComment string) error {
+func sendDeleteEmail(senderEmail string, templateData dto.DeleteAppreciationMail) error {
 	// Plain text content
 	plainTextContent := "Samnit " + "123456"
 
-	templateData := struct {
-		ModeratingComment string
-	}{
-		ModeratingComment: moderatingComment,
+	logger.Info("report sender email: ---------> ", senderEmail)
+	mailReq := email.NewMail([]string{senderEmail}, []string{"sharyu.marwadi@joshsoftware.com"}, []string{}, "Appreciaion Deleted")
+	mailReq.ParseTemplate("./internal/app/email/templates/deleteAppreciation.html", templateData)
+	err := mailReq.Send(plainTextContent)
+	if err != nil {
+		logger.Errorf("err: %v", err)
+		return err
 	}
+	return nil
+}
+
+func sendResolveEmail(senderEmail string, templateData dto.ResolveAppreciationMail) error {
+	// Plain text content
+	plainTextContent := "Samnit " + "123456"
 
 	logger.Info("report sender email: ---------> ", senderEmail)
-	mailReq := email.NewMail([]string{senderEmail}, []string{"samnitpatil@gmail.com"}, []string{"samirpatil9882@gmail.com"}, "Appreciaion Deleted")
-	mailReq.ParseTemplate("../email/templates/deleteAppreciation.html", templateData)
+	mailReq := email.NewMail([]string{senderEmail}, []string{"sharyu.marwadi@joshsoftware.com"}, []string{}, "Appreciaion Resolved")
+	mailReq.ParseTemplate("./internal/app/email/templates/resolveAppreciation.html", templateData)
 	err := mailReq.Send(plainTextContent)
 	if err != nil {
 		logger.Errorf("err: %v", err)

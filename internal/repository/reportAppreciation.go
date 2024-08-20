@@ -16,6 +16,7 @@ type ReportAppreciationStorer interface {
 	DeleteAppreciation(ctx context.Context, moderationReq dto.ModerationReq) (err error)
 	CheckResolution(ctx context.Context, id int64) (doesExist bool, appreciation_id int64, err error)
 	ResolveAppreciation(ctx context.Context, moderationReq dto.ModerationReq) (err error)
+	GetResolution(ctx context.Context, id int64) (reportedAppreciation ListReportedAppreciations, err error)
 }
 
 type Resolution struct {

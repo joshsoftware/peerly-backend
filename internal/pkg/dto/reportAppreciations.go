@@ -66,3 +66,19 @@ type ModerationReq struct {
 	ModeratorComment string `json:"moderator_comment"`
 	ModeratedBy      int64
 }
+
+type DeleteAppreciationMail struct {
+	ModeratorComment string
+	AppreciationBy   string
+	AppreciationTo   string
+	ReportingComment string
+	AppreciationDesc string
+}
+
+type ResolveAppreciationMail struct {
+	ModeratorComment string
+	AppreciationBy   string
+	AppreciationTo   string
+	ReportingComment string
+	AppreciationDesc string
+}
