@@ -39,9 +39,9 @@ func SeedData() (err error) {
 
 		`INSERT INTO core_values (id,name,description, parent_core_value_id) VALUES (3,'Integrity & Ethics','We uphold integrity in every action, ensuring our decisions align with the highest moral standards.',null)`,
 
-		`INSERT INTO core_values (id,name,description, parent_core_value_id) VALUES (4, 'Customer Focus', 'We prioritize understanding and meeting our customers'' needs, exceeding expectations with every interaction.', null)`,
+		`INSERT INTO core_values (id,name,description, parent_core_value_id) VALUES (4,'Employee Focus','We create a sense of shared purpose and understand that the power of the collective and that of the team is bigger than the individual.',null)`,
 
-		`INSERT INTO core_values (id,name,description, parent_core_value_id) VALUES (5,'Employee Focus','We create a sense of shared purpose and understand that the power of the collective and that of the team is bigger than the individual.',null)`,
+		`INSERT INTO core_values (id,name,description, parent_core_value_id) VALUES (5, 'Customer Focus', 'We prioritize understanding and meeting our customers'' needs, exceeding expectations with every interaction.', null)`,
 
 		`INSERT INTO core_values (id,name,description, parent_core_value_id) VALUES (6,'Technical Excellence','We are committed to delivering excellence in every product, service, and experience we provide, striving for continuous improvement.',null)`,
 
