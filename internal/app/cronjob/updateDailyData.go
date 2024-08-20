@@ -13,8 +13,8 @@ const DAILY_JOB = "DAILY_JOB"
 const SAY_HELLO_DAILY_CRON_JOB_INTERVAL_DAYS = 1
 
 var SayHelloDailyJobTiming = JobTime{
-	hours:   13,
-	minutes: 56,
+	hours:   00,
+	minutes: 00,
 	seconds: 00,
 }
 
@@ -37,6 +37,7 @@ func NewDailyJob(
 }
 
 func (cron *DailyJob) Schedule() {
+	
 	var err error
 	cron.job, err = cron.scheduler.NewJob(
 		gocron.DailyJob(
