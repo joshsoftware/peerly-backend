@@ -177,8 +177,12 @@ func listUsersHandler(userSvc user.Service) http.HandlerFunc {
 		names := strings.Split(req.URL.Query().Get("name"), " ")
 		self := req.URL.Query().Get("exclude_self")
 		selfBool := false
-		if self == "true" {
-			selfBool = true
+		if self != "" {
+			selfBool, err = strconv.ParseBool(self)
+			if err != nil {
+				logger.Errorf("error in selfBool, err: %v", err)
+				selfBool = false
+			}
 		}
 		userListReq := dto.ListUsersReq{
 			Self:     selfBool,

@@ -308,15 +308,12 @@ func (us *service) ListUsers(ctx context.Context, reqData dto.ListUsersReq) (res
 	var users []dto.UserDetails
 
 	for _, dbUser := range dbResp {
-		if reqData.Self {
-			if dbUser.Id != userId {
-				user := mapDbUserToUserListResp(dbUser)
-				users = append(users, user)
-			}
-		} else {
-			user := mapDbUserToUserListResp(dbUser)
-			users = append(users, user)
+		if reqData.Self && dbUser.Id == userId {
+			continue
 		}
+		user := mapDbUserToUserListResp(dbUser)
+		users = append(users, user)
+
 	}
 
 	if reqData.Self && totalCount > 0 {
