@@ -46,10 +46,10 @@ func SeedData() (err error) {
 		`INSERT INTO core_values (id,name,description, parent_core_value_id) VALUES (6,'Technical Excellence','We are committed to delivering excellence in every product, service, and experience we provide, striving for continuous improvement.',null)`,
 
 		//badges
-		`INSERT INTO badges (id,name,reward_points) VALUES (1,'Bronze',1500)`,
-		`INSERT INTO badges (id,name,reward_points) VALUES (2,'Silver',3000)`,
-		`INSERT INTO badges (id,name,reward_points) VALUES (3,'Gold',5000)`,
-		`INSERT INTO badges (id,name,reward_points) VALUES (4,'Platinum',7000)`,
+		`INSERT INTO badges (id,name,reward_points) VALUES (1,'Bronze',3000)`,
+		`INSERT INTO badges (id,name,reward_points) VALUES (2,'Silver',7500)`,
+		`INSERT INTO badges (id,name,reward_points) VALUES (3,'Gold',10000)`,
+		`INSERT INTO badges (id,name,reward_points) VALUES (4,'Platinum',15000)`,
 
 		//users
 		`INSERT INTO users (id,employee_id,first_name,last_name,email,password, designation,reward_quota_balance,role_id,grade_id)
