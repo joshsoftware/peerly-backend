@@ -8,6 +8,7 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
+	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
 	logger "github.com/sirupsen/logrus"
@@ -29,11 +30,10 @@ type userStore struct {
 func NewUserRepo(db *sqlx.DB) repository.UserStorer {
 	return &userStore{
 		BaseRepository: BaseRepository{db},
-		UserTable:      "users",
-		UsersTable:     "users",
-		GradesTable:    "grades",
-		RolesTable:     "roles",
-		OrgConfigTable: "organization_config",
+		UsersTable:     constants.UsersTable,
+		GradesTable:    constants.GradesTable,
+		RolesTable:     constants.RolesTable,
+		OrgConfigTable: constants.OrganizationConfigTable,
 	}
 }
 
@@ -41,7 +41,6 @@ var (
 	userColumns      = []string{"id", "employee_id", "first_name", "last_name", "email", "profile_image_url", "role_id", "reward_quota_balance", "designation", "grade_id"}
 	adminColumns     = []string{"id", "employee_id", "first_name", "last_name", "email", "password", "profile_image_url", "role_id", "reward_quota_balance", "designation", "grade_id"}
 	rolesColumns     = []string{"id"}
-	gradeColumns     = []string{"id", "name", "points"}
 	orgConfigColumns = []string{"reward_multiplier"}
 )
 
@@ -51,7 +50,7 @@ func (us *userStore) GetUserByEmail(ctx context.Context, email string) (user rep
 	queryBuilder := repository.Sq.Select(userColumns...).From(us.UsersTable).Where(squirrel.Like{"email": email})
 	getUserByEmailQuery, args, err := queryBuilder.ToSql()
 	if err != nil {
-		logger.Errorf("error in generating squirrel query, err: %s", err.Error())
+		logger.Errorf("error in generating query, err: %s", err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
@@ -83,7 +82,7 @@ func (us *userStore) GetRoleByName(ctx context.Context, name string) (roleId int
 
 	getRoleByNameQuery, args, err := queryBuilder.ToSql()
 	if err != nil {
-		err = fmt.Errorf("error in generating squirrel query, err: %w", err)
+		err = fmt.Errorf("error in generating query, err: %w", err)
 		return
 	}
 
@@ -102,7 +101,7 @@ func (us *userStore) CreateNewUser(ctx context.Context, user dto.User) (resp rep
 
 	createUser, args, err := queryBuilder.ToSql()
 	if err != nil {
-		err = fmt.Errorf("error in generating squirrel query, err: %w", err)
+		err = fmt.Errorf("error in generating query, err: %w", err)
 		return
 	}
 
@@ -127,7 +126,7 @@ func (us *userStore) GetGradeByName(ctx context.Context, name string) (grade rep
 	queryBuilder := repository.Sq.Select(gradeColumns...).From(us.GradesTable).Where(squirrel.Like{"name": name})
 	getGradeId, args, err := queryBuilder.ToSql()
 	if err != nil {
-		logger.Errorf("error in generating squirrel query, err: %s", err)
+		logger.Errorf("error in generating query, err: %s", err)
 		err = apperrors.InternalServerError
 		return
 	}
@@ -150,7 +149,7 @@ func (us *userStore) GetRewardMultiplier(ctx context.Context) (value int64, err 
 	queryBuilder := repository.Sq.Select(orgConfigColumns...).From(us.OrgConfigTable).Where(squirrel.Eq{"id": 1})
 	getRewardMultiplier, args, err := queryBuilder.ToSql()
 	if err != nil {
-		err = fmt.Errorf("error in generating squirrel query, err: %w", err)
+		err = fmt.Errorf("error in generating query, err: %w", err)
 		return
 	}
 
@@ -178,7 +177,7 @@ func (us *userStore) SyncData(ctx context.Context, updateData dto.User) (err err
 
 	updateUserQuery, args, err := queryBuilder.ToSql()
 	if err != nil {
-		err = fmt.Errorf("error in generating squirrel query, err: %w", err)
+		err = fmt.Errorf("error in generating query, err: %w", err)
 		return
 	}
 
@@ -198,15 +197,13 @@ func (us *userStore) SyncData(ctx context.Context, updateData dto.User) (err err
 
 }
 
-func (us *userStore) GetTotalUserCount(ctx context.Context, reqData dto.UserListReq) (totalCount int64, err error) {
+func (us *userStore) GetTotalUserCount(ctx context.Context, reqData dto.ListUsersReq) (totalCount int64, err error) {
 
-	queryBuilder := repository.Sq.Select("count(*)").From("users")
+	queryBuilder := repository.Sq.Select("count(*)").From(us.UsersTable)
 	conditions := []squirrel.Sqlizer{}
 	for _, name := range reqData.Name {
-		if name != "" {
-			conditions = append(conditions, squirrel.Like{"lower(first_name)": "%" + name + "%"})
-			conditions = append(conditions, squirrel.Like{"lower(last_name)": "%" + name + "%"})
-		}
+		conditions = append(conditions, squirrel.Like{"lower(first_name)": "%" + name + "%"})
+		conditions = append(conditions, squirrel.Like{"lower(last_name)": "%" + name + "%"})
 	}
 	if len(conditions) > 0 {
 		queryBuilder = queryBuilder.Where(squirrel.Or(conditions))
@@ -214,13 +211,11 @@ func (us *userStore) GetTotalUserCount(ctx context.Context, reqData dto.UserList
 
 	getUserCountQuery, args, err := queryBuilder.ToSql()
 	if err != nil {
-		err = fmt.Errorf("error in generating squirrel query, err: %w", err)
+		err = fmt.Errorf("error in generating query, err: %w", err)
 		return
 	}
 
-	var resp []int64
-
-	err = us.DB.Select(&resp, getUserCountQuery, args...)
+	err = us.DB.GetContext(ctx, &totalCount, getUserCountQuery, args...)
 	if err != nil {
 		err = fmt.Errorf("error in getUserCountQuery, err:%w", err)
 		return
@@ -228,15 +223,18 @@ func (us *userStore) GetTotalUserCount(ctx context.Context, reqData dto.UserList
 	return
 }
 
-func (us *userStore) ListUsers(ctx context.Context, reqData dto.UserListReq) (resp []repository.User, err error) {
+func (us *userStore) ListUsers(ctx context.Context, reqData dto.ListUsersReq) (resp []repository.User, count int64, err error) {
 
-	queryBuilder := repository.Sq.Select(userColumns...).From(us.UsersTable)
+	count, err = us.GetTotalUserCount(ctx, reqData)
+	if err != nil {
+		return
+	}
+
+	queryBuilder := repository.Sq.Select(userColumns...).From(us.UsersTable).OrderBy("first_name")
 	conditions := []squirrel.Sqlizer{}
 	for _, name := range reqData.Name {
-		if name != "" {
-			conditions = append(conditions, squirrel.Like{"lower(first_name)": "%" + name + "%"})
-			conditions = append(conditions, squirrel.Like{"lower(last_name)": "%" + name + "%"})
-		}
+		conditions = append(conditions, squirrel.Like{"lower(first_name)": "%" + name + "%"})
+		conditions = append(conditions, squirrel.Like{"lower(last_name)": "%" + name + "%"})
 	}
 	if len(conditions) > 0 {
 		queryBuilder = queryBuilder.Where(squirrel.Or(conditions))
@@ -246,8 +244,7 @@ func (us *userStore) ListUsers(ctx context.Context, reqData dto.UserListReq) (re
 
 	listUsersQuery, args, err := queryBuilder.ToSql()
 	if err != nil {
-		logger.Errorf("error in generating squirrel query, err: %s", err.Error())
-		err = apperrors.InternalServerError
+		err = fmt.Errorf("error in generating query, err: %w", err)
 		return
 	}
 
@@ -258,8 +255,7 @@ func (us *userStore) ListUsers(ctx context.Context, reqData dto.UserListReq) (re
 			err = nil
 			return
 		}
-		logger.Errorf("error in fetching users from database, err: %s", err.Error())
-		err = apperrors.InternalServerError
+		err = fmt.Errorf("error in fetching users from database, err: %w", err)
 		return
 	}
 
@@ -329,7 +325,7 @@ LEFT JOIN
      WHERE ub.id = (SELECT MAX(id) FROM user_badges WHERE user_id = ub.user_id)) AS b ON u.id = b.user_id
 LIMIT 10;
 `
-	logger.Info("afterTime: ",afterTime)
+	logger.Info("afterTime: ", afterTime)
 
 	rows, err := queryExecutor.Query(query, afterTime, afterTime, afterTime)
 	if err != nil {
@@ -442,7 +438,7 @@ func (us *userStore) GetTop10Users(ctx context.Context, quarterTimestamp int64) 
 		return
 	}
 
-	getUserBadge := `select badges.name from badges join user_badges on user_badges.badge_id = badges.id where user_badges.user_id = $1 and created_at >= $2 group by badges.id, user_badges.created_at  order by created_at desc limit 1`
+	getUserBadge := `select badges.name from badges join user_badges on user_badges.badge_id = badges.id where user_badges.user_id = $1 and created_at >= $2 group by badges.id, user_badges.created_at, user_badges.badge_id order by user_badges.badge_id desc limit 1`
 
 	for i, user := range users {
 		var badge []sql.NullString
@@ -495,24 +491,24 @@ func (us *userStore) GetAdmin(ctx context.Context, email string) (user repositor
 	return
 }
 
-func (us *userStore) AddDeviceToken(ctx context.Context,userID int64,notificationToken string)(err error){
+func (us *userStore) AddDeviceToken(ctx context.Context, userID int64, notificationToken string) (err error) {
 
-	if notificationToken == ""{
+	if notificationToken == "" {
 		return nil
 	}
 	insertQuery, args, err := repository.Sq.
-	Insert("notification_tokens").Columns("user_id","notification_token").
-	Values(userID,notificationToken).
-	Suffix("RETURNING id,user_id,notification_token").
-	ToSql()
+		Insert("notification_tokens").Columns("user_id", "notification_token").
+		Values(userID, notificationToken).
+		Suffix("RETURNING id,user_id,notification_token").
+		ToSql()
 	if err != nil {
 		logger.Errorf("error in generating squirrel query, err: %v", err)
 		return apperrors.InternalServerError
 	}
 
-	type Device struct{
-		ID int32 `db:"id"`
-		UserID int64 `db:"user_id"`
+	type Device struct {
+		ID                int32  `db:"id"`
+		UserID            int64  `db:"user_id"`
 		NotificationToken string `db:"notification_token"`
 	}
 
@@ -531,11 +527,14 @@ func (us *userStore) AddDeviceToken(ctx context.Context,userID int64,notificatio
 }
 
 func (us *userStore) ListDeviceTokensByUserID(ctx context.Context, userID int64) (notificationTokens []string, err error) {
-    notificationTokenQuery := "SELECT notification_token FROM notification_tokens WHERE user_id = $1"
-    err = us.DB.Select(&notificationTokens, notificationTokenQuery, userID)
-    if err != nil {
-        err = fmt.Errorf("error in ListDeviceTokensByUserID: %w", err)
-        return
-    }
-    return
+	notificationTokenQuery := "SELECT notification_token FROM notification_tokens WHERE user_id = $1"
+	err = us.DB.Select(&notificationTokens, notificationTokenQuery, userID)
+	if err != nil {
+		err = fmt.Errorf("error in ListDeviceTokensByUserID: %w", err)
+		return
+	}
+	if len(notificationTokens) <= 0 {
+		fmt.Println("notification tokens: ", notificationTokens)
+	}
+	return
 }

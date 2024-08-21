@@ -87,7 +87,7 @@ func TestLoginUser(t *testing.T) {
 					Data: dto.IntranetValidateApiData{},
 				}, apperrors.IntranetValidationFailed).Once()
 			},
-			expectedStatusCode: http.StatusUnauthorized,
+			expectedStatusCode: http.StatusBadRequest,
 		},
 		{
 			name:      "Intranet get user api faliure",
@@ -319,7 +319,7 @@ func TestListUsersHandler(t *testing.T) {
 		name               string
 		authToken          string
 		page               string
-		per_page           string
+		page_size          string
 		paramName          string
 		setup              func(mock *mocks.Service)
 		expectedStatusCode int
@@ -328,10 +328,34 @@ func TestListUsersHandler(t *testing.T) {
 			name:      "Success for get user list",
 			authToken: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjo2fQ.XaYo0qdBCdDh1-nEeuUSdTbtp0enWFIySKnw-oQpTBg",
 			page:      "1",
-			per_page:  "10",
-			paramName: "sharyu%20marwadi",
+			page_size: "2",
+			paramName: "Shubham Kumar",
 			setup: func(mockSvc *mocks.Service) {
-				mockSvc.On("ListUsers", mock.Anything, mock.Anything).Return(dto.UserListWithMetadata{}, nil).Once()
+				mockSvc.On("ListUsers", mock.Anything, dto.ListUsersReq{
+					Page:     1,
+					PageSize: 2,
+					Name:     []string{"Shubham", "Kumar"},
+				}).Return(dto.ListUsersResp{
+					UserList: []dto.UserDetails{
+						{
+							Id:        9,
+							Email:     "aditya.kumar@joshsoftware.com",
+							FirstName: "Aditya",
+							LastName:  "Kumar",
+						},
+						{
+							Id:        13,
+							Email:     "akansha.kumari@joshsoftware.com",
+							FirstName: "Akansha",
+							LastName:  "Kumari",
+						},
+					},
+					MetaData: dto.PageToken{
+						CurrentPage:  1,
+						TotalPage:    10,
+						PageSize:     2,
+						TotalRecords: 19,
+					}}, nil).Once()
 			},
 			expectedStatusCode: http.StatusOK,
 		},
@@ -339,10 +363,14 @@ func TestListUsersHandler(t *testing.T) {
 			name:      "Internal server error",
 			authToken: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjo2fQ.XaYo0qdBCdDh1-nEeuUSdTbtp0enWFIySKnw-oQpTBg",
 			page:      "1",
-			per_page:  "10",
-			paramName: "sharyu%20marwadi",
+			page_size: "10",
+			paramName: "sharyu%20Marwadi",
 			setup: func(mockSvc *mocks.Service) {
-				mockSvc.On("ListUsers", mock.Anything, mock.Anything).Return(dto.UserListWithMetadata{}, apperrors.InternalServerError).Once()
+				mockSvc.On("ListUsers", mock.Anything, dto.ListUsersReq{
+					Page:     1,
+					PageSize: 10,
+					Name:     []string{"sharyu", "Marwadi"},
+				}).Return(dto.ListUsersResp{}, apperrors.InternalServerError).Once()
 			},
 			expectedStatusCode: http.StatusInternalServerError,
 		},
@@ -350,7 +378,7 @@ func TestListUsersHandler(t *testing.T) {
 			name:               "Page param not found",
 			authToken:          "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjo2fQ.XaYo0qdBCdDh1-nEeuUSdTbtp0enWFIySKnw-oQpTBg",
 			page:               "",
-			per_page:           "10",
+			page_size:          "10",
 			paramName:          "sharyu%20marwadi",
 			setup:              func(mockSvc *mocks.Service) {},
 			expectedStatusCode: http.StatusNotFound,
@@ -361,13 +389,13 @@ func TestListUsersHandler(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			test.setup(userSvc)
 
-			req, err := http.NewRequest("GET", fmt.Sprintf("/users/all?name=%s&page=%s&per_page=%s", test.name, test.page, test.per_page), bytes.NewBuffer([]byte("")))
+			req, err := http.NewRequest("GET", fmt.Sprintf("/users/all?name=%s&page=%s&page_size=%s", test.paramName, test.page, test.page_size), bytes.NewBuffer([]byte("")))
 			if err != nil {
 				t.Fatal(err)
 				return
 			}
 			if test.page == "" {
-				req, err = http.NewRequest("GET", fmt.Sprintf("/users/all?name=%s&per_page=%s", test.name, test.per_page), bytes.NewBuffer([]byte("")))
+				req, err = http.NewRequest("GET", fmt.Sprintf("/users/all?name=%s&page_size=%s", test.paramName, test.page_size), bytes.NewBuffer([]byte("")))
 				if err != nil {
 					t.Fatal(err)
 					return

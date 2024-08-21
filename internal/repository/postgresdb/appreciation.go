@@ -4,7 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"slices"
 	"strings"
+	"time"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
@@ -94,7 +96,7 @@ func (appr *appreciationsStore) GetAppreciationById(ctx context.Context, tx repo
 		"COUNT(r.id) AS total_rewards",
 		fmt.Sprintf(
 			`COALESCE((
-				SELECT r2.point 
+				SELECT SUM(r2.point) 
 				FROM rewards r2 
 				WHERE r2.appreciation_id = a.id AND r2.sender = %d
 			), 0) AS given_reward_point`, userID),
@@ -182,7 +184,12 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 	queryBuilder = queryBuilder.RemoveColumns()
 	queryBuilder = queryBuilder.Columns(
 		"a.id",
-		"cv.name AS core_value_name",
+		"cv.name AS core_value_name", fmt.Sprintf(
+			`COALESCE((
+				SELECT SUM(r2.point) 
+				FROM rewards r2 
+				WHERE r2.appreciation_id = a.id AND r2.sender = %d
+			), 0) AS given_reward_point`, userID),
 		"cv.description AS core_value_description",
 		"a.description",
 		"a.is_valid",
@@ -203,7 +210,7 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 		"COUNT(r.id) AS total_rewards",
 		fmt.Sprintf(
 			`COALESCE((
-				SELECT r2.point 
+				SELECT SUM(r2.point) 
 				FROM rewards r2 
 				WHERE r2.appreciation_id = a.id AND r2.sender = %d
 			), 0) AS given_reward_point`, userID),
@@ -227,10 +234,38 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 
 	queryExecutor = appr.InitiateQueryExecutor(tx)
 	res := make([]repository.AppreciationResponse, 0)
+
+	logger.Info("sp : filter: ", filter)
+	logger.Info("sp : sql: ", sql)
+	logger.Info("sp : args: ", args)
 	err = sqlx.Select(queryExecutor, &res, sql, args...)
 	if err != nil {
-		logger.Error("failed to execute query: ", err.Error())
+		logger.Error("failed to execute query appreciation: ", err.Error())
+		logger.Error("err res data: ", res)
 		return nil, repository.Pagination{}, apperrors.InternalServerError
+	}
+	id := ctx.Value(constants.UserId)
+	fmt.Println("id -> ", id)
+	userId, ok := ctx.Value(constants.UserId).(int64)
+	if !ok {
+		logger.Error("unable to convert context user id to int64")
+		return nil, repository.Pagination{}, apperrors.InternalServerError
+	}
+
+	for idx, appreciation := range res {
+		var userIds []int64
+		queryBuilder = repository.Sq.Select("reported_by").From("resolutions").Where(squirrel.Eq{"appreciation_id": appreciation.ID})
+		query, args, err := queryBuilder.ToSql()
+		if err != nil {
+			logger.Errorf("error in generating squirrel query, err: %s", err.Error())
+			return nil, repository.Pagination{}, apperrors.InternalServerError
+		}
+		err = appr.DB.SelectContext(ctx, &userIds, query, args...)
+		if err != nil {
+			logger.Errorf("error in reported flag query, err: %s", err.Error())
+			return nil, repository.Pagination{}, apperrors.InternalServerError
+		}
+		res[idx].ReportedFlag = slices.Contains(userIds, userId)
 	}
 
 	return res, pagination, nil
@@ -305,6 +340,23 @@ func (appr *appreciationsStore) UpdateAppreciationTotalRewardsOfYesterday(ctx co
 	// Initialize query executor
 	queryExecutor := appr.InitiateQueryExecutor(tx)
 
+	// Load the location for Asia/Kolkata
+	location, err := time.LoadLocation("Asia/Kolkata")
+	if err != nil {
+		fmt.Printf("error loading location: %v\n", err)
+		return false, apperrors.InternalServerError
+	}
+	// Get today's date in Asia/Kolkata at 00:00:00
+	now := time.Now().In(location)
+	todayMidnight := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, location)
+
+	// Get yesterday's date in Asia/Kolkata at 00:00:00
+	yesterdayMidnight := todayMidnight.AddDate(0, 0, -1)
+
+	// Convert to Unix milliseconds
+	todayMidnightUnixMilli := todayMidnight.UnixMilli()
+	yesterdayMidnightUnixMilli := yesterdayMidnight.UnixMilli()
+
 	// Build the SQL update query with subquery
 	query := `
 UPDATE appreciations AS app
@@ -316,15 +368,15 @@ FROM (
     JOIN users u ON r.sender = u.id
     JOIN grades g ON u.grade_id = g.id
     WHERE a.is_valid = true
-      AND r.created_at >= EXTRACT(EPOCH FROM TIMESTAMP 'yesterday'::TIMESTAMP) * 1000
-     AND r.created_at < EXTRACT(EPOCH FROM TIMESTAMP 'today'::TIMESTAMP) * 1000
+      AND r.created_at >= $1
+     AND r.created_at < $2
     GROUP BY appreciation_id
 ) AS agg
 WHERE app.id = agg.appreciation_id;
     `
 
 	// Execute the query using the query executor
-	_, err := queryExecutor.Exec(query)
+	_, err = queryExecutor.Exec(query,yesterdayMidnightUnixMilli,todayMidnightUnixMilli)
 	if err != nil {
 		logger.Error("Error executing SQL query:", err.Error())
 		return false, apperrors.InternalServer
@@ -427,7 +479,7 @@ JOIN
 	var userBadgeDetails []repository.UserBadgeDetails
 	for rows.Next() {
 		var detail repository.UserBadgeDetails
-		if err := rows.Scan(&detail.ID,&detail.Email, &detail.FirstName, &detail.LastName, &detail.BadgeID,&detail.BadgeName, &detail.BadgePoints); err != nil {
+		if err := rows.Scan(&detail.ID, &detail.Email, &detail.FirstName, &detail.LastName, &detail.BadgeID, &detail.BadgeName, &detail.BadgePoints); err != nil {
 			return []repository.UserBadgeDetails{}, err
 		}
 		userBadgeDetails = append(userBadgeDetails, detail)

@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"slices"
 	"strings"
@@ -31,7 +32,7 @@ func JwtAuthMiddleware(next http.Handler, roles []string) http.Handler {
 		tkn, err := jwt.ParseWithClaims(authToken, claims, func(t *jwt.Token) (interface{}, error) {
 			return jwtKey, nil
 		})
-		
+
 		if err != nil {
 			logger.WithField("err", err.Error()).Error("Error in parse with claims function")
 			err = apperrors.InvalidAuthToken
@@ -56,6 +57,7 @@ func JwtAuthMiddleware(next http.Handler, roles []string) http.Handler {
 		}
 
 		// set id and role to context
+		fmt.Println("setting id: ", Id)
 		ctx := context.WithValue(req.Context(), constants.UserId, Id)
 		ctx = context.WithValue(ctx, constants.Role, Role)
 		req = req.WithContext(ctx)

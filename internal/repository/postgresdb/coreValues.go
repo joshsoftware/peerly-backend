@@ -7,6 +7,7 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
+	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
 	logger "github.com/sirupsen/logrus"
@@ -22,12 +23,12 @@ type coreValueStore struct {
 func NewCoreValueRepo(db *sqlx.DB) repository.CoreValueStorer {
 	return &coreValueStore{
 		DB:        db,
-		TableName: "core_values",
+		TableName: constants.CoreValuesTable,
 	}
 }
 
 func (cs *coreValueStore) ListCoreValues(ctx context.Context) (coreValues []repository.CoreValue, err error) {
-	queryBuilder := repository.Sq.Select(CoreValueColumns...).From(cs.TableName)
+	queryBuilder := repository.Sq.Select(CoreValueColumns...).From(cs.TableName).OrderBy("id")
 	listCoreValuesQuery, _, err := queryBuilder.ToSql()
 	if err != nil {
 		err = fmt.Errorf("error in generating squirrel query, err: %w", err)

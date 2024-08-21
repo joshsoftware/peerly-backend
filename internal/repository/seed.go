@@ -33,21 +33,34 @@ func SeedData() (err error) {
 		`INSERT INTO grades (id,name, points) VALUES (10,'J12',100)`,
 
 		//corevalues
-		`INSERT INTO core_values (id,name,description, parent_core_value_id) VALUES (1,'Trust','We foster trust by being transparent,reliable, and accountable in all our actions.',null)`,
-		`INSERT INTO core_values (id,name,description, parent_core_value_id) VALUES (2,'Technical Excellence','We are committed to delivering excellence in every product, service, and experience we provide, striving for continuous improvement.',null)`,
+		`INSERT INTO core_values (id,name,description, parent_core_value_id) VALUES (1,'Trust','We foster trust by being transparent, reliable, and accountable in all our actions.',null)`,
+
+		`INSERT INTO core_values (id,name,description, parent_core_value_id) VALUES (2,'Respect','We respect individual opinions and believe in living up to and exceeding our own standards.',null)`,
+
 		`INSERT INTO core_values (id,name,description, parent_core_value_id) VALUES (3,'Integrity & Ethics','We uphold integrity in every action, ensuring our decisions align with the highest moral standards.',null)`,
-		`INSERT INTO core_values (id,name,description, parent_core_value_id) VALUES (4, 'Customer Focus', 'We prioritize understanding and meeting our customers'' needs, exceeding expectations with every interaction.', null)`,
-		`INSERT INTO core_values (id,name,description, parent_core_value_id) VALUES (5,'Respect','We respect individual opinions and believe in living up to and exceeding our own standards.',null)`,
+
+		`INSERT INTO core_values (id,name,description, parent_core_value_id) VALUES (4,'Employee Focus','We create a sense of shared purpose and understand that the power of the collective and that of the team is bigger than the individual.',null)`,
+
+		`INSERT INTO core_values (id,name,description, parent_core_value_id) VALUES (5, 'Customer Focus', 'We prioritize understanding and meeting our customers'' needs, exceeding expectations with every interaction.', null)`,
+
+		`INSERT INTO core_values (id,name,description, parent_core_value_id) VALUES (6,'Technical Excellence','We are committed to delivering excellence in every product, service, and experience we provide, striving for continuous improvement.',null)`,
 
 		//badges
-		`INSERT INTO badges (id,name,reward_points) VALUES (1,'Bronze',1500)`,
-		`INSERT INTO badges (id,name,reward_points) VALUES (2,'Silver',3000)`,
-		`INSERT INTO badges (id,name,reward_points) VALUES (3,'Gold',5000)`,
-		`INSERT INTO badges (id,name,reward_points) VALUES (4,'Platinum',7000)`,
+		`INSERT INTO badges (id,name,reward_points) VALUES (1,'Bronze',3000)`,
+		`INSERT INTO badges (id,name,reward_points) VALUES (2,'Silver',7500)`,
+		`INSERT INTO badges (id,name,reward_points) VALUES (3,'Gold',10000)`,
+		`INSERT INTO badges (id,name,reward_points) VALUES (4,'Platinum',15000)`,
 
 		//users
-		`INSERT INTO users (id,employee_id,first_name,last_name,email,designation,reward_quota_balance,role_id,grade_id)
-		VALUES (1,'26','Sameer','Tilak','sameer.tilak@joshsoftware.com','Digital Head',900,1,2)`,
+		`INSERT INTO users (id,employee_id,first_name,last_name,email,password, designation,reward_quota_balance,role_id,grade_id)
+		VALUES (1,'900','Sindhu','R', 'sindhu.r@joshsoftware.com','$2a$14$5smJBNxiWYKDy2WK0tzo7OggboToB/lr2jM9Q6qSI63gHMr08/212','Manager - HR',5000 , 2, 6)`,
+
+		`INSERT INTO users (id,employee_id,first_name,last_name,email,password, designation,reward_quota_balance,role_id,grade_id)
+		VALUES (2,'281','Saurabh','Gaji', 'saurabh.gaji@joshsoftware.com','$2a$14$5smJBNxiWYKDy2WK0tzo7OggboToB/lr2jM9Q6qSI63gHMr08/212','Senior Executive - HRBP',3000 , 2, 8)`,
+
+		`INSERT INTO users (id,employee_id,first_name,last_name,email,password, designation,reward_quota_balance,role_id,grade_id)
+		VALUES (3,'717','SriGayathriKavya','Ruttala','srigayathri.ruttala@joshsoftware.com','$2a$14$5smJBNxiWYKDy2WK0tzo7OggboToB/lr2jM9Q6qSI63gHMr08/212','Executive - HRBP',2000 , 2, 9)`,
+
 		//organization config
 		`INSERT INTO organization_config (id,reward_multiplier,reward_quota_renewal_frequency,timezone,created_by,updated_by) VALUES (1,10,1,'UTC',1,1)`,
 	}

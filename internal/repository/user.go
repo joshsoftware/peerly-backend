@@ -16,11 +16,10 @@ type UserStorer interface {
 	GetGradeByName(ctx context.Context, name string) (grade Grade, err error)
 	GetRewardMultiplier(ctx context.Context) (value int64, err error)
 	SyncData(ctx context.Context, updateData dto.User) (err error)
-	ListUsers(ctx context.Context, reqData dto.UserListReq) (resp []User, err error)
+	ListUsers(ctx context.Context, reqData dto.ListUsersReq) (resp []User, count int64, err error)
 
 	UpdateRewardQuota(ctx context.Context, tx Transaction) (err error)
 	GetActiveUserList(ctx context.Context, tx Transaction) (activeUsers []ActiveUser, err error)
-	GetTotalUserCount(ctx context.Context, reqData dto.UserListReq) (totalCount int64, err error)
 	GetUserById(ctx context.Context, reqData dto.GetUserByIdReq) (user dto.GetUserByIdResp, err error)
 	GetTop10Users(ctx context.Context, quarterTimestamp int64) (users []Top10Users, err error)
 	GetGradeById(ctx context.Context, id int64) (grade Grade, err error)
@@ -52,12 +51,6 @@ type User struct {
 type Role struct {
 	ID   int64  `db:"id"`
 	Name string `db:"name"`
-}
-
-type Grade struct {
-	Id     int64  `db:"id"`
-	Name   string `db:"name"`
-	Points int64  `db:"points"`
 }
 
 type ActiveUser struct {

@@ -13,6 +13,20 @@ type UserStorer struct {
 	mock.Mock
 }
 
+// AddDeviceToken provides a mock function with given fields: ctx, userID, deviceToken
+func (_m *UserStorer) AddDeviceToken(ctx context.Context, userID int64, deviceToken string) error {
+	ret := _m.Called(ctx, userID, deviceToken)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, int64, string) error); ok {
+		r0 = rf(ctx, userID, deviceToken)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // BeginTx provides a mock function with given fields: ctx
 func (_m *UserStorer) BeginTx(ctx context.Context) (repository.Transaction, error) {
 	ret := _m.Called(ctx)
@@ -73,6 +87,27 @@ func (_m *UserStorer) GetActiveUserList(ctx context.Context, tx repository.Trans
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, repository.Transaction) error); ok {
 		r1 = rf(ctx, tx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetAdmin provides a mock function with given fields: ctx, email
+func (_m *UserStorer) GetAdmin(ctx context.Context, email string) (repository.User, error) {
+	ret := _m.Called(ctx, email)
+
+	var r0 repository.User
+	if rf, ok := ret.Get(0).(func(context.Context, string) repository.User); ok {
+		r0 = rf(ctx, email)
+	} else {
+		r0 = ret.Get(0).(repository.User)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, email)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -187,27 +222,6 @@ func (_m *UserStorer) GetTop10Users(ctx context.Context, quarterTimestamp int64)
 	return r0, r1
 }
 
-// GetTotalUserCount provides a mock function with given fields: ctx, reqData
-func (_m *UserStorer) GetTotalUserCount(ctx context.Context, reqData dto.UserListReq) (int64, error) {
-	ret := _m.Called(ctx, reqData)
-
-	var r0 int64
-	if rf, ok := ret.Get(0).(func(context.Context, dto.UserListReq) int64); ok {
-		r0 = rf(ctx, reqData)
-	} else {
-		r0 = ret.Get(0).(int64)
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, dto.UserListReq) error); ok {
-		r1 = rf(ctx, reqData)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetUserByEmail provides a mock function with given fields: ctx, email
 func (_m *UserStorer) GetUserByEmail(ctx context.Context, email string) (repository.User, error) {
 	ret := _m.Called(ctx, email)
@@ -250,29 +264,6 @@ func (_m *UserStorer) GetUserById(ctx context.Context, reqData dto.GetUserByIdRe
 	return r0, r1
 }
 
-// ListUsers provides a mock function with given fields: ctx, reqData
-func (_m *UserStorer) ListUsers(ctx context.Context, reqData dto.UserListReq) ([]repository.User, error) {
-	ret := _m.Called(ctx, reqData)
-
-	var r0 []repository.User
-	if rf, ok := ret.Get(0).(func(context.Context, dto.UserListReq) []repository.User); ok {
-		r0 = rf(ctx, reqData)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]repository.User)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, dto.UserListReq) error); ok {
-		r1 = rf(ctx, reqData)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // HandleTransaction provides a mock function with given fields: ctx, tx, isSuccess
 func (_m *UserStorer) HandleTransaction(ctx context.Context, tx repository.Transaction, isSuccess bool) error {
 	ret := _m.Called(ctx, tx, isSuccess)
@@ -301,6 +292,59 @@ func (_m *UserStorer) InitiateQueryExecutor(tx repository.Transaction) sqlx.Ext 
 	}
 
 	return r0
+}
+
+// ListDeviceTokensByUserID provides a mock function with given fields: ctx, userID
+func (_m *UserStorer) ListDeviceTokensByUserID(ctx context.Context, userID int64) ([]string, error) {
+	ret := _m.Called(ctx, userID)
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func(context.Context, int64) []string); ok {
+		r0 = rf(ctx, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, int64) error); ok {
+		r1 = rf(ctx, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListUsers provides a mock function with given fields: ctx, reqData
+func (_m *UserStorer) ListUsers(ctx context.Context, reqData dto.ListUsersReq) ([]repository.User, int64, error) {
+	ret := _m.Called(ctx, reqData)
+
+	var r0 []repository.User
+	if rf, ok := ret.Get(0).(func(context.Context, dto.ListUsersReq) []repository.User); ok {
+		r0 = rf(ctx, reqData)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]repository.User)
+		}
+	}
+
+	var r1 int64
+	if rf, ok := ret.Get(1).(func(context.Context, dto.ListUsersReq) int64); ok {
+		r1 = rf(ctx, reqData)
+	} else {
+		r1 = ret.Get(1).(int64)
+	}
+
+	var r2 error
+	if rf, ok := ret.Get(2).(func(context.Context, dto.ListUsersReq) error); ok {
+		r2 = rf(ctx, reqData)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // SyncData provides a mock function with given fields: ctx, updateData

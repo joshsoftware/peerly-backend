@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
 	logger "github.com/sirupsen/logrus"
@@ -102,7 +103,7 @@ func (rs *reportAppreciationStore) ReportAppreciation(ctx context.Context, repor
 }
 
 func (rs *reportAppreciationStore) ListReportedAppreciations(ctx context.Context) (reportedAppreciations []repository.ListReportedAppreciations, err error) {
-	query := `select resolutions.id, appreciations.id as appreciation_id, core_values.name as core_value_name, core_values.description as core_value_description, appreciations.description as appreciation_description, appreciations.total_reward_points, appreciations.quarter, appreciations.sender, appreciations.receiver, appreciations.created_at, appreciations.is_valid, resolutions.reporting_comment, resolutions.reported_by, resolutions.reported_at, resolutions.moderator_comment, resolutions.moderated_by, resolutions.moderated_at from resolutions join appreciations on resolutions.appreciation_id = appreciations.id join core_values on appreciations.core_value_id = core_values.id group by resolutions.id, appreciations.id, core_values.id`
+	query := `select resolutions.id, appreciations.id as appreciation_id, core_values.name as core_value_name, core_values.description as core_value_description, appreciations.description as appreciation_description, appreciations.total_reward_points, appreciations.quarter, appreciations.sender, appreciations.receiver, appreciations.created_at, appreciations.is_valid, resolutions.reporting_comment, resolutions.reported_by, resolutions.reported_at, resolutions.moderator_comment, resolutions.moderated_by, resolutions.moderated_at, resolutions.status from resolutions join appreciations on resolutions.appreciation_id = appreciations.id join core_values on appreciations.core_value_id = core_values.id group by resolutions.id, appreciations.id, core_values.id`
 	err = rs.DB.SelectContext(
 		ctx,
 		&reportedAppreciations,
@@ -137,7 +138,7 @@ func (rs *reportAppreciationStore) CheckResolution(ctx context.Context, id int64
 }
 
 func (rs *reportAppreciationStore) DeleteAppreciation(ctx context.Context, moderationReq dto.ModerationReq) (err error) {
-	moderationQuery := `update resolutions set moderator_comment = $1, moderated_by = $2 where id = $3`
+	moderationQuery := `update resolutions set moderator_comment = $1, moderated_by = $2, status = 'deleted' where id = $3`
 	_, err = rs.DB.ExecContext(
 		ctx,
 		moderationQuery,
@@ -157,6 +158,44 @@ func (rs *reportAppreciationStore) DeleteAppreciation(ctx context.Context, moder
 	)
 	if err != nil {
 		err = fmt.Errorf("error in marking appreciation invalid, err: %w", err)
+		return
+	}
+	return
+}
+
+func (rs *reportAppreciationStore) ResolveAppreciation(ctx context.Context, moderationReq dto.ModerationReq) (err error) {
+	moderationQuery := `update resolutions set moderator_comment = $1, moderated_by = $2, status = 'resolved' where id = $3`
+	_, err = rs.DB.ExecContext(
+		ctx,
+		moderationQuery,
+		moderationReq.ModeratorComment,
+		moderationReq.ModeratedBy,
+		moderationReq.ResolutionId,
+	)
+	if err != nil {
+		err = fmt.Errorf("error in updating moderation values, err: %w", err)
+		return
+	}
+
+	return
+}
+
+func (rs *reportAppreciationStore) GetResolution(ctx context.Context, id int64) (reportedAppreciation repository.ListReportedAppreciations, err error) {
+	query := `select resolutions.id, appreciations.id as appreciation_id, appreciations.description as appreciation_description, appreciations.total_reward_points, appreciations.quarter, appreciations.sender, appreciations.receiver, appreciations.created_at, appreciations.is_valid, resolutions.reporting_comment, resolutions.reported_by, resolutions.reported_at, resolutions.moderator_comment, resolutions.moderated_by, resolutions.moderated_at, resolutions.status from resolutions join appreciations on resolutions.appreciation_id = appreciations.id where resolutions.id = $1`
+	err = rs.DB.GetContext(
+		ctx,
+		&reportedAppreciation,
+		query,
+		id,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			logger.Errorf("no such resolution exists")
+			err = apperrors.InvalidId
+			return
+		}
+		logger.Errorf("error in retriving reported appriciation, err:%w", err)
+		err = apperrors.InternalServerError
 		return
 	}
 	return

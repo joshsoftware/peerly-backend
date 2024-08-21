@@ -12,23 +12,18 @@
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" height="100%" style="table-layout: fixed; background-color: #ffffff; width: 100%; height: 100%; margin: 0; padding: 20px 0; border-spacing: 0;">
         <tr>
             <td align="center" valign="middle" style="padding: 20px 0;">
-                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="max-width: 600px; background-color: #ffffff; border-radius: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); overflow: hidden;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="max-width: 600px; background-color: #ffffff; border-radius: 10px; overflow: hidden;">
                     <tr>
-                        <td align="center" valign="top" style="background-color: #4779F3; padding: 40px 20px; text-align: center; color: white;">
-                            <h1 style="font-family: 'Inter', sans-serif; margin: 0; font-size: 24px;">Peerly</h1>
-                            <img src="https://pg-stage-intranet.joshsoftware.com/peerly/assets/rewardQuotaRenewal.png" alt="Thank You" style="margin: 20px 0;">
-                            <p style="font-family: 'Montserrat', sans-serif; font-size: 24px; font-weight: 500; line-height: 1.4; margin-bottom: 18px;">Thank You!</p>
-                            <p style="font-family: 'Montserrat', sans-serif; font-size: 18px; font-weight: 300; line-height: 1.4; margin-bottom: 18px;">Your appreciation has made a difference.<br>Keep spreading positivity and making an impact!</p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td align="center" valign="top" style="background-color: #f9f9f9; padding: 30px; text-align: center; color: #333333;">
-                            <div style="font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 300; line-height: 1.2;">You appreciated {{.ReceiverName}} for their outstanding contribution.</div>
-                            <div style="margin-top: 30px; font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 300; line-height: 1.2;">Core Value</div>
-                            <div style="margin-top: 8px;display: inline-block; padding: 10px 20px; background-color: #E8F5E9; color: #000000; border-radius: 8px; font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 400; line-height: 1.2;">{{.CoreValueName}}</div>
-                            <div style="margin-top: 30px; font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 300; line-height: 1.2;">Words shared</div>
+                        <td align="center" valign="top" style="background-color: #F5F8FF; padding: 40px 20px; text-align: center; color: #1C1C1C;">
+                            <h1 style="font-family: 'Inter', sans-serif; margin: 0; font-size: 30px;color: #3069F6;">Peerly</h1>
+                            <img src="https://pg-stage-intranet.joshsoftware.com/peerly/assets/openEnvelopeIcon.png" alt="Thank You" style="margin: 20px 0;border: #000000;border-width: 2px;">
+                            <p style="font-family: 'Montserrat', sans-serif; font-size: 24px; font-weight: 500; line-height: 1.4; margin-bottom: 16px;">Hi {{.SenderName}}</p>
+                            <p style="font-family: 'Nunito Sans', sans-serif; font-size: 18px; font-weight: 400; line-height: 1.4; margin-bottom: 14px;">You've successfully sent appreciation to {{.ReceiverName}}.</p>
+                            <div style="margin-top: 30px; font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 400; line-height: 1.2;">Core Value</div>
+                            <div style="margin-top: 8px;display: inline-block; padding: 10px 20px; background-color: {{.CoreValueBackgroundColor}}; color: #000000; border-radius: 8px; font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 400; line-height: 1.2;">{{.CoreValueName}}</div>
+                            <div style="margin-top: 30px; font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 400; line-height: 1.2;">Your Appreciation Message:</div>
                             <div style="margin-top: 15px; color: #000000; font-family: 'Nunito Sans', sans-serif; font-size: 14px; font-weight: 400; line-height: 1.4;">{{.Description}}</div>
-                            <p style="margin-top: 30px; font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 300; line-height: 1.2;">Thank you for recognizing the efforts of others. Your positive actions help create a supportive and thriving environment!</p>
+                            <p style="margin-top: 30px; font-family: 'Nunito Sans', sans-serif; font-size: 14px; font-weight: 700; line-height: 1.2;">Thank you for contributing to our positive work culture!</p>
                         </td>
                     </tr>
                 </table>

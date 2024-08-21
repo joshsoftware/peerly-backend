@@ -45,6 +45,7 @@ type ReportedAppreciation struct {
 	ModeratedByFirstName string `json:"moderated_by_first_name"`
 	ModeratedByLastName  string `json:"moderated_by_last_name"`
 	ModeratedAt          int64  `json:"moderated_at"`
+	Status               string `json:"status"`
 }
 
 type MetaData struct {
@@ -64,4 +65,20 @@ type ModerationReq struct {
 	AppreciationId   int64
 	ModeratorComment string `json:"moderator_comment"`
 	ModeratedBy      int64
+}
+
+type DeleteAppreciationMail struct {
+	ModeratorComment string
+	AppreciationBy   string
+	AppreciationTo   string
+	ReportingComment string
+	AppreciationDesc string
+}
+
+type ResolveAppreciationMail struct {
+	ModeratorComment string
+	AppreciationBy   string
+	AppreciationTo   string
+	ReportingComment string
+	AppreciationDesc string
 }

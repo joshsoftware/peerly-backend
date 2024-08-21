@@ -5,12 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"strings"
 
 	"net/http"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/xuri/excelize/v2"
 	// "github.com/joshsoftware/peerly-backend/internal/app/email"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/config"
@@ -31,14 +33,18 @@ type Service interface {
 	LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.LoginUserResp, error)
 	RegisterUser(ctx context.Context, u dto.IntranetUserData) (user dto.User, err error)
 	ListIntranetUsers(ctx context.Context, reqData dto.GetUserListReq) (data []dto.IntranetUserData, err error)
-	ListUsers(ctx context.Context, reqData dto.UserListReq) (resp dto.UserListWithMetadata, err error)
+	ListUsers(ctx context.Context, reqData dto.ListUsersReq) (resp dto.ListUsersResp, err error)
 	GetUserById(ctx context.Context) (user dto.GetUserByIdResp, err error)
 	UpdateRewardQuota(ctx context.Context) (err error)
 	GetActiveUserList(ctx context.Context) ([]dto.ActiveUser, error)
 	GetTop10Users(ctx context.Context) (users []dto.Top10User, err error)
 	AdminLogin(ctx context.Context, loginReq dto.AdminLoginReq) (resp dto.LoginUserResp, err error)
 	// sendRewardQuotaRefillEmailToAll(ctx context.Context)
+	NotificationByAdmin(ctx context.Context, notificationReq dto.AdminNotificationReq) (err error)
+	AllAppreciationReport(ctx context.Context, appreciations []dto.AppreciationResponse) (tempFileName string, err error)
+	ReportedAppreciationReport(ctx context.Context, appreciations []dto.ReportedAppreciation) (tempFileName string, err error)
 }
+
 
 func NewService(userRepo repository.UserStorer) Service {
 	return &service{
@@ -99,13 +105,13 @@ func (us *service) GetIntranetUserData(ctx context.Context, req dto.GetIntranetU
 	resp, err := client.Do(intranetReq)
 	if err != nil {
 		logger.Errorf("error in intranet get user api. status returned: %d, err: %s  ", resp.StatusCode, err.Error())
-		logger.Errorf("error response: %v",resp)
+		logger.Errorf("error response: %v", resp)
 		err = apperrors.InternalServerError
 		return
 	}
 	if resp.StatusCode != http.StatusOK {
 		logger.Errorf("error in intranet get user api. status returned: %d ", resp.StatusCode)
-		logger.Errorf("error response: %v",resp)
+		logger.Errorf("error response: %v", resp)
 		err = apperrors.InternalServerError
 		return
 	}
@@ -196,9 +202,9 @@ func (us *service) LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.L
 	resp.User = user
 	resp.AuthToken = tokenString
 
-	err = us.userRepo.AddDeviceToken(ctx,user.Id,u.NotificationToken)
-	if err != nil{
-		logger.Errorf("err in adding device token: %v",err)
+	err = us.userRepo.AddDeviceToken(ctx, user.Id, u.NotificationToken)
+	if err != nil {
+		logger.Errorf("err in adding device token: %v", err)
 	}
 	return resp, nil
 
@@ -279,7 +285,7 @@ func (us *service) ListIntranetUsers(ctx context.Context, reqData dto.GetUserLis
 	}
 	defer resp.Body.Close()
 
-	var respData dto.GetUserListRespData
+	var respData dto.ListIntranetUsersRespData
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -298,36 +304,49 @@ func (us *service) ListIntranetUsers(ctx context.Context, reqData dto.GetUserLis
 	return
 }
 
-func (us *service) ListUsers(ctx context.Context, reqData dto.UserListReq) (resp dto.UserListWithMetadata, err error) {
+func (us *service) ListUsers(ctx context.Context, reqData dto.ListUsersReq) (resp dto.ListUsersResp, err error) {
 
 	var names []string
 	for _, data := range reqData.Name {
-		names = append(names, strings.ToLower(data))
+		if data != "" {
+			names = append(names, strings.ToLower(data))
+		}
 	}
 
-	totalCount, err := us.userRepo.GetTotalUserCount(ctx, reqData)
+	reqData.Name = names
+
+	dbResp, totalCount, err := us.userRepo.ListUsers(ctx, reqData)
 	if err != nil {
 		logger.Errorf(err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
 
-	dbResp, err := us.userRepo.ListUsers(ctx, reqData)
-	if err != nil {
-		return
-	}
+	userId := ctx.Value(constants.UserId)
 
-	var users []dto.UserListResp
+	var users []dto.UserDetails
 
 	for _, dbUser := range dbResp {
-		user := mapDbUserToUserListResp(dbUser)
-		users = append(users, user)
+		if reqData.Self {
+			if dbUser.Id != userId {
+				user := mapDbUserToUserListResp(dbUser)
+				users = append(users, user)
+			}
+		} else {
+			user := mapDbUserToUserListResp(dbUser)
+			users = append(users, user)
+		}
+	}
+
+	if reqData.Self && totalCount > 0 {
+		totalCount = totalCount - 1
 	}
 
 	resp.UserList = users
-	resp.MetaData.TotalCount = totalCount
+	resp.MetaData.TotalRecords = totalCount
 	resp.MetaData.CurrentPage = reqData.Page
-	resp.MetaData.PageCount = reqData.PageSize
+	resp.MetaData.PageSize = reqData.PageSize
+	resp.MetaData.TotalPage = int64(math.Ceil(float64(totalCount) / float64(reqData.PageSize)))
 
 	return
 }
@@ -416,14 +435,6 @@ func mapUserDbToService(dbStruct repository.User) (svcStruct dto.User) {
 	return svcStruct
 }
 
-func mapDbUserToUserListResp(dbStruct repository.User) (svcData dto.UserListResp) {
-	svcData.Id = dbStruct.Id
-	svcData.FirstName = dbStruct.FirstName
-	svcData.LastName = dbStruct.LastName
-	svcData.Email = dbStruct.Email
-	return svcData
-}
-
 func (us *service) GetUserById(ctx context.Context) (user dto.GetUserByIdResp, err error) {
 
 	id := ctx.Value(constants.UserId)
@@ -490,7 +501,7 @@ func (us *service) GetActiveUserList(ctx context.Context) ([]dto.ActiveUser, err
 func (us *service) UpdateRewardQuota(ctx context.Context) error {
 	err := us.userRepo.UpdateRewardQuota(ctx, nil)
 
-	if err == nil{
+	if err == nil {
 		// us.sendRewardQuotaRefillEmailToAll(ctx)
 	}
 	return err
@@ -578,6 +589,145 @@ func mapIntranetUserDataToSvcUser(intranetData dto.IntranetUserData) (svcData dt
 // 	err = mailReq.Send("reward quota renewal")
 // 	if err != nil {
 // 		logger.Errorf("err: %v", err)
-// 		return 
+// 		return
 // 	}
 // }
+
+func mapDbUserToUserListResp(dbStruct repository.User) (svcData dto.UserDetails) {
+	svcData.Id = dbStruct.Id
+	svcData.FirstName = dbStruct.FirstName
+	svcData.LastName = dbStruct.LastName
+	svcData.Email = dbStruct.Email
+	return svcData
+}
+
+func (us *service) NotificationByAdmin(ctx context.Context, notificationReq dto.AdminNotificationReq) (err error) {
+
+	notificationTokens, err := us.userRepo.ListDeviceTokensByUserID(ctx, notificationReq.Id)
+	if err != nil {
+		logger.Errorf("err in getting device tokens: %v", err)
+		err = apperrors.InternalServerError
+		return
+	}
+
+	if notificationReq.All {
+		err = notificationReq.Message.SendNotificationToTopic("peerly")
+		if err != nil {
+			return
+		}
+		return
+	}
+
+	for _, notificationToken := range notificationTokens {
+		err = notificationReq.Message.SendNotificationToNotificationToken(notificationToken)
+		if err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+func (us *service) AllAppreciationReport(ctx context.Context, appreciations []dto.AppreciationResponse) (tempFileName string, err error) {
+
+	// Create a new Excel file
+	f := excelize.NewFile()
+
+	// Create a new sheet
+	sheetName := "Appreciations"
+	index, err := f.NewSheet(sheetName)
+	if err != nil {
+		logger.Errorf("err in generating newsheet, err: %v", err)
+		return
+	}
+
+	// Set header
+	headers := []string{"Core value", "Core value description", "Appreciation description", "Sender first name", "Sender last name", "Sender designation", "Receiver first name", "Receiver last name", "Receiver designation", "Total rewards", "Total reward points"}
+	for colIndex, header := range headers {
+		cell := fmt.Sprintf("%s1", string('A'+colIndex))
+		f.SetCellValue(sheetName, cell, header)
+	}
+
+	// Add data to the sheet
+	for rowIndex, app := range appreciations {
+		row := rowIndex + 2 // Starting from row 2
+		f.SetCellValue(sheetName, fmt.Sprintf("A%d", row), app.CoreValueName)
+		f.SetCellValue(sheetName, fmt.Sprintf("B%d", row), app.CoreValueDesc)
+		f.SetCellValue(sheetName, fmt.Sprintf("C%d", row), app.Description)
+		f.SetCellValue(sheetName, fmt.Sprintf("D%d", row), app.SenderFirstName)
+		f.SetCellValue(sheetName, fmt.Sprintf("E%d", row), app.SenderLastName)
+		f.SetCellValue(sheetName, fmt.Sprintf("F%d", row), app.SenderDesignation)
+		f.SetCellValue(sheetName, fmt.Sprintf("G%d", row), app.ReceiverFirstName)
+		f.SetCellValue(sheetName, fmt.Sprintf("H%d", row), app.ReceiverLastName)
+		f.SetCellValue(sheetName, fmt.Sprintf("I%d", row), app.ReceiverDesignation)
+		f.SetCellValue(sheetName, fmt.Sprintf("J%d", row), app.TotalRewards)
+		f.SetCellValue(sheetName, fmt.Sprintf("K%d", row), app.TotalRewardPoints)
+	}
+
+	// Set the active sheet
+	f.SetActiveSheet(index)
+
+	// Save the Excel file temporarily
+	tempFileName = "report.xlsx"
+	if err = f.SaveAs(tempFileName); err != nil {
+		logger.Errorf("Failed to save file: %v", err)
+		return
+	}
+
+	return
+}
+
+func (us *service) ReportedAppreciationReport(ctx context.Context, appreciations []dto.ReportedAppreciation) (tempFileName string, err error) {
+
+	// Create a new Excel file
+	f := excelize.NewFile()
+
+	// Create a new sheet
+	sheetName := "ReportedAppreciations"
+	index, err := f.NewSheet(sheetName)
+	if err != nil {
+		logger.Errorf("err in generating newsheet, err: %v", err)
+		return
+	}
+
+	// Set header
+	headers := []string{"Core value", "Core value description", "Appreciation description", "Sender first name", "Sender last name", "Sender designation", "Receiver first name", "Receiver last name", "Receiver designation", "Reporting Comment", "Reported by first name", "Reported by last name", "Reported at", "Moderator comment", "Moderator first name", "Moderator last name", "Status"}
+	for colIndex, header := range headers {
+		cell := fmt.Sprintf("%s1", string('A'+colIndex))
+		f.SetCellValue(sheetName, cell, header)
+	}
+
+	// Add data to the sheet
+	for rowIndex, app := range appreciations {
+		row := rowIndex + 2 // Starting from row 2
+		f.SetCellValue(sheetName, fmt.Sprintf("A%d", row), app.CoreValueName)
+		f.SetCellValue(sheetName, fmt.Sprintf("B%d", row), app.CoreValueDesc)
+		f.SetCellValue(sheetName, fmt.Sprintf("C%d", row), app.AppreciationDesc)
+		f.SetCellValue(sheetName, fmt.Sprintf("D%d", row), app.SenderFirstName)
+		f.SetCellValue(sheetName, fmt.Sprintf("E%d", row), app.SenderLastName)
+		f.SetCellValue(sheetName, fmt.Sprintf("F%d", row), app.SenderDesignation)
+		f.SetCellValue(sheetName, fmt.Sprintf("G%d", row), app.ReceiverFirstName)
+		f.SetCellValue(sheetName, fmt.Sprintf("H%d", row), app.ReceiverLastName)
+		f.SetCellValue(sheetName, fmt.Sprintf("I%d", row), app.ReceiverDesignation)
+		f.SetCellValue(sheetName, fmt.Sprintf("J%d", row), app.ReportingComment)
+		f.SetCellValue(sheetName, fmt.Sprintf("K%d", row), app.ReportedByFirstName)
+		f.SetCellValue(sheetName, fmt.Sprintf("L%d", row), app.ReportedByLastName)
+		f.SetCellValue(sheetName, fmt.Sprintf("M%d", row), app.ReportedAt)
+		f.SetCellValue(sheetName, fmt.Sprintf("N%d", row), app.ModeratorComment)
+		f.SetCellValue(sheetName, fmt.Sprintf("O%d", row), app.ModeratedByFirstName)
+		f.SetCellValue(sheetName, fmt.Sprintf("P%d", row), app.ModeratedByLastName)
+		f.SetCellValue(sheetName, fmt.Sprintf("Q%d", row), app.Status)
+	}
+
+	// Set the active sheet
+	f.SetActiveSheet(index)
+
+	// Save the Excel file temporarily
+	tempFileName = "reportedAppreciations.xlsx"
+	if err = f.SaveAs(tempFileName); err != nil {
+		logger.Errorf("Failed to save file: %v", err)
+		return
+	}
+
+	return
+}
