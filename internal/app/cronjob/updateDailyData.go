@@ -13,7 +13,7 @@ const SAY_HELLO_DAILY_CRON_JOB_INTERVAL_DAYS = 1
 
 var SayHelloDailyJobTiming = JobTime{
 	hours:   17,
-	minutes: 28,
+	minutes: 34,
 	seconds: 0,
 }
 
@@ -59,9 +59,12 @@ func (cron *DailyJob) Schedule() {
 		0,                             // Nanosecond: 0
 		location,                      // Timezone: Asia/Kolkata
 	)
+
+	logger.Info("IST time check: ",jobTimeInKolkata)
+
 	// Convert to UTC
 	jobTimeInUTC := jobTimeInKolkata.UTC()
-
+	logger.Info("UTC time check: ",jobTimeInUTC)
 	cron.job, err = cron.scheduler.NewJob(
 		gocron.DailyJob(
 			SAY_HELLO_DAILY_CRON_JOB_INTERVAL_DAYS,
