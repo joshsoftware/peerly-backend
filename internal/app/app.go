@@ -47,7 +47,7 @@ func NewService(db *sqlx.DB) Dependencies {
 	userService := user.NewService(userRepo)
 	reportAppreciationService := reportappreciations.NewService(reportAppreciationRepo, userRepo, appreciationRepo)
 	rewardService := reward.NewService(rewardRepo, appreciationRepo, userRepo)
-	gradeService := grades.NewService(gradeRepo)
+	gradeService := grades.NewService(gradeRepo, userRepo)
 	orgConfigService := organizationConfig.NewService(orgConfigRepo)
 	badgeService := badges.NewService(badgeRepo, userRepo)
 

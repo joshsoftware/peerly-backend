@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	gradeColumns = []string{"id", "name", "points"}
+	gradeColumns = []string{"id", "name", "points", "updated_by"}
 )
 
 type gradeStore struct {
@@ -46,7 +46,7 @@ func (gs *gradeStore) ListGrades(ctx context.Context) (gradesList []repository.G
 }
 
 func (gs *gradeStore) EditGrade(ctx context.Context, reqData dto.UpdateGradeReq) (err error) {
-	queryBuilder := repository.Sq.Update(gs.GradesTable).Set("points", reqData.Points).Where(squirrel.Eq{"id": reqData.Id})
+	queryBuilder := repository.Sq.Update(gs.GradesTable).Set("points", reqData.Points).Set("updated_by", reqData.UpdatedBy).Where(squirrel.Eq{"id": reqData.Id})
 	updateGradeQuery, args, err := queryBuilder.ToSql()
 	if err != nil {
 		err = fmt.Errorf("error in generating squirrel query, err: %w", err)
