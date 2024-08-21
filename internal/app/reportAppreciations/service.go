@@ -285,8 +285,6 @@ func mapDbAppreciationsToSvcAppreciations(dbApp repository.ListReportedAppreciat
 }
 
 func sendReportEmail(senderEmail string, senderFirstName string, senderLastName string, apprSenderFirstName string, apprSenderLastName string, apprReceiverFirstName string, apprReceiverLastName string, reportingComment string) error {
-	// Plain text content
-	plainTextContent := "Samnit " + "123456"
 
 	templateData := struct {
 		SenderName               string
@@ -300,10 +298,38 @@ func sendReportEmail(senderEmail string, senderFirstName string, senderLastName 
 		AppreciationReceiverName: fmt.Sprint(apprReceiverFirstName, " ", apprReceiverLastName),
 	}
 
-	logger.Info("report sender email: ---------> ", senderEmail)
-	mailReq := email.NewMail([]string{senderEmail}, []string{"samnitpatil@gmail.com"}, []string{"samirpatil9882@gmail.com"}, "Appreciaion Reported")
+	logger.Info("report sender email: ---------> ",senderEmail)
+	mailReq := email.NewMail([]string{senderEmail}, []string{"dl_peerly.support@joshsoftware.com"}, []string{}, "🙏 Thanks for Your Feedback! We’re On It! 🔧")
 	mailReq.ParseTemplate("./internal/app/email/templates/reportAppreciation.html", templateData)
-	err := mailReq.Send(plainTextContent)
+	err := mailReq.Send()
+	if err != nil {
+		logger.Errorf("err: %v", err)
+		return err
+	}
+	return nil
+}
+
+func sendDeleteEmail(senderEmail string, templateData dto.DeleteAppreciationMail) error {
+
+
+	logger.Info("report sender email: ---------> ", senderEmail)
+	mailReq := email.NewMail([]string{senderEmail}, []string{"sharyu.marwadi@joshsoftware.com"}, []string{}, "Appreciaion Deleted")
+	mailReq.ParseTemplate("./internal/app/email/templates/deleteAppreciation.html", templateData)
+	err := mailReq.Send()
+	if err != nil {
+		logger.Errorf("err: %v", err)
+		return err
+	}
+	return nil
+}
+
+func sendResolveEmail(senderEmail string, templateData dto.ResolveAppreciationMail) error {
+
+
+	logger.Info("report sender email: ---------> ", senderEmail)
+	mailReq := email.NewMail([]string{senderEmail}, []string{"sharyu.marwadi@joshsoftware.com"}, []string{}, "Appreciaion Resolved")
+	mailReq.ParseTemplate("./internal/app/email/templates/resolveAppreciation.html", templateData)
+	err := mailReq.Send()
 	if err != nil {
 		logger.Errorf("err: %v", err)
 		return err
@@ -375,34 +401,4 @@ func (rs *service) ResolveAppreciation(ctx context.Context, reqData dto.Moderati
 	fmt.Println("Reporter mail: ", reporter.Email)
 	err = sendResolveEmail(reporter.Email, templateData)
 	return
-}
-
-func sendDeleteEmail(senderEmail string, templateData dto.DeleteAppreciationMail) error {
-	// Plain text content
-	plainTextContent := "Samnit " + "123456"
-
-	logger.Info("report sender email: ---------> ", senderEmail)
-	mailReq := email.NewMail([]string{senderEmail}, []string{"sharyu.marwadi@joshsoftware.com"}, []string{}, "Appreciaion Deleted")
-	mailReq.ParseTemplate("./internal/app/email/templates/deleteAppreciation.html", templateData)
-	err := mailReq.Send(plainTextContent)
-	if err != nil {
-		logger.Errorf("err: %v", err)
-		return err
-	}
-	return nil
-}
-
-func sendResolveEmail(senderEmail string, templateData dto.ResolveAppreciationMail) error {
-	// Plain text content
-	plainTextContent := "Samnit " + "123456"
-
-	logger.Info("report sender email: ---------> ", senderEmail)
-	mailReq := email.NewMail([]string{senderEmail}, []string{"sharyu.marwadi@joshsoftware.com"}, []string{}, "Appreciaion Resolved")
-	mailReq.ParseTemplate("./internal/app/email/templates/resolveAppreciation.html", templateData)
-	err := mailReq.Send(plainTextContent)
-	if err != nil {
-		logger.Errorf("err: %v", err)
-		return err
-	}
-	return nil
 }

@@ -83,3 +83,20 @@ func GetSelfParam(req *http.Request) bool {
 
 	return boolValue
 }
+func GetCoreValueBackgroundColor(corevalueName string) string {
+
+	if (corevalueName == "Trust"){
+		return "#FFBEBE"
+	}else if (corevalueName == "Technical Excellence"){
+		return "#E0FA79"
+	}else if (corevalueName == "Integrity & Ethics"){
+		return "#A4F1FF"
+	}else if (corevalueName == "Customer Focus"){
+		return "#93F7DE"
+	}else if (corevalueName == "Respect"){
+		return "#FFE2B7"
+	}else if (corevalueName == "Employee Focus"){
+		return "#A2DBFF"
+	}
+	return "#E5EDDC"
+}
