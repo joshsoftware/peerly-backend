@@ -20,8 +20,8 @@ task :staging do
 end
 
 task :production do 
-  set :deploy_to, '/www/peerly'
-  set :domain, ENV['PEERLY_STAGING_IP']
+  set :deploy_to, '/www/peerly-backend'
+  set :domain, ENV['PEERLY_PRODUCTIONS_IP']
   set :branch, 'Deployment'
 end
 
