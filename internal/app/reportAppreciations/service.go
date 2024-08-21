@@ -236,10 +236,11 @@ func (rs *service) DeleteAppreciation(ctx context.Context, reqData dto.Moderatio
 		AppreciationTo:   receiver.FirstName + " " + receiver.LastName,
 		ReportingComment: appreciation.ReportingComment,
 		AppreciationDesc: appreciation.AppreciationDesc,
+		Date:             appreciation.CreatedAt,
 	}
 
 	fmt.Println("Reporter mail: ", reporter.Email)
-	err = sendDeleteEmail(reporter.Email, templateData)
+	err = sendDeleteEmail(reporter.Email, sender.Email, receiver.Email, templateData)
 	// err = sendDeleteEmail("sharayumarwadi11@gmail.com", templateData)
 
 	return
@@ -309,33 +310,6 @@ func sendReportEmail(senderEmail string, senderFirstName string, senderLastName 
 	return nil
 }
 
-func sendDeleteEmail(senderEmail string, templateData dto.DeleteAppreciationMail) error {
-
-
-	logger.Info("report sender email: ---------> ", senderEmail)
-	mailReq := email.NewMail([]string{senderEmail}, []string{"sharyu.marwadi@joshsoftware.com"}, []string{}, "Appreciaion Deleted")
-	mailReq.ParseTemplate("./internal/app/email/templates/deleteAppreciation.html", templateData)
-	err := mailReq.Send()
-	if err != nil {
-		logger.Errorf("err: %v", err)
-		return err
-	}
-	return nil
-}
-
-func sendResolveEmail(senderEmail string, templateData dto.ResolveAppreciationMail) error {
-
-
-	logger.Info("report sender email: ---------> ", senderEmail)
-	mailReq := email.NewMail([]string{senderEmail}, []string{"sharyu.marwadi@joshsoftware.com"}, []string{}, "Appreciaion Resolved")
-	mailReq.ParseTemplate("./internal/app/email/templates/resolveAppreciation.html", templateData)
-	err := mailReq.Send()
-	if err != nil {
-		logger.Errorf("err: %v", err)
-		return err
-	}
-	return nil
-}
 
 func (rs *service) ResolveAppreciation(ctx context.Context, reqData dto.ModerationReq) (err error) {
 	moderatorId := ctx.Value(constants.UserId)
@@ -401,4 +375,49 @@ func (rs *service) ResolveAppreciation(ctx context.Context, reqData dto.Moderati
 	fmt.Println("Reporter mail: ", reporter.Email)
 	err = sendResolveEmail(reporter.Email, templateData)
 	return
+}
+
+func sendDeleteEmail(reporterEmail string, senderEmail string, receiverEmail string, templateData dto.DeleteAppreciationMail) error {
+
+	logger.Info("reporter email: ---------> ", reporterEmail)
+	mailReq := email.NewMail([]string{reporterEmail}, []string{}, []string{}, "Results of reported appreciation")
+	mailReq.ParseTemplate("./internal/app/email/templates/deleteAppreciation.html", templateData)
+	err := mailReq.Send()
+	if err != nil {
+		logger.Errorf("err: %v", err)
+		return err
+	}
+
+	logger.Info("sender email: ---------> ", reporterEmail)
+	mailReq = email.NewMail([]string{senderEmail}, []string{}, []string{}, "Results of reported appreciation")
+	mailReq.ParseTemplate("./internal/app/email/templates/senderDeleteEmail.html", templateData)
+	err = mailReq.Send()
+	if err != nil {
+		logger.Errorf("err: %v", err)
+		return err
+	}
+
+	logger.Info("receiver email: ---------> ", reporterEmail)
+	mailReq = email.NewMail([]string{receiverEmail}, []string{}, []string{}, "Results of reported appreciation")
+	mailReq.ParseTemplate("./internal/app/email/templates/receiverDeleteEmail.html", templateData)
+	err = mailReq.Send()
+	if err != nil {
+		logger.Errorf("err: %v", err)
+		return err
+	}
+
+	return nil
+}
+
+func sendResolveEmail(senderEmail string, templateData dto.ResolveAppreciationMail) error {
+
+	logger.Info("report sender email: ---------> ", senderEmail)
+	mailReq := email.NewMail([]string{senderEmail}, []string{}, []string{}, "Results of reported appreciation")
+	mailReq.ParseTemplate("./internal/app/email/templates/resolveAppreciation.html", templateData)
+	err := mailReq.Send()
+	if err != nil {
+		logger.Errorf("err: %v", err)
+		return err
+	}
+	return nil
 }

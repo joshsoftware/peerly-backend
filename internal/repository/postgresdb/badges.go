@@ -23,7 +23,7 @@ func NewBadgeRepo(db *sqlx.DB) repository.BadgeStorer {
 	}
 }
 
-var BadgeColumns = []string{"id", "name", "reward_points"}
+var BadgeColumns = []string{"id", "name", "reward_points", "updated_by"}
 
 func (bs *badgeStore) ListBadges(ctx context.Context) (badges []repository.Badge, err error) {
 	queryBuilder := repository.Sq.Select(BadgeColumns...).From(bs.BadgeTable).OrderBy("id")
@@ -47,7 +47,7 @@ func (bs *badgeStore) ListBadges(ctx context.Context) (badges []repository.Badge
 }
 
 func (bs *badgeStore) EditBadge(ctx context.Context, reqData dto.UpdateBadgeReq) (err error) {
-	queryBuilder := repository.Sq.Update(bs.BadgeTable).Set("reward_points", reqData.RewardPoints).Where(squirrel.Eq{"id": reqData.Id})
+	queryBuilder := repository.Sq.Update(bs.BadgeTable).Set("reward_points", reqData.RewardPoints).Set("updated_by", reqData.UserId).Where(squirrel.Eq{"id": reqData.Id})
 	updateBadgeQuery, args, err := queryBuilder.ToSql()
 	if err != nil {
 		err = fmt.Errorf("error in generating squirrel query, err: %w", err)

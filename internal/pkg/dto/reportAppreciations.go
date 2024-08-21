@@ -73,6 +73,7 @@ type DeleteAppreciationMail struct {
 	AppreciationTo   string
 	ReportingComment string
 	AppreciationDesc string
+	Date             int64
 }
 
 type ResolveAppreciationMail struct {
