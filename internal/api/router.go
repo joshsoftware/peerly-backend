@@ -74,14 +74,14 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 
 	peerlySubrouter.Handle("/report_appreciations", middleware.JwtAuthMiddleware(listReportedAppreciations(deps.ReportAppreciationService), []string{constants.UserRole, constants.AdminRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
 
-	peerlySubrouter.Handle("/moderate_appreciation/{id:[0-9]+}", middleware.JwtAuthMiddleware(moderateAppreciation(deps.ReportAppreciationService), []string{constants.UserRole, constants.AdminRole})).Methods(http.MethodPut).Headers(versionHeader, v1)
+	peerlySubrouter.Handle("/moderate_appreciation/{id:[0-9]+}", middleware.JwtAuthMiddleware(moderateAppreciation(deps.ReportAppreciationService), []string{constants.AdminRole})).Methods(http.MethodPut).Headers(versionHeader, v1)
 
-	peerlySubrouter.Handle("/resolve_appreciation/{id:[0-9]+}", middleware.JwtAuthMiddleware(resolveAppreciation(deps.ReportAppreciationService), []string{constants.UserRole, constants.AdminRole})).Methods(http.MethodPut).Headers(versionHeader, v1)
+	peerlySubrouter.Handle("/resolve_appreciation/{id:[0-9]+}", middleware.JwtAuthMiddleware(resolveAppreciation(deps.ReportAppreciationService), []string{constants.AdminRole})).Methods(http.MethodPut).Headers(versionHeader, v1)
 
 	//grades
 	peerlySubrouter.Handle("/grades", middleware.JwtAuthMiddleware(listGradesHandler(deps.GradeService), []string{constants.UserRole, constants.AdminRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
 
-	peerlySubrouter.Handle("/grades/{id:[0-9]+}", middleware.JwtAuthMiddleware(editGradesHandler(deps.GradeService), []string{constants.UserRole, constants.AdminRole})).Methods(http.MethodPatch).Headers(versionHeader, v1)
+	peerlySubrouter.Handle("/grades/{id:[0-9]+}", middleware.JwtAuthMiddleware(editGradesHandler(deps.GradeService), []string{constants.AdminRole})).Methods(http.MethodPatch).Headers(versionHeader, v1)
 
 	// reward appreciation
 	peerlySubrouter.Handle("/reward/{id:[0-9]+}", middleware.JwtAuthMiddleware(giveRewardHandler(deps.RewardService), []string{constants.UserRole, constants.AdminRole})).Methods(http.MethodPost).Headers(versionHeader, v1)
@@ -100,7 +100,7 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 
 	peerlySubrouter.Handle("/badges", middleware.JwtAuthMiddleware(listBadgesHandler(deps.BadgeService), []string{constants.UserRole, constants.AdminRole})).Methods(http.MethodGet).Headers(versionHeader, v1)
 
-	peerlySubrouter.Handle("/badges/{id:[0-9]+}", middleware.JwtAuthMiddleware(editBadgesHandler(deps.BadgeService), []string{constants.UserRole, constants.AdminRole})).Methods(http.MethodPatch).Headers(versionHeader, v1)
+	peerlySubrouter.Handle("/badges/{id:[0-9]+}", middleware.JwtAuthMiddleware(editBadgesHandler(deps.BadgeService), []string{constants.AdminRole})).Methods(http.MethodPatch).Headers(versionHeader, v1)
 
 	// No version requirement for /ping
 	peerlySubrouter.HandleFunc("/ping", pingHandler).Methods(http.MethodGet)
