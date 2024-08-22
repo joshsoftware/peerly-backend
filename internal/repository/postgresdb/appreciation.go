@@ -264,22 +264,6 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 		res[idx].ReportedFlag = slices.Contains(userIds, userId)
 	}
 
-	for idx, appreciation := range res {
-		var userIds []int64
-		queryBuilder = repository.Sq.Select("reported_by").From("resolutions").Where(squirrel.Eq{"appreciation_id": appreciation.ID})
-		query, args, err := queryBuilder.ToSql()
-		if err != nil {
-			logger.Errorf("error in generating squirrel query, err: %s", err.Error())
-			return nil, repository.Pagination{}, apperrors.InternalServerError
-		}
-		err = appr.DB.SelectContext(ctx, &userIds, query, args...)
-		if err != nil {
-			logger.Errorf("error in reported flag query, err: %s", err.Error())
-			return nil, repository.Pagination{}, apperrors.InternalServerError
-		}
-		res[idx].ReportedFlag = slices.Contains(userIds, userId)
-	}
-
 	return res, pagination, nil
 }
 
@@ -388,7 +372,7 @@ WHERE app.id = agg.appreciation_id;
     `
 
 	// Execute the query using the query executor
-	_, err = queryExecutor.Exec(query,yesterdayMidnightUnixMilli,todayMidnightUnixMilli)
+	_, err = queryExecutor.Exec(query, yesterdayMidnightUnixMilli, todayMidnightUnixMilli)
 	if err != nil {
 		logger.Error("Error executing SQL query:", err.Error())
 		return false, apperrors.InternalServer
