@@ -233,10 +233,6 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 
 	queryExecutor = appr.InitiateQueryExecutor(tx)
 	res := make([]repository.AppreciationResponse, 0)
-
-	logger.Info("sp : filter: ", filter)
-	logger.Info("sp : sql: ", sql)
-	logger.Info("sp : args: ", args)
 	err = sqlx.Select(queryExecutor, &res, sql, args...)
 	if err != nil {
 		logger.Error("failed to execute query appreciation: ", err.Error())
