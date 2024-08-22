@@ -7,6 +7,7 @@ import (
 
 	"github.com/joshsoftware/peerly-backend/internal/app/email"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
+	"github.com/joshsoftware/peerly-backend/internal/pkg/config"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
@@ -230,13 +231,20 @@ func (rs *service) DeleteAppreciation(ctx context.Context, reqData dto.Moderatio
 		return
 	}
 
+	seconds := appreciation.CreatedAt / 1000
+	nanoseconds := (appreciation.CreatedAt % 1000) * 1e6
+
+	tm := time.Unix(seconds, nanoseconds)
+	formattedDate := tm.Format("02/01/2006")
+
 	templateData := dto.DeleteAppreciationMail{
 		ModeratorComment: reqData.ModeratorComment,
 		AppreciationBy:   sender.FirstName + " " + sender.LastName,
 		AppreciationTo:   receiver.FirstName + " " + receiver.LastName,
 		ReportingComment: appreciation.ReportingComment,
 		AppreciationDesc: appreciation.AppreciationDesc,
-		Date:             appreciation.CreatedAt,
+		Date:             formattedDate,
+		Icon:             config.PeerlyBaseUrl() + constants.CheckIconLogo,
 	}
 
 	fmt.Println("Reporter mail: ", reporter.Email)
@@ -299,7 +307,7 @@ func sendReportEmail(senderEmail string, senderFirstName string, senderLastName 
 		AppreciationReceiverName: fmt.Sprint(apprReceiverFirstName, " ", apprReceiverLastName),
 	}
 
-	logger.Info("report sender email: ---------> ",senderEmail)
+	logger.Info("report sender email: ---------> ", senderEmail)
 	mailReq := email.NewMail([]string{senderEmail}, []string{"dl_peerly.support@joshsoftware.com"}, []string{}, "🙏 Thanks for Your Feedback! We’re On It! 🔧")
 	mailReq.ParseTemplate("./internal/app/email/templates/reportAppreciation.html", templateData)
 	err := mailReq.Send()
@@ -309,7 +317,6 @@ func sendReportEmail(senderEmail string, senderFirstName string, senderLastName 
 	}
 	return nil
 }
-
 
 func (rs *service) ResolveAppreciation(ctx context.Context, reqData dto.ModerationReq) (err error) {
 	moderatorId := ctx.Value(constants.UserId)
@@ -370,6 +377,7 @@ func (rs *service) ResolveAppreciation(ctx context.Context, reqData dto.Moderati
 		AppreciationTo:   receiver.FirstName + " " + receiver.LastName,
 		ReportingComment: appreciation.ReportingComment,
 		AppreciationDesc: appreciation.AppreciationDesc,
+		Icon:             config.PeerlyBaseUrl() + constants.CheckIconLogo,
 	}
 
 	fmt.Println("Reporter mail: ", reporter.Email)
