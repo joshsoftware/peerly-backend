@@ -53,15 +53,18 @@ func (cron *DailyJob) Schedule() {
 		currentTimeInKolkata.Year(),   // Year: current year
 		currentTimeInKolkata.Month(),  // Month: current month
 		currentTimeInKolkata.Day(),    // Day: today's date
-		int(MonthlyJobTiming.hours),   // Hour: from MonthlyJobTiming
-		int(MonthlyJobTiming.minutes), // Minute: from MonthlyJobTiming
-		int(MonthlyJobTiming.seconds), // Second: from MonthlyJobTiming
+		int(SayHelloDailyJobTiming.hours),   // Hour: from MonthlyJobTiming
+		int(SayHelloDailyJobTiming.minutes), // Minute: from MonthlyJobTiming
+		int(SayHelloDailyJobTiming.seconds), // Second: from MonthlyJobTiming
 		0,                             // Nanosecond: 0
 		location,                      // Timezone: Asia/Kolkata
 	)
+
+	logger.Info("IST time check: ",jobTimeInKolkata)
+
 	// Convert to UTC
 	jobTimeInUTC := jobTimeInKolkata.UTC()
-
+	logger.Info("UTC time check: ",jobTimeInUTC)
 	cron.job, err = cron.scheduler.NewJob(
 		gocron.DailyJob(
 			SAY_HELLO_DAILY_CRON_JOB_INTERVAL_DAYS,
