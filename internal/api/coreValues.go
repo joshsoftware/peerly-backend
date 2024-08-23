@@ -8,7 +8,7 @@ import (
 	corevalues "github.com/joshsoftware/peerly-backend/internal/app/coreValues"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
-	logger "github.com/sirupsen/logrus"
+	logger "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
 )
 
 func listCoreValuesHandler(coreValueSvc corevalues.Service) http.HandlerFunc {
@@ -46,7 +46,7 @@ func createCoreValueHandler(coreValueSvc corevalues.Service) http.HandlerFunc {
 		var coreValue dto.CreateCoreValueReq
 		err := json.NewDecoder(req.Body).Decode(&coreValue)
 		if err != nil {
-			logger.Errorf("error while decoding request data, err: %s", err.Error())
+			logger.Errorf(req.Context(), "error while decoding request data, err: %s", err.Error())
 			err = apperrors.JSONParsingErrorReq
 			dto.ErrorRepsonse(rw, err)
 			return
@@ -72,7 +72,7 @@ func updateCoreValueHandler(coreValueSvc corevalues.Service) http.HandlerFunc {
 		var updateReq dto.UpdateQueryRequest
 		err := json.NewDecoder(req.Body).Decode(&updateReq)
 		if err != nil {
-			logger.Errorf("error while decoding request data, err: %s", err.Error())
+			logger.Errorf(req.Context(), "error while decoding request data, err: %s", err.Error())
 			err = apperrors.JSONParsingErrorReq
 			dto.ErrorRepsonse(rw, err)
 			return

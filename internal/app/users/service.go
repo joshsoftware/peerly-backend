@@ -17,8 +17,8 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/pkg/config"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
+	logger "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
-	logger "github.com/sirupsen/logrus"
 	"github.com/xuri/excelize/v2"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -55,7 +55,7 @@ func (us *service) ValidatePeerly(ctx context.Context, authToken string) (data d
 	client := &http.Client{}
 	validationReq, err := http.NewRequest(http.MethodPost, config.IntranetBaseUrl()+constants.PeerlyValidationPath, nil)
 	if err != nil {
-		logger.Errorf("error in creating new validation request err: %s", err.Error())
+		logger.Errorf(ctx, "error in creating new validation request err: %s", err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
@@ -63,25 +63,25 @@ func (us *service) ValidatePeerly(ctx context.Context, authToken string) (data d
 	validationReq.Header.Add(constants.ClientCode, config.IntranetClientCode())
 	resp, err := client.Do(validationReq)
 	if err != nil {
-		logger.Errorf("error in intranet validation api. status returned: %d, err: %s", resp.StatusCode, err.Error())
+		logger.Errorf(ctx, "error in intranet validation api. status returned: %d, err: %s", resp.StatusCode, err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
 	if resp.StatusCode != http.StatusOK {
-		logger.Errorf("error returned,  status returned: %d", resp.StatusCode)
+		logger.Errorf(ctx, "error returned,  status returned: %d", resp.StatusCode)
 		err = apperrors.IntranetValidationFailed
 		return
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		logger.Errorf("error in readall parsing. err: %s", err.Error())
+		logger.Errorf(ctx, "error in readall parsing. err: %s", err.Error())
 		err = apperrors.JSONParsingErrorResp
 		return
 	}
 	err = json.Unmarshal(body, &data)
 	if err != nil {
-		logger.Errorf("error in unmarshal parsing. err: %s", err.Error())
+		logger.Errorf(ctx, "error in unmarshal parsing. err: %s", err.Error())
 		err = apperrors.JSONParsingErrorResp
 		return
 	}
@@ -95,7 +95,7 @@ func (us *service) GetIntranetUserData(ctx context.Context, req dto.GetIntranetU
 	url := fmt.Sprintf("%s%s%d", config.IntranetBaseUrl(), constants.GetIntranetUserDataPath, req.UserId)
 	intranetReq, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		logger.Errorf("error in creating new get user request. err: %s", err.Error())
+		logger.Errorf(ctx, "error in creating new get user request. err: %s", err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
@@ -103,14 +103,14 @@ func (us *service) GetIntranetUserData(ctx context.Context, req dto.GetIntranetU
 	intranetReq.Header.Add(constants.AuthorizationHeader, req.Token)
 	resp, err := client.Do(intranetReq)
 	if err != nil {
-		logger.Errorf("error in intranet get user api. status returned: %d, err: %s  ", resp.StatusCode, err.Error())
-		logger.Errorf("error response: %v", resp)
+		logger.Errorf(ctx, "error in intranet get user api. status returned: %d, err: %s  ", resp.StatusCode, err.Error())
+		logger.Errorf(ctx, "error response: %v", resp)
 		err = apperrors.InternalServerError
 		return
 	}
 	if resp.StatusCode != http.StatusOK {
-		logger.Errorf("error in intranet get user api. status returned: %d ", resp.StatusCode)
-		logger.Errorf("error response: %v", resp)
+		logger.Errorf(ctx, "error in intranet get user api. status returned: %d ", resp.StatusCode)
+		logger.Errorf(ctx, "error response: %v", resp)
 		err = apperrors.InternalServerError
 		return
 	}
@@ -118,7 +118,7 @@ func (us *service) GetIntranetUserData(ctx context.Context, req dto.GetIntranetU
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		logger.Errorf("error in io.readall. err: %s", err.Error())
+		logger.Errorf(ctx, "error in io.readall. err: %s", err.Error())
 		err = apperrors.JSONParsingErrorResp
 		return
 	}
@@ -127,7 +127,7 @@ func (us *service) GetIntranetUserData(ctx context.Context, req dto.GetIntranetU
 
 	err = json.Unmarshal(body, &respData)
 	if err != nil {
-		logger.Errorf("error in unmarshalling data. err: %s", err.Error())
+		logger.Errorf(ctx, "error in unmarshalling data. err: %s", err.Error())
 		err = apperrors.JSONParsingErrorResp
 		return
 	}
@@ -153,7 +153,7 @@ func (us *service) LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.L
 	//sync user data
 	syncNeeded, dataToBeUpdated, err := us.syncData(ctx, u, user)
 	if err != nil {
-		logger.Error(err.Error())
+		logger.Error(ctx, err.Error())
 		err = apperrors.InternalServerError
 		return resp, err
 	}
@@ -161,7 +161,7 @@ func (us *service) LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.L
 
 		err = us.userRepo.SyncData(ctx, dataToBeUpdated)
 		if err != nil {
-			logger.Error(err.Error())
+			logger.Error(ctx, err.Error())
 			err = apperrors.InternalServerError
 			return resp, err
 		}
@@ -193,7 +193,7 @@ func (us *service) LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.L
 	tokenString, err := token.SignedString(jwtKey)
 
 	if err != nil {
-		logger.Errorf("error generating authtoken. err: %s", err.Error())
+		logger.Errorf(ctx, "error generating authtoken. err: %s", err.Error())
 		err = apperrors.InternalServerError
 		return resp, err
 	}
@@ -203,7 +203,7 @@ func (us *service) LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.L
 
 	err = us.userRepo.AddDeviceToken(ctx, user.Id, u.NotificationToken)
 	if err != nil {
-		logger.Errorf("err in adding device token: %v", err)
+		logger.Errorf(ctx, "err in adding device token: %v", err)
 	}
 	return resp, nil
 
@@ -227,7 +227,7 @@ func (us *service) RegisterUser(ctx context.Context, u dto.IntranetUserData) (us
 	//reward_multiplier from organization config
 	reward_multiplier, err := us.userRepo.GetRewardMultiplier(ctx)
 	if err != nil {
-		logger.Error(err.Error())
+		logger.Error(ctx, err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
@@ -236,7 +236,7 @@ func (us *service) RegisterUser(ctx context.Context, u dto.IntranetUserData) (us
 	//get role by name
 	roleId, err := us.userRepo.GetRoleByName(ctx, constants.UserRole)
 	if err != nil {
-		logger.Error(err.Error())
+		logger.Error(ctx, err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
@@ -250,7 +250,7 @@ func (us *service) RegisterUser(ctx context.Context, u dto.IntranetUserData) (us
 	//register user
 	dbResp, err := us.userRepo.CreateNewUser(ctx, svcData)
 	if err != nil {
-		logger.Error(err.Error())
+		logger.Error(ctx, err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
@@ -265,7 +265,7 @@ func (us *service) ListIntranetUsers(ctx context.Context, reqData dto.GetUserLis
 	url := config.IntranetBaseUrl() + fmt.Sprintf(constants.ListIntranetUsersPath, reqData.Page, constants.DefaultPageSize)
 	intranetReq, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		logger.Errorf("error in creating new intranet user list request. err: %s", err.Error())
+		logger.Errorf(ctx, "error in creating new intranet user list request. err: %s", err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
@@ -273,12 +273,12 @@ func (us *service) ListIntranetUsers(ctx context.Context, reqData dto.GetUserLis
 	intranetReq.Header.Add(constants.AuthorizationHeader, reqData.AuthToken)
 	resp, err := client.Do(intranetReq)
 	if err != nil {
-		logger.Errorf("error in intranet get user api. status returned: %d, err: %s ", resp.StatusCode, err.Error())
+		logger.Errorf(ctx, "error in intranet get user api. status returned: %d, err: %s ", resp.StatusCode, err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
 	if resp.StatusCode != http.StatusOK {
-		logger.Errorf("erro in intranet user list request. status returned: %d", resp.StatusCode)
+		logger.Errorf(ctx, "erro in intranet user list request. status returned: %d", resp.StatusCode)
 		err = apperrors.InternalServerError
 		return
 	}
@@ -288,13 +288,13 @@ func (us *service) ListIntranetUsers(ctx context.Context, reqData dto.GetUserLis
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		logger.Errorf("error in io.readall, err: %s", err.Error())
+		logger.Errorf(ctx, "error in io.readall, err: %s", err.Error())
 		err = apperrors.JSONParsingErrorResp
 	}
 
 	err = json.Unmarshal(body, &respData)
 	if err != nil {
-		logger.Errorf("error in unmarshalling data, err: %s", err.Error())
+		logger.Errorf(ctx, "error in unmarshalling data, err: %s", err.Error())
 		err = apperrors.JSONParsingErrorResp
 		return
 	}
@@ -316,7 +316,7 @@ func (us *service) ListUsers(ctx context.Context, reqData dto.ListUsersReq) (res
 
 	dbResp, totalCount, err := us.userRepo.ListUsers(ctx, reqData)
 	if err != nil {
-		logger.Errorf(err.Error())
+		logger.Errorf(ctx, err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
@@ -357,14 +357,14 @@ func (us *service) AdminLogin(ctx context.Context, loginReq dto.AdminLoginReq) (
 	}
 
 	if dbUser.RoleID != 2 {
-		logger.Errorf("unathorized access")
+		logger.Errorf(ctx, "unathorized access")
 		err = apperrors.RoleUnathorized
 		return
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(dbUser.Password.String), []byte(loginReq.Password))
 	if err != nil {
-		logger.Errorf("invalid password, err: %s", err.Error())
+		logger.Errorf(ctx, "invalid password, err: %s", err.Error())
 		err = apperrors.InvalidPassword
 		return
 	}
@@ -387,7 +387,7 @@ func (us *service) AdminLogin(ctx context.Context, loginReq dto.AdminLoginReq) (
 	tokenString, err := token.SignedString(jwtKey)
 
 	if err != nil {
-		logger.Errorf("error generating authtoken. err: %s", err.Error())
+		logger.Errorf(ctx, "error generating authtoken. err: %s", err.Error())
 		err = apperrors.InternalServerError
 		return resp, err
 	}
@@ -440,7 +440,7 @@ func (us *service) GetUserById(ctx context.Context) (user dto.GetUserByIdResp, e
 	fmt.Printf("userId: %T", id)
 	userId, ok := id.(int64)
 	if !ok {
-		logger.Error("Error in typecasting user id")
+		logger.Error(ctx, "Error in typecasting user id")
 		err = apperrors.InternalServerError
 		return
 	}
@@ -459,7 +459,7 @@ func (us *service) GetUserById(ctx context.Context) (user dto.GetUserByIdResp, e
 
 	grade, err := us.userRepo.GetGradeById(ctx, user.GradeId)
 	if err != nil {
-		logger.Errorf(err.Error())
+		logger.Errorf(ctx, err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
@@ -517,7 +517,7 @@ func (us *service) GetTop10Users(ctx context.Context) (users []dto.Top10User, er
 	quaterTimeStamp := GetQuarterStartUnixTime()
 	dbUsers, err := us.userRepo.GetTop10Users(ctx, quaterTimeStamp)
 	if err != nil {
-		logger.Error(err.Error())
+		logger.Error(ctx, err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
@@ -558,7 +558,7 @@ func (us *service) sendRewardQuotaRefillEmailToAll(ctx context.Context) {
 	}
 	dbUsers, _, err := us.userRepo.ListUsers(ctx, reqData)
 	if err != nil {
-		logger.Errorf("error in getting users for email")
+		logger.Errorf(ctx, "error in getting users for email")
 		return
 	}
 
@@ -567,10 +567,10 @@ func (us *service) sendRewardQuotaRefillEmailToAll(ctx context.Context) {
 		usersEmails = append(usersEmails, user.Email)
 	}
 
-	logger.Info("user emails : ")
+	logger.Info(ctx, "user emails : ")
 
 	for _, userEmail := range usersEmails {
-		logger.Infoln("email: ", userEmail)
+		logger.Info(ctx, "email: ", userEmail)
 	}
 
 	templateData := struct {
@@ -582,12 +582,12 @@ func (us *service) sendRewardQuotaRefillEmailToAll(ctx context.Context) {
 	mailReq := email.NewMail([]string{"samnitpatil9882@gmail.com"}, []string{"samnitpatil@gmail.com"}, []string{"samirpatil9882@gmail.com"}, "Reward Quota Refilled")
 	err = mailReq.ParseTemplate("./internal/app/email/templates/rewardQuotaReset.html", templateData)
 	if err != nil {
-		logger.Errorf("err in creating html file : %v", err)
+		logger.Errorf(ctx, "err in creating html file : %v", err)
 		return
 	}
 	err = mailReq.Send("reward quota renewal")
 	if err != nil {
-		logger.Errorf("err: %v", err)
+		logger.Errorf(ctx, "err: %v", err)
 		return
 	}
 }
@@ -603,7 +603,7 @@ func (us *service) NotificationByAdmin(ctx context.Context, notificationReq dto.
 
 	notificationTokens, err := us.userRepo.ListDeviceTokensByUserID(ctx, notificationReq.Id)
 	if err != nil {
-		logger.Errorf("err in getting device tokens: %v", err)
+		logger.Errorf(ctx, "err in getting device tokens: %v", err)
 		err = apperrors.InternalServerError
 		return
 	}
@@ -635,7 +635,7 @@ func (us *service) AllAppreciationReport(ctx context.Context, appreciations []dt
 	sheetName := "Appreciations"
 	index, err := f.NewSheet(sheetName)
 	if err != nil {
-		logger.Errorf("err in generating newsheet, err: %v", err)
+		logger.Errorf(ctx, "err in generating newsheet, err: %v", err)
 		return
 	}
 
@@ -668,7 +668,7 @@ func (us *service) AllAppreciationReport(ctx context.Context, appreciations []dt
 	// Save the Excel file temporarily
 	tempFileName = "report.xlsx"
 	if err = f.SaveAs(tempFileName); err != nil {
-		logger.Errorf("Failed to save file: %v", err)
+		logger.Errorf(ctx, "Failed to save file: %v", err)
 		return
 	}
 
@@ -684,7 +684,7 @@ func (us *service) ReportedAppreciationReport(ctx context.Context, appreciations
 	sheetName := "ReportedAppreciations"
 	index, err := f.NewSheet(sheetName)
 	if err != nil {
-		logger.Errorf("err in generating newsheet, err: %v", err)
+		logger.Errorf(ctx, "err in generating newsheet, err: %v", err)
 		return
 	}
 
@@ -723,7 +723,7 @@ func (us *service) ReportedAppreciationReport(ctx context.Context, appreciations
 	// Save the Excel file temporarily
 	tempFileName = "reportedAppreciations.xlsx"
 	if err = f.SaveAs(tempFileName); err != nil {
-		logger.Errorf("Failed to save file: %v", err)
+		logger.Errorf(ctx, "Failed to save file: %v", err)
 		return
 	}
 

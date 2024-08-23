@@ -5,9 +5,9 @@ import (
 
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
+	logger "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/utils"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
-	logger "github.com/sirupsen/logrus"
 )
 
 type service struct {
@@ -29,8 +29,9 @@ func (bs *service) ListBadges(ctx context.Context) (resp []dto.Badge, err error)
 
 	dbResp, err := bs.badgesRepo.ListBadges(ctx)
 	if err != nil {
-		logger.Error(err.Error())
+		logger.Error(ctx, err.Error())
 		err = apperrors.InternalServerError
+		return
 	}
 
 	for _, item := range dbResp {
@@ -50,14 +51,14 @@ func (gs *service) EditBadge(ctx context.Context, id string, rewardPoints int64)
 	var reqData dto.UpdateBadgeReq
 	reqData.Id = badgeId
 	if rewardPoints < 0 {
-		logger.Errorf("badge reward points cannot be negative, reward points: %d", rewardPoints)
+		logger.Errorf(ctx, "badge reward points cannot be negative, reward points: %d", rewardPoints)
 		err = apperrors.NegativeBadgePoints
 		return
 	}
 	reqData.RewardPoints = rewardPoints
 	err = gs.badgesRepo.EditBadge(ctx, reqData)
 	if err != nil {
-		logger.Error(err.Error())
+		logger.Error(ctx, err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
