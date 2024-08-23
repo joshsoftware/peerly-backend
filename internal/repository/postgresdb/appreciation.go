@@ -13,7 +13,7 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
-	logger "github.com/sirupsen/logrus"
+	logger "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
 )
 
 var AppreciationColumns = []string{"id", "core_value_id", "description", "quarter", "sender", "receiver"}
@@ -46,14 +46,14 @@ func (appr *appreciationsStore) CreateAppreciation(ctx context.Context, tx repos
 		Suffix("RETURNING id,core_value_id, description,total_reward_points,quarter,sender,receiver,created_at,updated_at").
 		ToSql()
 	if err != nil {
-		logger.Errorf("error in generating squirrel query, err: %v", err)
+		logger.Errorf(ctx,"error in generating squirrel query, err: %v", err)
 		return repository.Appreciation{}, apperrors.InternalServerError
 	}
 
 	var resAppr repository.Appreciation
 	err = queryExecutor.QueryRowx(insertQuery, args...).StructScan(&resAppr)
 	if err != nil {
-		logger.Errorf("Error executing create appreciation insert query: %v", err)
+		logger.Errorf(ctx,"Error executing create appreciation insert query: %v", err)
 		return repository.Appreciation{}, apperrors.InternalServer
 	}
 
@@ -68,7 +68,7 @@ func (appr *appreciationsStore) GetAppreciationById(ctx context.Context, tx repo
 	data := ctx.Value(constants.UserId)
 	userID, ok := data.(int64)
 	if !ok {
-		logger.Error("err in parsing userID from token")
+		logger.Error(ctx,"err in parsing userID from token")
 		return repository.AppreciationResponse{}, apperrors.InternalServer
 	}
 
@@ -112,7 +112,7 @@ func (appr *appreciationsStore) GetAppreciationById(ctx context.Context, tx repo
 		ToSql()
 
 	if err != nil {
-		logger.Errorf("error in generating squirrel query, err: %v", err)
+		logger.Errorf(ctx,"error in generating squirrel query, err: %v", err)
 		return repository.AppreciationResponse{}, apperrors.InternalServer
 	}
 
@@ -122,10 +122,10 @@ func (appr *appreciationsStore) GetAppreciationById(ctx context.Context, tx repo
 	err = queryExecutor.QueryRowx(query, args...).StructScan(&resAppr)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			logger.Warn(fmt.Sprintf("no appreciation found with id: %d", apprId))
+			logger.Warn(ctx,fmt.Sprintf("no appreciation found with id: %d", apprId))
 			return repository.AppreciationResponse{}, apperrors.AppreciationNotFound
 		}
-		logger.Errorf("failed to execute query: %v", err)
+		logger.Errorf(ctx,"failed to execute query: %v", err)
 		return repository.AppreciationResponse{}, apperrors.InternalServer
 	}
 	return resAppr, nil
@@ -138,7 +138,7 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 	data := ctx.Value(constants.UserId)
 	userID, ok := data.(int64)
 	if !ok {
-		logger.Error("err in parsing userID from token")
+		logger.Error(ctx,"err in parsing userID from token")
 		return []repository.AppreciationResponse{}, repository.Pagination{}, apperrors.InternalServerError
 	}
 
@@ -168,14 +168,14 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 
 	countSql, countArgs, err := queryBuilder.ToSql()
 	if err != nil {
-		logger.Error("failed to build count query: ", err.Error())
+		logger.Error(ctx,"failed to build count query: ", err.Error())
 		return []repository.AppreciationResponse{}, repository.Pagination{}, apperrors.InternalServerError
 	}
 
 	var totalRecords int32
 	err = queryExecutor.QueryRowx(countSql, countArgs...).Scan(&totalRecords)
 	if err != nil {
-		logger.Error("failed to execute count query: ", err.Error())
+		logger.Error(ctx,"failed to execute count query: ", err.Error())
 		return []repository.AppreciationResponse{}, repository.Pagination{}, apperrors.InternalServerError
 	}
 
@@ -227,27 +227,27 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 	queryBuilder = queryBuilder.Limit(uint64(filter.Limit)).Offset(uint64(offset))
 	sql, args, err := queryBuilder.ToSql()
 	if err != nil {
-		logger.Error("failed to build query: ", err.Error())
+		logger.Error(ctx,"failed to build query: ", err.Error())
 		return nil, repository.Pagination{}, apperrors.InternalServerError
 	}
 
 	queryExecutor = appr.InitiateQueryExecutor(tx)
 	res := make([]repository.AppreciationResponse, 0)
 
-	logger.Info("sp : filter: ", filter)
-	logger.Info("sp : sql: ", sql)
-	logger.Info("sp : args: ", args)
+	logger.Info(ctx,"filter: ", filter)
+	logger.Info(ctx,"sql: ", sql)
+	logger.Info(ctx,"args: ", args)
 	err = sqlx.Select(queryExecutor, &res, sql, args...)
 	if err != nil {
-		logger.Error("failed to execute query appreciation: ", err.Error())
-		logger.Error("err res data: ", res)
+		logger.Error(ctx,"failed to execute query appreciation: ", err.Error())
+		logger.Error(ctx,"err res data: ", res)
 		return nil, repository.Pagination{}, apperrors.InternalServerError
 	}
 	id := ctx.Value(constants.UserId)
 	fmt.Println("id -> ", id)
 	userId, ok := ctx.Value(constants.UserId).(int64)
 	if !ok {
-		logger.Error("unable to convert context user id to int64")
+		logger.Error(ctx,"unable to convert context user id to int64")
 		return nil, repository.Pagination{}, apperrors.InternalServerError
 	}
 
@@ -256,12 +256,12 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 		queryBuilder = repository.Sq.Select("reported_by").From("resolutions").Where(squirrel.Eq{"appreciation_id": appreciation.ID})
 		query, args, err := queryBuilder.ToSql()
 		if err != nil {
-			logger.Errorf("error in generating squirrel query, err: %s", err.Error())
+			logger.Errorf(ctx,"error in generating squirrel query, err: %s", err.Error())
 			return nil, repository.Pagination{}, apperrors.InternalServerError
 		}
 		err = appr.DB.SelectContext(ctx, &userIds, query, args...)
 		if err != nil {
-			logger.Errorf("error in reported flag query, err: %s", err.Error())
+			logger.Errorf(ctx,"error in reported flag query, err: %s", err.Error())
 			return nil, repository.Pagination{}, apperrors.InternalServerError
 		}
 		res[idx].ReportedFlag = slices.Contains(userIds, userId)
@@ -280,7 +280,7 @@ func (appr *appreciationsStore) DeleteAppreciation(ctx context.Context, tx repos
 		ToSql()
 
 	if err != nil {
-		logger.Error("Error building SQL: ", err.Error())
+		logger.Error(ctx,"Error building SQL: ", err.Error())
 		return apperrors.InternalServer
 	}
 
@@ -288,18 +288,18 @@ func (appr *appreciationsStore) DeleteAppreciation(ctx context.Context, tx repos
 
 	result, err := queryExecutor.Exec(query, args...)
 	if err != nil {
-		logger.Error("Error executing SQL: ", err.Error())
+		logger.Error(ctx,"Error executing SQL: ", err.Error())
 		return apperrors.InternalServer
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		logger.Error("Error getting rows affected: ", err.Error())
+		logger.Error(ctx,"Error getting rows affected: ", err.Error())
 		return apperrors.InternalServer
 	}
 
 	if rowsAffected == 0 {
-		logger.Warn("No rows affected")
+		logger.Warn(ctx,"No rows affected")
 		return apperrors.AppreciationNotFound
 	}
 
@@ -315,7 +315,7 @@ func (appr *appreciationsStore) IsUserPresent(ctx context.Context, tx repository
 		ToSql()
 
 	if err != nil {
-		logger.Error("err ", err.Error())
+		logger.Error(ctx,"err ", err.Error())
 		return false, apperrors.InternalServer
 	}
 
@@ -325,7 +325,7 @@ func (appr *appreciationsStore) IsUserPresent(ctx context.Context, tx repository
 	// Execute the query
 	err = queryExecutor.QueryRowx(query, args...).Scan(&count)
 	if err != nil {
-		logger.Error("failed to execute query: ", err.Error())
+		logger.Error(ctx,"failed to execute query: ", err.Error())
 		return false, apperrors.InternalServer
 	}
 
@@ -360,7 +360,7 @@ WHERE app.id = agg.appreciation_id;
 	// Execute the query using the query executor
 	_, err := queryExecutor.Exec(query)
 	if err != nil {
-		logger.Error("Error executing SQL query:", err.Error())
+		logger.Error(ctx,"Error executing SQL query:", err.Error())
 		return false, apperrors.InternalServer
 	}
 

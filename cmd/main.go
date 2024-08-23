@@ -17,6 +17,7 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/app"
 	"github.com/joshsoftware/peerly-backend/internal/app/cronjob"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/config"
+	log "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
 	script "github.com/joshsoftware/peerly-backend/scripts"
 	"github.com/rs/cors"
@@ -94,6 +95,7 @@ func startApp() (err error) {
 
 	// Context for main function
 	ctx := context.Background()
+	logger,err := log.SetupLogger()
 	logger.Info("Starting Peerly Application...")
 	defer logger.Info("Shutting Down Peerly Application...")
 	//initialize database
@@ -126,8 +128,12 @@ func startApp() (err error) {
 	//initialize router
 	router := api.NewRouter(services)
 
-	// init web server
-	server := negroni.Classic()
+	// Negroni logger setup
+	negroniLogger := negroni.NewLogger()
+	negroniLogger.ALogger = logger
+
+	// Initialize web server
+	server := negroni.New(negroniLogger)
 	server.Use(c)
 	server.UseHandler(router)
 

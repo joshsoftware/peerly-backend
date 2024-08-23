@@ -13,6 +13,7 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
+	log "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
 	logger "github.com/sirupsen/logrus"
 )
 
@@ -224,11 +225,13 @@ func listUsersHandler(userSvc user.Service) http.HandlerFunc {
 func getActiveUserListHandler(userSvc user.Service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
 
+		log.Debug(req.Context(),"getActiveUserListHandler: req: ",req)
 		resp, err := userSvc.GetActiveUserList(req.Context())
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
+		log.Debug(req.Context(),"getActiveUserListHandler: resp: ",resp)
 		dto.SuccessRepsonse(rw, http.StatusOK, "Active Users list", resp)
 	}
 }
