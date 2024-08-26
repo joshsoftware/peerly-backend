@@ -62,7 +62,7 @@ func SeedData() (err error) {
 		VALUES (3,'717','SriGayathriKavya','Ruttala','srigayathri.ruttala@joshsoftware.com','$2a$14$5smJBNxiWYKDy2WK0tzo7OggboToB/lr2jM9Q6qSI63gHMr08/212','Executive - HRBP',2000 , 2, 9)`,
 
 		//organization config
-		`INSERT INTO organization_config (id,reward_multiplier,reward_quota_renewal_frequency,timezone,created_by,updated_by) VALUES (1,10,1,'UTC',1,1)`,
+		`INSERT INTO organization_config (id,reward_multiplier,reward_quota_renewal_frequency,timezone,created_by,updated_by) VALUES (1,10,1,'Asia/Kolkata',1,1)`,
 	}
 
 	for _, query := range seedQueries {
