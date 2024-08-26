@@ -1,2 +1,0 @@
-time="2024-08-23T12:51:17+05:30" level=info msg="Starting Peerly Application..."
-time="2024-08-23T12:51:23+05:30" level=info msg="2024-08-23T12:51:23+05:30 | 401 | \t 112.994µs | localhost:33001 | POST /peerly/set_logger_level"

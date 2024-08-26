@@ -95,13 +95,17 @@ func startApp() (err error) {
 
 	// Context for main function
 	ctx := context.Background()
-	logger,err := log.SetupLogger()
-	logger.Info("Starting Peerly Application...")
-	defer logger.Info("Shutting Down Peerly Application...")
+	lg,err := log.SetupLogger()
+	if err != nil{
+		logger.Error("logger setup failed ",err.Error())
+		return
+	}
+	log.Info(ctx,"Starting Peerly Application...")
+	defer log.Info(ctx,"Shutting Down Peerly Application...")
 	//initialize database
 	dbInstance, err := repository.InitializeDatabase()
 	if err != nil {
-		logger.WithField("err", err.Error()).Error("Database init failed")
+		log.Error(ctx,"Database init failed")
 		return
 	}
 
@@ -119,7 +123,7 @@ func startApp() (err error) {
 	// Initializing Cron Job
 	scheduler, err := gocron.NewScheduler()
 	if err != nil {
-		logger.Error(ctx, "scheduler creation failed with error: %s", err.Error())
+		log.Error(ctx, "scheduler creation failed with error: %s", err.Error())
 		return
 	}
 
@@ -130,7 +134,7 @@ func startApp() (err error) {
 
 	// Negroni logger setup
 	negroniLogger := negroni.NewLogger()
-	negroniLogger.ALogger = logger
+	negroniLogger.ALogger = lg
 
 	// Initialize web server
 	server := negroni.New(negroniLogger)
