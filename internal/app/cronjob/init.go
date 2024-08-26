@@ -10,17 +10,14 @@ import (
 func InitializeJobs(appreciationSvc appreciation.Service, userSvc user.Service, organizationConfigService orgSvc.Service, scheduler gocron.Scheduler) error {
 
 	DailyJob := NewDailyJob(appreciationSvc, organizationConfigService, scheduler)
-	// err := DailyJob.Schedule()
-	// if err != nil {
-	// 	return err
-	// }
-	DailyJob.Schedule()
+	err := DailyJob.Schedule()
+	if err != nil {
+		return err
+	}
 	MonthlyJob := NewMontlyJob(userSvc, organizationConfigService, scheduler)
-	// err = MonthlyJob.Schedule()
-	// if err != nil {
-	// 	return err
-	// }
-	// return nil
-	MonthlyJob.Schedule()
+	err = MonthlyJob.Schedule()
+	if err != nil {
+		return err
+	}
 	return nil
 }
