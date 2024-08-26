@@ -10,11 +10,9 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
-	log "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/utils"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
 
-	// logger "github.com/sirupsen/logrus"
 	logger "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
 )
 
@@ -46,7 +44,7 @@ func NewService(appreciationRepo repository.AppreciationStorer, coreValuesRepo r
 
 func (apprSvc *service) CreateAppreciation(ctx context.Context, appreciation dto.Appreciation) (dto.Appreciation, error) {
 
-	log.Debug(ctx,"svc: CreateAppreciation: appreciation: ",appreciation)
+	logger.Debug(ctx,"svc: CreateAppreciation: appreciation: ",appreciation)
 	//add quarter
 	appreciation.Quarter = utils.GetQuarter()
 
@@ -58,10 +56,10 @@ func (apprSvc *service) CreateAppreciation(ctx context.Context, appreciation dto
 		return dto.Appreciation{}, apperrors.InternalServer
 	}
 
-	log.Debug(ctx,"sender: ",sender)
+	logger.Debug(ctx,"sender: ",sender)
 	//check is receiver present in database
 	chk, err := apprSvc.appreciationRepo.IsUserPresent(ctx, nil, appreciation.Receiver)
-	log.Debug(ctx,"chk: ",chk," err: ",err)
+	logger.Debug(ctx,"chk: ",chk," err: ",err)
 	if err != nil {
 		logger.Errorf(ctx,"err: %v", err)
 		return dto.Appreciation{}, err
@@ -144,18 +142,21 @@ func (apprSvc *service) CreateAppreciation(ctx context.Context, appreciation dto
 
 func (apprSvc *service) GetAppreciationById(ctx context.Context, appreciationId int32) (dto.AppreciationResponse, error) {
 
+	logger.Debug(ctx,"appreciationId: ",appreciationId)
 	resAppr, err := apprSvc.appreciationRepo.GetAppreciationById(ctx, nil, appreciationId)
+	logger.Debug(ctx,"apprSvc: resAppr: ",resAppr," err: ",err)
 	if err != nil {
 		logger.Errorf(ctx,"err: %v", err)
 		return dto.AppreciationResponse{}, err
 	}
-
 	return mapRepoGetAppreciationInfoToDTOGetAppreciationInfo(resAppr), nil
 }
 
 func (apprSvc *service) ListAppreciations(ctx context.Context, filter dto.AppreciationFilter) (dto.ListAppreciationsResponse, error) {
 
+	logger.Debug(ctx," filter: ",filter)
 	infos, pagination, err := apprSvc.appreciationRepo.ListAppreciations(ctx, nil, filter)
+	logger.Debug(ctx," infos: ",infos," pagination: ",pagination," err: ",err)
 	if err != nil {
 		logger.Errorf(ctx,"err: %v", err)
 		return dto.ListAppreciationsResponse{}, err
@@ -166,10 +167,12 @@ func (apprSvc *service) ListAppreciations(ctx context.Context, filter dto.Apprec
 		responses = append(responses, mapRepoGetAppreciationInfoToDTOGetAppreciationInfo(info))
 	}
 	paginationResp := dtoPagination(pagination)
+	logger.Debug(ctx," apprSvc: ",responses," paginationResp: ",paginationResp)
 	return dto.ListAppreciationsResponse{Appreciations: responses, MetaData: paginationResp}, nil
 }
 
 func (apprSvc *service) DeleteAppreciation(ctx context.Context, apprId int32) error {
+	logger.Debug(ctx,"apprSvc: apprId: ",apprId)
 	return apprSvc.appreciationRepo.DeleteAppreciation(ctx, nil, apprId)
 }
 
@@ -211,7 +214,7 @@ func (apprSvc *service) UpdateAppreciation(ctx context.Context) (bool, error) {
 		logger.Error(ctx,"err: ", err.Error())
 		return false, err
 	}
-
+	logger.Debug(ctx,"apprSvc: UpdateAppreciation: ",userBadgeDetails)
 	apprSvc.sendEmailForBadgeAllocation(userBadgeDetails)
 	return true, nil
 }
@@ -250,12 +253,14 @@ func sendAppreciationEmail(emailData repository.AppreciationResponse,senderEmail
 
 func (apprSvc *service) sendAppreciationNotificationToReceiver(ctx context.Context, appr repository.AppreciationResponse) {
 
+	logger.Debug(ctx,"apprSvc: apprResponse: ",appr)
 	notificationTokens, err := apprSvc.userRepo.ListDeviceTokensByUserID(ctx, appr.ReceiverID)
 	if err != nil {
 		logger.Errorf(ctx,"err in getting device tokens: %v", err)
 		return
 	}
 
+	logger.Debug(ctx,"apprSvc: notificationTokens: ",notificationTokens)
 	msg := notification.Message{
 		Title: "Received Appreciation",
 		Body:  fmt.Sprintf("You've been appreciated by %s %s! Well done and keep up the JOSH!", appr.SenderFirstName, appr.SenderLastName),
@@ -269,6 +274,7 @@ func (apprSvc *service) sendAppreciationNotificationToReceiver(ctx context.Conte
 
 func (apprSvc *service) sendAppreciationNotificationToAll(ctx context.Context, appr repository.AppreciationResponse) {
 
+	logger.Debug(ctx," apprSvc: appr: ",appr)
 	msg := notification.Message{
 		Title: "Appreciation",
 		Body:  fmt.Sprintf(" %s %s appreciated %s %s", appr.SenderFirstName, appr.SenderLastName, appr.ReceiverFirstName, appr.ReceiverLastName),
@@ -278,7 +284,7 @@ func (apprSvc *service) sendAppreciationNotificationToAll(ctx context.Context, a
 
 func (apprSvc *service) sendEmailForBadgeAllocation(userBadgeDetails []repository.UserBadgeDetails) {
 
-	logger.Info(context.Background(),"user Badge Details:---------------->\n ", userBadgeDetails)
+	logger.Debug(context.Background(),"user Badge Details:---------------->\n ", userBadgeDetails)
 	for _, userBadgeDetail := range userBadgeDetails {
 
 		// Determine the BadgeImageUrl based on the BadgeName

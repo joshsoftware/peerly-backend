@@ -9,10 +9,10 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
-	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
-	"github.com/joshsoftware/peerly-backend/internal/repository"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
-	logger "github.com/sirupsen/logrus"
+	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
+	logger "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
+	"github.com/joshsoftware/peerly-backend/internal/repository"
 )
 
 type OrganizationConfigStore struct {
@@ -29,6 +29,8 @@ func NewOrganizationConfigRepo(db *sqlx.DB) repository.OrganizationConfigStorer 
 
 func (org *OrganizationConfigStore) CreateOrganizationConfig(ctx context.Context,tx repository.Transaction, orgConfigInfo dto.OrganizationConfig) (createdOrganization repository.OrganizationConfig, err error) {
 
+	logger.Info(ctx," org: CreateOrganizationConfig")
+	logger.Debug(ctx," orgConfigInfo: ",orgConfigInfo)
 	queryExecutor := org.InitiateQueryExecutor(tx)
 
 	insertQuery, args, err := repository.Sq.
@@ -42,21 +44,25 @@ func (org *OrganizationConfigStore) CreateOrganizationConfig(ctx context.Context
 	Suffix("RETURNING id, reward_multiplier ,reward_quota_renewal_frequency, timezone, created_by, updated_by, created_at, updated_at").
 	ToSql()
 	if err != nil {
-		logger.Errorf("err in creating query: %v",err)
+		logger.Errorf(ctx,"err in creating query: %v",err)
 		return repository.OrganizationConfig{}, apperrors.InternalServer
 	}
 	
 	err = queryExecutor.QueryRowx(insertQuery, args...).StructScan(&createdOrganization)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			logger.Errorf("err in creating orgconfig : %v ", err)
+			logger.Errorf(ctx,"err in creating orgconfig : %v ", err)
 			return repository.OrganizationConfig{}, apperrors.InternalServer
 		}
 	}
+
+	logger.Debug(ctx," query: ",insertQuery)
+	logger.Debug(ctx," args: ",args)
 	return
 }
 
 func (org *OrganizationConfigStore) UpdateOrganizationConfig(ctx context.Context, tx repository.Transaction, reqOrganization dto.OrganizationConfig) (updatedOrganization repository.OrganizationConfig, err error) {
+	logger.Info(ctx," org: UpdateOrganizationConfig: ")
 	queryExecutor := org.InitiateQueryExecutor(tx)
 	
 	updateBuilder := repository.Sq.Update(org.OrganizationConfigTable).
@@ -79,14 +85,16 @@ func (org *OrganizationConfigStore) UpdateOrganizationConfig(ctx context.Context
 
 	query, args, err := updateBuilder.ToSql()
 	if err != nil {
-		logger.Errorf("Error building update query: %v",err)
+		logger.Errorf(ctx,"Error building update query: %v",err)
 		return repository.OrganizationConfig{}, err
 	}
 
+	logger.Debug(ctx," query: ",query)
+	logger.Debug(ctx," args: ",args)
 	err = queryExecutor.QueryRowx(query, args...).StructScan(&updatedOrganization)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			logger.Errorf("err in updating orgconfig : %v ", err)
+			logger.Errorf(ctx,"err in updating orgconfig : %v ", err)
 			return repository.OrganizationConfig{}, apperrors.InternalServer
 		}
 	}
@@ -95,6 +103,7 @@ func (org *OrganizationConfigStore) UpdateOrganizationConfig(ctx context.Context
 
 // GetOrganization - returns an organization from the database if it exists based on its ID primary key
 func (org *OrganizationConfigStore) GetOrganizationConfig(ctx context.Context, tx repository.Transaction) (updatedOrgConfig repository.OrganizationConfig, err error) {
+	logger.Debug(ctx," org: GetOrganizationConfig")
 	queryExecutor := org.InitiateQueryExecutor(tx)
 
 	queryBuilder := repository.Sq.
@@ -104,20 +113,21 @@ func (org *OrganizationConfigStore) GetOrganizationConfig(ctx context.Context, t
 
 	query, args, err := queryBuilder.ToSql()
 	if err != nil {
-		logger.Errorf("Error building select query: %v",err)
+		logger.Errorf(ctx,"Error building select query: %v",err)
 		return repository.OrganizationConfig{}, err
 	}
 
 	err = queryExecutor.QueryRowx( query, args...).StructScan(&updatedOrgConfig)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			logger.Errorf("Organization not found: %v",err)
+			logger.Errorf(ctx,"Organization not found: %v",err)
 			return repository.OrganizationConfig{}, apperrors.OrganizationConfigNotFound
 		}
-		logger.Errorf("Error fetching organization: %v",err)
+		logger.Errorf(ctx,"Error fetching organization: %v",err)
 		return repository.OrganizationConfig{}, err
 	}
 
+	logger.Debug(ctx," updateOrgConfig: ",updatedOrgConfig)
 	return updatedOrgConfig, nil
 }
 

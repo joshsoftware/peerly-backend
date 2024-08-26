@@ -66,7 +66,16 @@ func Info(ctx context.Context, args ...interface{}) {
 	Logger.Info("req_id: ", requestID, args)
 }
 
-// Info - prints out basic information
+// Infof - prints out basic information
+func Infof(ctx context.Context, format string, args ...interface{}) {
+	requestID, ok := ctx.Value(constants.RequestID).(string)
+	if !ok {
+		requestID = ""
+	}
+	Logger.Infof("req_id: [%s] "+format, append([]interface{}{requestID}, args...)...)
+}
+
+// Debug - prints out debug information
 func Debug(ctx context.Context, args ...interface{}) {
 	requestID, ok := ctx.Value(constants.RequestID).(string)
 	if !ok {

@@ -38,6 +38,7 @@ func NewAppreciationRepo(db *sqlx.DB) repository.AppreciationStorer {
 
 func (appr *appreciationsStore) CreateAppreciation(ctx context.Context, tx repository.Transaction, appreciation dto.Appreciation) (repository.Appreciation, error) {
 
+	logger.Debug(ctx," appr: CreateAppreciation: appreciation: ",appreciation)
 	queryExecutor := appr.InitiateQueryExecutor(tx)
 
 	insertQuery, args, err := repository.Sq.
@@ -50,6 +51,8 @@ func (appr *appreciationsStore) CreateAppreciation(ctx context.Context, tx repos
 		return repository.Appreciation{}, apperrors.InternalServerError
 	}
 
+	logger.Debug(ctx," insertQuery: ",insertQuery)
+	logger.Debug(ctx," args: ",args)
 	var resAppr repository.Appreciation
 	err = queryExecutor.QueryRowx(insertQuery, args...).StructScan(&resAppr)
 	if err != nil {
@@ -62,6 +65,7 @@ func (appr *appreciationsStore) CreateAppreciation(ctx context.Context, tx repos
 
 func (appr *appreciationsStore) GetAppreciationById(ctx context.Context, tx repository.Transaction, apprId int32) (repository.AppreciationResponse, error) {
 
+	logger.Debug(ctx," appr: GetAppreciationById: apprId: ",apprId)
 	queryExecutor := appr.InitiateQueryExecutor(tx)
 
 	// Get logged-in user ID
@@ -116,6 +120,8 @@ func (appr *appreciationsStore) GetAppreciationById(ctx context.Context, tx repo
 		return repository.AppreciationResponse{}, apperrors.InternalServer
 	}
 
+	logger.Debug(ctx," appr: query: ",query)
+	logger.Debug(ctx," appr: args: ",args)
 	var resAppr repository.AppreciationResponse
 
 	// Execute the query
@@ -128,10 +134,12 @@ func (appr *appreciationsStore) GetAppreciationById(ctx context.Context, tx repo
 		logger.Errorf(ctx,"failed to execute query: %v", err)
 		return repository.AppreciationResponse{}, apperrors.InternalServer
 	}
+	logger.Debug(ctx," resAppr: ",resAppr)
 	return resAppr, nil
 }
 func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx repository.Transaction, filter dto.AppreciationFilter) ([]repository.AppreciationResponse, repository.Pagination, error) {
 
+	logger.Debug(ctx," appr: ListAppreciations: filter: ",filter)
 	queryExecutor := appr.InitiateQueryExecutor(tx)
 
 	// Get logged-in user ID
@@ -172,6 +180,9 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 		return []repository.AppreciationResponse{}, repository.Pagination{}, apperrors.InternalServerError
 	}
 
+	logger.Debug(ctx,"countSql: ",countSql)
+	logger.Debug(ctx,"countArgs: ",countArgs)
+
 	var totalRecords int32
 	err = queryExecutor.QueryRowx(countSql, countArgs...).Scan(&totalRecords)
 	if err != nil {
@@ -180,6 +191,7 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 	}
 
 	pagination := getPaginationMetaData(filter.Page, filter.Limit, totalRecords)
+	logger.Debug(ctx," pagination: ",pagination)
 	queryBuilder = queryBuilder.RemoveColumns()
 	queryBuilder = queryBuilder.Columns(
 		"a.id",
@@ -222,7 +234,7 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 	}
 
 	offset := (filter.Page - 1) * filter.Limit
-
+	logger.Debug(ctx," offset: ",offset)
 	// Add pagination
 	queryBuilder = queryBuilder.Limit(uint64(filter.Limit)).Offset(uint64(offset))
 	sql, args, err := queryBuilder.ToSql()
@@ -231,6 +243,8 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 		return nil, repository.Pagination{}, apperrors.InternalServerError
 	}
 
+	logger.Debug(ctx," sqlQuery: ",sql)
+	logger.Debug(ctx," args: ",args)
 	queryExecutor = appr.InitiateQueryExecutor(tx)
 	res := make([]repository.AppreciationResponse, 0)
 
@@ -244,13 +258,14 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 		return nil, repository.Pagination{}, apperrors.InternalServerError
 	}
 	id := ctx.Value(constants.UserId)
-	fmt.Println("id -> ", id)
+	logger.Debug(ctx," id -> ", id)
 	userId, ok := ctx.Value(constants.UserId).(int64)
 	if !ok {
 		logger.Error(ctx,"unable to convert context user id to int64")
 		return nil, repository.Pagination{}, apperrors.InternalServerError
 	}
 
+	logger.Debug(ctx," userId: ",userId)
 	for idx, appreciation := range res {
 		var userIds []int64
 		queryBuilder = repository.Sq.Select("reported_by").From("resolutions").Where(squirrel.Eq{"appreciation_id": appreciation.ID})
@@ -259,6 +274,9 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 			logger.Errorf(ctx,"error in generating squirrel query, err: %s", err.Error())
 			return nil, repository.Pagination{}, apperrors.InternalServerError
 		}
+
+		logger.Debug(ctx," query: ",query)
+		logger.Debug(ctx," args: ",args)
 		err = appr.DB.SelectContext(ctx, &userIds, query, args...)
 		if err != nil {
 			logger.Errorf(ctx,"error in reported flag query, err: %s", err.Error())
@@ -267,10 +285,14 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 		res[idx].ReportedFlag = slices.Contains(userIds, userId)
 	}
 
+	logger.Debug(ctx," res: ",res)
+	logger.Debug(ctx," pagination: ",pagination)
 	return res, pagination, nil
 }
 
 func (appr *appreciationsStore) DeleteAppreciation(ctx context.Context, tx repository.Transaction, apprId int32) error {
+	logger.Debug(ctx," appr: ",appr)
+	logger.Debug(ctx," apprId: ",apprId)
 	query, args, err := repository.Sq.Update(appr.AppreciationsTable).
 		Set("is_valid", false).
 		Where(squirrel.And{
@@ -279,6 +301,8 @@ func (appr *appreciationsStore) DeleteAppreciation(ctx context.Context, tx repos
 		}).
 		ToSql()
 
+	logger.Debug(ctx," query: ",query)
+	logger.Debug(ctx," args: ",args)
 	if err != nil {
 		logger.Error(ctx,"Error building SQL: ", err.Error())
 		return apperrors.InternalServer
@@ -308,12 +332,14 @@ func (appr *appreciationsStore) DeleteAppreciation(ctx context.Context, tx repos
 
 func (appr *appreciationsStore) IsUserPresent(ctx context.Context, tx repository.Transaction, userID int64) (bool, error) {
 
+	logger.Debug(ctx," appr: IsUserPresent: userID: ",userID)
 	// Build the SQL query
 	query, args, err := repository.Sq.Select("COUNT(*)").
 		From(appr.UsersTable).
 		Where(squirrel.Eq{"id": userID}).
 		ToSql()
 
+	logger.Debug(ctx," query: ",query)
 	if err != nil {
 		logger.Error(ctx,"err ", err.Error())
 		return false, apperrors.InternalServer
@@ -329,13 +355,14 @@ func (appr *appreciationsStore) IsUserPresent(ctx context.Context, tx repository
 		return false, apperrors.InternalServer
 	}
 
+	logger.Debug(ctx," count: ",count)
 	// Check if user is present
 	return count > 0, nil
 }
 
 func (appr *appreciationsStore) UpdateAppreciationTotalRewardsOfYesterday(ctx context.Context, tx repository.Transaction) (bool, error) {
-	fmt.Println("UpdateAppreciationTotalRewardsOfYesterday")
-
+	logger.Debug(ctx,"appr: UpdateAppreciationTotalRewardsOfYesterday")
+	logger.Info(ctx,"appr: UpdateAppreciationTotalRewardsOfYesterday")
 	// Initialize query executor
 	queryExecutor := appr.InitiateQueryExecutor(tx)
 
@@ -357,20 +384,29 @@ FROM (
 WHERE app.id = agg.appreciation_id;
     `
 
+	logger.Debug(ctx," query: ",query)
 	// Execute the query using the query executor
-	_, err := queryExecutor.Exec(query)
+	res, err := queryExecutor.Exec(query)
 	if err != nil {
 		logger.Error(ctx,"Error executing SQL query:", err.Error())
 		return false, apperrors.InternalServer
 	}
 
+	rowsAffected,err := res.RowsAffected()
+	if err != nil{
+		logger.Error(ctx," err: ",err)
+		return false,nil
+	}
+	logger.Info(ctx," rowsAffected: ",rowsAffected)
 	return true, nil
 }
 
 func (appr *appreciationsStore) UpdateUserBadgesBasedOnTotalRewards(ctx context.Context, tx repository.Transaction) ([]repository.UserBadgeDetails, error) {
+	logger.Info(ctx," appr: UpdateUserBadgesBasedOnTotalRewards")
 	queryExecutor := appr.InitiateQueryExecutor(tx)
 	afterTime := GetQuarterStartUnixTime()
 
+	logger.Info(ctx," aftertime: ",afterTime)
 	query := `
 		-- Calculate total reward points for each receiver
 WITH receiver_points AS (
@@ -452,6 +488,7 @@ JOIN
     badges b ON ib.badge_id = b.id;
 	`
 
+	logger.Debug(ctx," query: ",query)
 	rows, err := queryExecutor.Query(query, afterTime, afterTime)
 	if err != nil {
 		return []repository.UserBadgeDetails{}, err
@@ -467,6 +504,7 @@ JOIN
 		userBadgeDetails = append(userBadgeDetails, detail)
 	}
 
+	logger.Debug(ctx," userBadgeDetails: ",userBadgeDetails)
 	if err = rows.Err(); err != nil {
 		return []repository.UserBadgeDetails{}, err
 	}

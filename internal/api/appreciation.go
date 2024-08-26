@@ -11,7 +11,6 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 	log "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/utils"
-	// logger "github.com/sirupsen/logrus"
 )
 
 func createAppreciationHandler(appreciationSvc appreciation.Service) http.HandlerFunc {

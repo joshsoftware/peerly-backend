@@ -7,7 +7,7 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/app/notification"
 	user "github.com/joshsoftware/peerly-backend/internal/app/users"
 
-	logger "github.com/sirupsen/logrus"
+	logger "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
 )
 
 const MONTHLY_JOB = "MONTHLY_JOB"
@@ -50,15 +50,16 @@ func (cron *MonthlyJob) Schedule() {
 	)
 	cron.scheduler.Start()
 	if err != nil {
-		logger.Warn(context.TODO(), "error occurred while scheduling %s, message %+v", cron.name, err.Error())
+		logger.Infof(context.TODO(), "error occurred while scheduling %s, message %+v", cron.name, err.Error())
 	}
 }
 
 func (cron *MonthlyJob) Task(ctx context.Context) {
 	logger.Info(ctx, "in monthly job task")
 	for i := 0; i < 3; i++ {
-		logger.Info("cron job attempt:", i+1)
+		logger.Info(ctx,"cron job attempt:", i+1)
 		err := cron.userService.UpdateRewardQuota(ctx)
+		logger.Error(ctx,"err: ",err)
 		if err == nil {
 			sendRewardQuotaRefilledNotificationToAll()
 			break
@@ -72,6 +73,8 @@ func sendRewardQuotaRefilledNotificationToAll() {
 		Title: "Reward Quota is Refilled",
 		Body:  "Your reward quota is reset! You now recognize your colleagues.",
 	}
+
+	logger.Debug(context.Background(),"msg:",msg)
 	msg.SendNotificationToTopic("peerly")
 }
 

@@ -5,7 +5,7 @@ import (
 
 	"github.com/go-co-op/gocron/v2"
 	apprSvc "github.com/joshsoftware/peerly-backend/internal/app/appreciation"
-	logger "github.com/sirupsen/logrus"
+	logger "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
 )
 
 
@@ -62,8 +62,10 @@ func (cron *DailyJob) Schedule() {
 func (cron *DailyJob) Task(ctx context.Context) {
 	logger.Info(ctx, "in daily job task")
 	for  i:=0;i<3;i++{
-		logger.Info("cron job attempt:",i+1)
+		logger.Info(ctx,"cron job attempt:",i+1)
 		isSuccess,err := cron.appreciationService.UpdateAppreciation(ctx)
+
+		logger.Info(ctx," isSuccess: ",isSuccess," err: ",err)
 		if err==nil && isSuccess{
 			break
 		}
