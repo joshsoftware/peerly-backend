@@ -18,7 +18,8 @@ import (
 func TestCreateAppreciation(t *testing.T) {
 	appreciationRepo := mocks.NewAppreciationStorer(t)
 	corevalueRepo := mocks.NewCoreValueStorer(t)
-	service := NewService(appreciationRepo, corevalueRepo)
+	userRepo := mocks.NewUserStorer(t)
+	service := NewService(appreciationRepo, corevalueRepo,userRepo)
 
 	tests := []struct {
 		name            string
@@ -110,7 +111,9 @@ func TestCreateAppreciation(t *testing.T) {
 
 func TestGetAppreciationById(t *testing.T) {
 	appreciationRepo := mocks.NewAppreciationStorer(t)
-	service := NewService(appreciationRepo, nil)
+	coreValueRepo := mocks.NewCoreValueStorer(t)
+	userRepo := mocks.NewUserStorer(t)
+	service := NewService(appreciationRepo, coreValueRepo,userRepo)
 
 	tests := []struct {
 		name            string
@@ -210,7 +213,9 @@ func TestGetAppreciationById(t *testing.T) {
 
 func TestValidateAppreciation(t *testing.T) {
 	appreciationRepo := mocks.NewAppreciationStorer(t)
-	service := NewService(appreciationRepo, nil)
+	coreValueRepo := mocks.NewCoreValueStorer(t)
+	userRepo := mocks.NewUserStorer(t)
+	service := NewService(appreciationRepo, coreValueRepo,userRepo)
 
 	tests := []struct {
 		name            string

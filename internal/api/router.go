@@ -22,7 +22,13 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 	router := mux.NewRouter()
 	peerlySubrouter := router.PathPrefix("/peerly").Subrouter()
 
+	// Add the RequestIDMiddleware to the subrouter
+	peerlySubrouter.Use(middleware.RequestIDMiddleware)
+
 	peerlySubrouter.HandleFunc("/ping", pingHandler).Methods(http.MethodGet)
+
+	peerlySubrouter.HandleFunc("/set_logger_level", loggerHandler).Methods(http.MethodPost)
+
 	// Version 1 API management
 	v1 := fmt.Sprintf("application/vnd.%s.v1", config.AppName())
 

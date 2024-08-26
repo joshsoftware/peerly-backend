@@ -6,7 +6,7 @@ import (
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/messaging"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
-	logger "github.com/sirupsen/logrus"
+	logger "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
 	"google.golang.org/api/option"
 )
 
@@ -31,7 +31,7 @@ func (notificationSvc *Message) SendNotificationToNotificationToken(notification
 	opt := option.WithCredentialsFile(serviceAccountKey)
 	app, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {
-		logger.Errorf("Error initializing app: %v", err)
+		logger.Errorf(context.Background(),"Error initializing app: %v", err)
 		err = apperrors.InternalServerError
 		return
 	}
@@ -39,10 +39,12 @@ func (notificationSvc *Message) SendNotificationToNotificationToken(notification
 	// Obtain a messaging client from the Firebase app
 	client, err := app.Messaging(context.Background())
 	if err != nil {
-		logger.Errorf("Error getting Messaging client: %v", err)
+		logger.Errorf(context.Background(),"Error getting Messaging client: %v", err)
 		err = apperrors.InternalServerError
 		return
 	}
+
+	logger.Debug(context.Background()," notificationSvc: ",notificationSvc)
 	// Create a message to send
 	message := &messaging.Message{
 		Notification: &messaging.Notification{
@@ -54,12 +56,14 @@ func (notificationSvc *Message) SendNotificationToNotificationToken(notification
 
 	// Send the message
 	response, err := client.Send(context.Background(), message)
+	logger.Debug(context.Background()," response: ",response)
+	logger.Debug(context.Background()," err: ",err)
 	if err != nil {
-		logger.Errorf("Error sending message: %v", err)
+		logger.Errorf(context.Background(),"Error sending message: %v", err)
 		err = apperrors.InternalServerError
 		return
 	}
-	logger.Infof("Successfully sent message: %v", response)
+	logger.Infof(context.Background(),"Successfully sent message: %v", response)
 	return
 }
 
@@ -72,7 +76,7 @@ func (notificationSvc *Message) SendNotificationToTopic(topic string) (err error
 	opt := option.WithCredentialsFile(serviceAccountKey)
 	app, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {
-		logger.Errorf("error initializing app: %v", err)
+		logger.Errorf(context.Background(),"error initializing app: %v", err)
 		err = apperrors.InternalServerError
 		return
 	}
@@ -80,11 +84,12 @@ func (notificationSvc *Message) SendNotificationToTopic(topic string) (err error
 	// Obtain a messaging client from the Firebase app
 	client, err := app.Messaging(context.Background())
 	if err != nil {
-		logger.Errorf("error getting Messaging client: %v", err)
+		logger.Errorf(context.Background(),"error getting Messaging client: %v", err)
 		err = apperrors.InternalServerError
 		return
 	}
 
+	logger.Debug(context.Background()," notificationSvc: ",notificationSvc)
 	// Create a message to send
 	message := &messaging.Message{
 		Notification: &messaging.Notification{
@@ -97,12 +102,12 @@ func (notificationSvc *Message) SendNotificationToTopic(topic string) (err error
 	// Send the message
 	response, err := client.Send(context.Background(), message)
 	if err != nil {
-		logger.Errorf("error sending message: %v", err)
+		logger.Errorf(context.Background(),"error sending message: %v", err)
 		err = apperrors.InternalServerError
 		return
 	}
 
-	logger.Infof("Successfully sent message: %v", response)
+	logger.Infof(context.Background(),"Successfully sent message: %v", response)
 
 	return
 }

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/google/uuid"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/config"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
@@ -60,9 +61,20 @@ func JwtAuthMiddleware(next http.Handler, roles []string) http.Handler {
 		fmt.Println("setting id: ", Id)
 		ctx := context.WithValue(req.Context(), constants.UserId, Id)
 		ctx = context.WithValue(ctx, constants.Role, Role)
+
 		req = req.WithContext(ctx)
 
 		next.ServeHTTP(rw, req)
 
+	})
+}
+
+// RequestIDMiddleware generates a request ID and adds it to the request context.
+func RequestIDMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		reqestId := uuid.NewString()
+		ctx := context.WithValue(r.Context(), constants.RequestID, reqestId)
+		r = r.WithContext(ctx)
+		next.ServeHTTP(w, r)
 	})
 }

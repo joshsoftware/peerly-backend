@@ -2,6 +2,7 @@ package constants
 
 type UserIdCtxKey string
 type RoleCtxKey string
+type RequestIDCtxKey string
 
 // System Constants used to setup environment and basic functionality
 const (
@@ -17,20 +18,22 @@ const (
 	IntranetBaseUrl        = "INTRANET_BASE_URL"
 	POST                   = "POST"
 	GET                    = "GET"
+	DeveloperKey           = "DEVELOPER_KEY"
 )
 
 // User required constants
 const (
-	AuthorizationHeader                  = "Authorization"
-	ClientCode                           = "Client-Code"
-	UserRole                             = "user"
-	AdminRole                            = "admin"
-	UserId                  UserIdCtxKey = "userId"
-	Role                    RoleCtxKey   = "role"
-	IntranetAuth                         = "Intranet-Auth"
-	PeerlyValidationPath                 = "/api/peerly/v1/sessions/login"
-	GetIntranetUserDataPath              = "/api/peerly/v1/users/"
-	ListIntranetUsersPath                = "/api/peerly/v1/users?page=%d&per_page=%d"
+	RequestID               RequestIDCtxKey = "RequestID"
+	AuthorizationHeader                     = "Authorization"
+	ClientCode                              = "Client-Code"
+	UserRole                                = "user"
+	AdminRole                               = "admin"
+	UserId                  UserIdCtxKey    = "userId"
+	Role                    RoleCtxKey      = "role"
+	IntranetAuth                            = "Intranet-Auth"
+	PeerlyValidationPath                    = "/api/peerly/v1/sessions/login"
+	GetIntranetUserDataPath                 = "/api/peerly/v1/users/"
+	ListIntranetUsersPath                   = "/api/peerly/v1/users?page=%d&per_page=%d"
 )
 
 // Pagination Metadata constants

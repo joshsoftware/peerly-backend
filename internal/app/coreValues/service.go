@@ -5,9 +5,9 @@ import (
 
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
+	logger "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/utils"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
-	logger "github.com/sirupsen/logrus"
 )
 
 type service struct {
@@ -31,8 +31,9 @@ func (cs *service) ListCoreValues(ctx context.Context) (resp []dto.CoreValue, er
 
 	dbResp, err := cs.coreValuesRepo.ListCoreValues(ctx)
 	if err != nil {
-		logger.Error(err.Error())
+		logger.Error(ctx, err.Error())
 		err = apperrors.InternalServerError
+		return
 	}
 
 	for _, value := range dbResp {
@@ -65,7 +66,7 @@ func (cs *service) CreateCoreValue(ctx context.Context, coreValue dto.CreateCore
 
 	isUnique, err := cs.coreValuesRepo.CheckUniqueCoreVal(ctx, coreValue.Name)
 	if err != nil {
-		logger.Error(err.Error())
+		logger.Error(ctx, err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
@@ -81,7 +82,7 @@ func (cs *service) CreateCoreValue(ctx context.Context, coreValue dto.CreateCore
 
 	dbResp, err := cs.coreValuesRepo.CreateCoreValue(ctx, coreValue)
 	if err != nil {
-		logger.Error(err.Error())
+		logger.Error(ctx, err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
@@ -115,7 +116,7 @@ func (cs *service) UpdateCoreValue(ctx context.Context, coreValueID string, reqD
 
 	isUnique, err := cs.coreValuesRepo.CheckUniqueCoreVal(ctx, reqData.Name)
 	if err != nil {
-		logger.Error(err.Error())
+		logger.Error(ctx, err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
@@ -128,7 +129,7 @@ func (cs *service) UpdateCoreValue(ctx context.Context, coreValueID string, reqD
 
 	dbResp, err := cs.coreValuesRepo.UpdateCoreValue(ctx, reqData)
 	if err != nil {
-		logger.Error(err.Error())
+		logger.Error(ctx, err.Error())
 		err = apperrors.InternalServerError
 
 		return
@@ -142,12 +143,12 @@ func (cs *service) UpdateCoreValue(ctx context.Context, coreValueID string, reqD
 func (cs *service) validateParentCoreValue(ctx context.Context, coreValueID int64) (ok bool) {
 	coreValue, err := cs.coreValuesRepo.GetCoreValue(ctx, coreValueID)
 	if err != nil {
-		logger.Errorf("parent core value id not present, err: %s", err.Error())
+		logger.Errorf(ctx, "parent core value id not present, err: %s", err.Error())
 		return
 	}
 
 	if coreValue.ParentCoreValueID.Valid {
-		logger.Error("Invalid parent core value id")
+		logger.Error(ctx, "Invalid parent core value id")
 		return
 	}
 
