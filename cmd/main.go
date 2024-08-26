@@ -128,11 +128,12 @@ func startApp() (err error) {
 	}
 
 	cronjob.InitializeJobs(services.AppreciationService, services.UserService, scheduler)
-	defer func() {
-        if err := scheduler.Shutdown(); err != nil {
-            log.Error(ctx, "Scheduler shutdown failed: %s", err.Error())
-        }
-    }()
+	// defer func() {
+    //     if err := scheduler.Shutdown(); err != nil {
+    //         log.Error(ctx, "Scheduler shutdown failed: %s", err.Error())
+    //     }
+    // }()
+	defer scheduler.Shutdown()
 	//initialize router
 	router := api.NewRouter(services)
 
