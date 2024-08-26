@@ -1,4 +1,4 @@
-IF NOT EXISTS create type status as enum('reported','resolved','deleted');
+create type status as enum('reported','resolved','deleted');
 
 alter table resolutions
 add status status
