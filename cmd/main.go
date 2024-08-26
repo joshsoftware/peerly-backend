@@ -95,17 +95,17 @@ func startApp() (err error) {
 
 	// Context for main function
 	ctx := context.Background()
-	lg,err := log.SetupLogger()
-	if err != nil{
-		logger.Error("logger setup failed ",err.Error())
+	lg, err := log.SetupLogger()
+	if err != nil {
+		logger.Error("logger setup failed ", err.Error())
 		return err
 	}
-	log.Info(ctx,"Starting Peerly Application...")
-	defer log.Info(ctx,"Shutting Down Peerly Application...")
+	log.Info(ctx, "Starting Peerly Application...")
+	defer log.Info(ctx, "Shutting Down Peerly Application...")
 	//initialize database
 	dbInstance, err := repository.InitializeDatabase()
 	if err != nil {
-		log.Error(ctx,"Database init failed")
+		log.Error(ctx, "Database init failed")
 		return err
 	}
 
@@ -127,12 +127,16 @@ func startApp() (err error) {
 		return err
 	}
 
-	cronjob.InitializeJobs(services.AppreciationService, services.UserService, scheduler)
+	err = cronjob.InitializeJobs(services.AppreciationService, services.UserService, services.OrganizationConfigService, scheduler)
+	if err != nil {
+		logger.WithField("err", err.Error()).Error("CronJob Initialize failed")
+		return
+	}
 	defer func() {
-        if err := scheduler.Shutdown(); err != nil {
-            log.Error(ctx, "Scheduler shutdown failed: %s", err.Error())
-        }
-    }()
+		if err := scheduler.Shutdown(); err != nil {
+			log.Error(ctx, "Scheduler shutdown failed: %s", err.Error())
+		}
+	}()
 	//initialize router
 	router := api.NewRouter(services)
 

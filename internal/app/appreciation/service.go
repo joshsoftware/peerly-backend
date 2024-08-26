@@ -28,7 +28,7 @@ type Service interface {
 	GetAppreciationById(ctx context.Context, appreciationId int32) (dto.AppreciationResponse, error)
 	ListAppreciations(ctx context.Context, filter dto.AppreciationFilter) (dto.ListAppreciationsResponse, error)
 	DeleteAppreciation(ctx context.Context, apprId int32) error
-	UpdateAppreciation(ctx context.Context) (bool, error)
+	UpdateAppreciation(ctx context.Context,orgTimezone string) (bool, error)
 	sendAppreciationNotificationToReceiver(ctx context.Context, appr repository.AppreciationResponse)
 	sendAppreciationNotificationToAll(ctx context.Context, appr repository.AppreciationResponse)
 	sendEmailForBadgeAllocation(userBadgeDetails []repository.UserBadgeDetails)
@@ -176,7 +176,7 @@ func (apprSvc *service) DeleteAppreciation(ctx context.Context, apprId int32) er
 	return apprSvc.appreciationRepo.DeleteAppreciation(ctx, nil, apprId)
 }
 
-func (apprSvc *service) UpdateAppreciation(ctx context.Context) (bool, error) {
+func (apprSvc *service) UpdateAppreciation(ctx context.Context,orgTimezone string) (bool, error) {
 
 	//initializing database transaction
 	tx, err := apprSvc.appreciationRepo.BeginTx(ctx)
@@ -202,7 +202,7 @@ func (apprSvc *service) UpdateAppreciation(ctx context.Context) (bool, error) {
 		}
 	}()
 
-	_, err = apprSvc.appreciationRepo.UpdateAppreciationTotalRewardsOfYesterday(ctx, tx)
+	_, err = apprSvc.appreciationRepo.UpdateAppreciationTotalRewardsOfYesterday(ctx, tx,orgTimezone)
 
 	if err != nil {
 		logger.Error(ctx,"err: ", err.Error())
