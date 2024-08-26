@@ -98,7 +98,7 @@ func startApp() (err error) {
 	lg,err := log.SetupLogger()
 	if err != nil{
 		logger.Error("logger setup failed ",err.Error())
-		return
+		return err
 	}
 	log.Info(ctx,"Starting Peerly Application...")
 	defer log.Info(ctx,"Shutting Down Peerly Application...")
@@ -106,7 +106,7 @@ func startApp() (err error) {
 	dbInstance, err := repository.InitializeDatabase()
 	if err != nil {
 		log.Error(ctx,"Database init failed")
-		return
+		return err
 	}
 
 	//cors
@@ -124,11 +124,15 @@ func startApp() (err error) {
 	scheduler, err := gocron.NewScheduler()
 	if err != nil {
 		log.Error(ctx, "scheduler creation failed with error: %s", err.Error())
-		return
+		return err
 	}
 
 	cronjob.InitializeJobs(services.AppreciationService, services.UserService, scheduler)
-	defer scheduler.Shutdown()
+	defer func() {
+        if err := scheduler.Shutdown(); err != nil {
+            log.Error(ctx, "Scheduler shutdown failed: %s", err.Error())
+        }
+    }()
 	//initialize router
 	router := api.NewRouter(services)
 
