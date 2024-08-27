@@ -181,7 +181,7 @@ func (us *service) LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.L
 
 	claims := &dto.Claims{
 		Id:   user.Id,
-		Role: constants.UserRole,
+		Role: constants.User,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},
@@ -375,7 +375,7 @@ func (us *service) AdminLogin(ctx context.Context, loginReq dto.AdminLoginReq) (
 
 	claims := &dto.Claims{
 		Id:   user.Id,
-		Role: constants.AdminRole,
+		Role: constants.Admin,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},
