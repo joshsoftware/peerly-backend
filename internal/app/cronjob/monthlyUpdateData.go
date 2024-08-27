@@ -16,8 +16,8 @@ const MONTHLY_JOB = "MONTHLY_JOB"
 var MONTHLY_CRON_JOB_INTERVAL_MONTHS = 1
 
 var MonthlyJobTiming = JobTime{
-	hours:   23,
-	minutes: 59,
+	hours:   0,
+	minutes: 0,
 	seconds: 0,
 }
 
@@ -45,7 +45,7 @@ func (cron *MonthlyJob) Schedule() error{
 		return err
 	}
 	cron.job, err = cron.scheduler.NewJob(
-		gocron.MonthlyJob(uint(MONTHLY_CRON_JOB_INTERVAL_MONTHS), gocron.NewDaysOfTheMonth(-1),
+		gocron.MonthlyJob(uint(MONTHLY_CRON_JOB_INTERVAL_MONTHS), gocron.NewDaysOfTheMonth(1),
 			gocron.NewAtTimes(
 				gocron.NewAtTime(
 					MonthlyJobTiming.hours,
@@ -78,7 +78,6 @@ func (cron *MonthlyJob) Task(ctx context.Context) {
 		}
 		logger.Info(ctx,fmt.Sprintf("cronjob fail error: %v",err.Error()))
 	}
-	return
 }
 
 func sendRewardQuotaRefilledNotificationToAll() {
