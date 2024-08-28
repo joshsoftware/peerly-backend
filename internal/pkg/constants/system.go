@@ -1,10 +1,5 @@
 package constants
 
-import (
-	"fmt"
-
-	"github.com/joshsoftware/peerly-backend/internal/pkg/config"
-)
 
 type UserIdCtxKey string
 type RoleCtxKey string
