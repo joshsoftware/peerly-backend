@@ -194,7 +194,7 @@ func (rs *reportAppreciationStore) GetResolution(ctx context.Context, id int64) 
 			err = apperrors.InvalidId
 			return
 		}
-		logger.Errorf("error in retriving reported appriciation, err:%w", err)
+		logger.Errorf("error in retriving reported appriciation, err:%s", err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
