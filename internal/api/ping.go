@@ -8,7 +8,7 @@ import (
 )
 
 func pingHandler(rw http.ResponseWriter, req *http.Request) {
-	log.Logger.Debug("debug ping")
+	log.Debug(req.Context(),"debug ping")
 	log.Info(req.Context(),"ping")
 	dto.SuccessRepsonse(rw, http.StatusOK, "Success", "pong")
 }

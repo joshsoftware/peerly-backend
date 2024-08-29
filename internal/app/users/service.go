@@ -488,6 +488,7 @@ func (us *service) GetUserById(ctx context.Context) (user dto.GetUserByIdResp, e
 func (us *service) GetActiveUserList(ctx context.Context) ([]dto.ActiveUser, error) {
 	activeUserDb, err := us.userRepo.GetActiveUserList(ctx, nil)
 	if err != nil {
+		logger.Errorf(ctx,"usrSvc: GetActiveUserList: err: %v",err)
 		return []dto.ActiveUser{}, err
 	}
 	res := make([]dto.ActiveUser, 0)

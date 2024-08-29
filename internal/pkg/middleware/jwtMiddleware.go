@@ -72,8 +72,8 @@ func JwtAuthMiddleware(next http.Handler, roles []string) http.Handler {
 // RequestIDMiddleware generates a request ID and adds it to the request context.
 func RequestIDMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		reqestId := uuid.NewString()
-		ctx := context.WithValue(r.Context(), constants.RequestID, reqestId)
+		requestID := uuid.NewString()
+		ctx := context.WithValue(r.Context(), constants.RequestID, requestID)
 		r = r.WithContext(ctx)
 		next.ServeHTTP(w, r)
 	})

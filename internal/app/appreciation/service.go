@@ -44,35 +44,36 @@ func NewService(appreciationRepo repository.AppreciationStorer, coreValuesRepo r
 
 func (apprSvc *service) CreateAppreciation(ctx context.Context, appreciation dto.Appreciation) (dto.Appreciation, error) {
 
-	logger.Debug(ctx,"svc: CreateAppreciation: appreciation: ",appreciation)
 	//add quarter
 	appreciation.Quarter = utils.GetQuarter()
+	logger.Debug(ctx,"service: CreateAppreciation: appreciation: ",appreciation)
 
 	//add sender
 	data := ctx.Value(constants.UserId)
 	sender, ok := data.(int64)
 	if !ok {
-		logger.Error(ctx,"err in parsing userid from token")
+		logger.Error(ctx,"service: err in parsing userid from token")
 		return dto.Appreciation{}, apperrors.InternalServer
 	}
 
-	logger.Debug(ctx,"sender: ",sender)
 	//check is receiver present in database
 	chk, err := apprSvc.appreciationRepo.IsUserPresent(ctx, nil, appreciation.Receiver)
-	logger.Debug(ctx,"chk: ",chk," err: ",err)
 	if err != nil {
 		logger.Errorf(ctx,"err: %v", err)
 		return dto.Appreciation{}, err
 	}
 	if !chk {
+		logger.Errorf(ctx,"User not found (user_id): %v",appreciation.Receiver)
 		return dto.Appreciation{}, apperrors.UserNotFound
 	}
 	appreciation.Sender = sender
 
+	logger.Debug(ctx,"service: appreciation: ",appreciation)
 	//initializing database transaction
 	tx, err := apprSvc.appreciationRepo.BeginTx(ctx)
 
 	if err != nil {
+		logger.Errorf(ctx,"err: %v",err)
 		return dto.Appreciation{}, err
 	}
 
@@ -80,7 +81,7 @@ func (apprSvc *service) CreateAppreciation(ctx context.Context, appreciation dto
 		rvr := recover()
 		defer func() {
 			if rvr != nil {
-				logger.Info(ctx, "Transaction aborted because of panic: %v, Propagating panic further", rvr)
+				logger.Infof(ctx, "Transaction aborted because of panic: %v, Propagating panic further", rvr)
 				panic(rvr)
 			}
 		}()
@@ -88,7 +89,7 @@ func (apprSvc *service) CreateAppreciation(ctx context.Context, appreciation dto
 		txErr := apprSvc.appreciationRepo.HandleTransaction(ctx, tx, err == nil && rvr == nil)
 		if txErr != nil {
 			err = txErr
-			logger.Info(ctx, "error in creating transaction, err: %s", txErr.Error())
+			logger.Infof(ctx, "error in handle transaction, err: %s", txErr.Error())
 			return
 		}
 	}()
@@ -96,12 +97,13 @@ func (apprSvc *service) CreateAppreciation(ctx context.Context, appreciation dto
 	//check is corevalue present in database
 	_, err = apprSvc.corevaluesRespo.GetCoreValue(ctx, int64(appreciation.CoreValueID))
 	if err != nil {
-		logger.Errorf(ctx,"err: %v", err)
+		logger.Errorf(ctx,"service: err: %v", err)
 		return dto.Appreciation{}, err
 	}
 
 	// check self appreciation
 	if appreciation.Receiver == sender {
+		logger.Errorf(ctx,"Self Appreciation Error: %v \n Userid: %d",apperrors.SelfAppreciationError,appreciation.Receiver)
 		return dto.Appreciation{}, apperrors.SelfAppreciationError
 	}
 
@@ -118,6 +120,7 @@ func (apprSvc *service) CreateAppreciation(ctx context.Context, appreciation dto
 		return res, nil
 	}
 
+	logger.Debug(ctx,"service: createAppreciation result: ",res)
 	quaterTimeStamp := user.GetQuarterStartUnixTime()
 
 	reqGetUserById := dto.GetUserByIdReq{
@@ -127,14 +130,16 @@ func (apprSvc *service) CreateAppreciation(ctx context.Context, appreciation dto
 	senderInfo,err := apprSvc.userRepo.GetUserById(ctx,reqGetUserById)
 	if err != nil{
 		logger.Info(ctx,"error in getting create appreciation sender info")
+		return res, nil
 	}
 
 	reqGetUserById.UserId = appreciation.Receiver
 	receiverInfo,err := apprSvc.userRepo.GetUserById(ctx,reqGetUserById)
 	if err != nil{
 		logger.Info(ctx,"error in getting create appreciation sender info")
+		return res, nil
 	}
-	err = sendAppreciationEmail(apprInfo,senderInfo.Email,receiverInfo.Email)
+	sendAppreciationEmail(apprInfo,senderInfo.Email,receiverInfo.Email)
 	apprSvc.sendAppreciationNotificationToReceiver(ctx, apprInfo)
 	apprSvc.sendAppreciationNotificationToAll(ctx, apprInfo)
 	return res, nil
@@ -142,25 +147,25 @@ func (apprSvc *service) CreateAppreciation(ctx context.Context, appreciation dto
 
 func (apprSvc *service) GetAppreciationById(ctx context.Context, appreciationId int32) (dto.AppreciationResponse, error) {
 
-	logger.Debug(ctx,"appreciationId: ",appreciationId)
+	logger.Debug(ctx,"service: appreciationId: ",appreciationId)
 	resAppr, err := apprSvc.appreciationRepo.GetAppreciationById(ctx, nil, appreciationId)
-	logger.Debug(ctx,"apprSvc: resAppr: ",resAppr," err: ",err)
 	if err != nil {
 		logger.Errorf(ctx,"err: %v", err)
 		return dto.AppreciationResponse{}, err
 	}
+	logger.Debug(ctx,"service: resAppr: ",resAppr)
 	return mapRepoGetAppreciationInfoToDTOGetAppreciationInfo(resAppr), nil
 }
 
 func (apprSvc *service) ListAppreciations(ctx context.Context, filter dto.AppreciationFilter) (dto.ListAppreciationsResponse, error) {
 
-	logger.Debug(ctx," filter: ",filter)
+	logger.Debug(ctx,"service: filter: ",filter)
 	infos, pagination, err := apprSvc.appreciationRepo.ListAppreciations(ctx, nil, filter)
-	logger.Debug(ctx," infos: ",infos," pagination: ",pagination," err: ",err)
 	if err != nil {
 		logger.Errorf(ctx,"err: %v", err)
 		return dto.ListAppreciationsResponse{}, err
 	}
+	logger.Debug(ctx,"service: infos: ",infos," pagination: ",pagination)
 
 	responses := make([]dto.AppreciationResponse, 0)
 	for _, info := range infos {
@@ -172,7 +177,7 @@ func (apprSvc *service) ListAppreciations(ctx context.Context, filter dto.Apprec
 }
 
 func (apprSvc *service) DeleteAppreciation(ctx context.Context, apprId int32) error {
-	logger.Debug(ctx,"apprSvc: apprId: ",apprId)
+	logger.Debug(ctx,"service: apprId: ",apprId)
 	return apprSvc.appreciationRepo.DeleteAppreciation(ctx, nil, apprId)
 }
 
@@ -182,6 +187,7 @@ func (apprSvc *service) UpdateAppreciation(ctx context.Context) (bool, error) {
 	tx, err := apprSvc.appreciationRepo.BeginTx(ctx)
 
 	if err != nil {
+		logger.Errorf(ctx,"error in begin transaction: %v",err)
 		return false, err
 	}
 
@@ -189,7 +195,7 @@ func (apprSvc *service) UpdateAppreciation(ctx context.Context) (bool, error) {
 		rvr := recover()
 		defer func() {
 			if rvr != nil {
-				logger.Info(ctx, "Transaction aborted because of panic: %v, Propagating panic further", rvr)
+				logger.Infof(ctx, "Transaction aborted because of panic: %v, Propagating panic further", rvr)
 				panic(rvr)
 			}
 		}()
@@ -197,7 +203,7 @@ func (apprSvc *service) UpdateAppreciation(ctx context.Context) (bool, error) {
 		txErr := apprSvc.appreciationRepo.HandleTransaction(ctx, tx, err == nil && rvr == nil)
 		if txErr != nil {
 			err = txErr
-			logger.Info(ctx, "error in creating transaction, err: %s", txErr.Error())
+			logger.Infof(ctx, "error in handle transaction, err: %s", txErr.Error())
 			return
 		}
 	}()
@@ -205,16 +211,17 @@ func (apprSvc *service) UpdateAppreciation(ctx context.Context) (bool, error) {
 	_, err = apprSvc.appreciationRepo.UpdateAppreciationTotalRewardsOfYesterday(ctx, tx)
 
 	if err != nil {
-		logger.Error(ctx,"err: ", err.Error())
+		logger.Errorf(ctx,"err: %v", err)
 		return false, err
 	}
+	logger.Debug(ctx,"service: UpdateAppreciationTotalRewardsOfYesterday completed")
 
 	userBadgeDetails, err := apprSvc.appreciationRepo.UpdateUserBadgesBasedOnTotalRewards(ctx, tx)
 	if err != nil {
 		logger.Error(ctx,"err: ", err.Error())
 		return false, err
 	}
-	logger.Debug(ctx,"apprSvc: UpdateAppreciation: ",userBadgeDetails)
+	logger.Debug(ctx,"service: UpdateAppreciation: ",userBadgeDetails)
 	apprSvc.sendEmailForBadgeAllocation(userBadgeDetails)
 	return true, nil
 }
@@ -235,8 +242,7 @@ func sendAppreciationEmail(emailData repository.AppreciationResponse,senderEmail
 		CoreValueName: emailData.CoreValueName,
 	}
 
-	logger.Info(context.Background(),"appreciation sender email: -----------> ",senderEmail)
-	logger.Info(context.Background(),"appreciation receiver email: -----------> ",receiverEmail)
+	logger.Infof(context.Background(),"appreciation sender email: %v :receiver email: %v  ",senderEmail,receiverEmail)
 	mailReq := email.NewMail([]string{receiverEmail}, []string{senderEmail}, []string{}, fmt.Sprintf("%s %s appreciated %s %s",emailData.SenderFirstName,emailData.SenderLastName,emailData.ReceiverFirstName,emailData.ReceiverLastName))
 	err := mailReq.ParseTemplate("./internal/app/email/templates/createAppreciation.html", templateData)
 	if err != nil {
@@ -253,7 +259,7 @@ func sendAppreciationEmail(emailData repository.AppreciationResponse,senderEmail
 
 func (apprSvc *service) sendAppreciationNotificationToReceiver(ctx context.Context, appr repository.AppreciationResponse) {
 
-	logger.Debug(ctx,"apprSvc: apprResponse: ",appr)
+	logger.Debug(ctx,"service: apprResponse: ",appr)
 	notificationTokens, err := apprSvc.userRepo.ListDeviceTokensByUserID(ctx, appr.ReceiverID)
 	if err != nil {
 		logger.Errorf(ctx,"err in getting device tokens: %v", err)
@@ -266,6 +272,7 @@ func (apprSvc *service) sendAppreciationNotificationToReceiver(ctx context.Conte
 		Body:  fmt.Sprintf("You've been appreciated by %s %s! Well done and keep up the JOSH!", appr.SenderFirstName, appr.SenderLastName),
 	}
 
+	logger.Infof(ctx,"message: %v",msg)
 	for _, notificationToken := range notificationTokens {
 		msg.SendNotificationToNotificationToken(notificationToken)
 	}
@@ -279,12 +286,13 @@ func (apprSvc *service) sendAppreciationNotificationToAll(ctx context.Context, a
 		Title: "Appreciation",
 		Body:  fmt.Sprintf(" %s %s appreciated %s %s", appr.SenderFirstName, appr.SenderLastName, appr.ReceiverFirstName, appr.ReceiverLastName),
 	}
+	logger.Infof(ctx,"message: %v",msg)
 	msg.SendNotificationToTopic("peerly")
 }
 
 func (apprSvc *service) sendEmailForBadgeAllocation(userBadgeDetails []repository.UserBadgeDetails) {
 
-	logger.Debug(context.Background(),"user Badge Details:---------------->\n ", userBadgeDetails)
+	logger.Debug(context.Background(),"service: user Badge Details: ", userBadgeDetails)
 	for _, userBadgeDetail := range userBadgeDetails {
 
 		// Determine the BadgeImageUrl based on the BadgeName
@@ -312,18 +320,18 @@ func (apprSvc *service) sendEmailForBadgeAllocation(userBadgeDetails []repositor
 			BadgeImageName:     badgeImageUrl,
 			AppreciationPoints: userBadgeDetail.BadgePoints,
 		}
-		logger.Info(context.Background(),"badge data: ", templateData)
+		logger.Info(context.Background(),"service: badge data: ", templateData)
 		mailReq := email.NewMail([]string{userBadgeDetail.Email}, []string{}, []string{}, "Received an badge")
 		err := mailReq.ParseTemplate("./internal/app/email/templates/badge.html", templateData)
 		if err != nil {
-			logger.Errorf(context.Background(),"err in creating html file : %v", err)
+			logger.Errorf(context.Background(),"service: err in creating html file : %v", err)
 			return
 		}
 		err = mailReq.Send("badge allocation")
 		if err != nil {
-			logger.Errorf(context.Background(),"err: %v", err)
+			logger.Errorf(context.Background(),"service: err: %v", err)
 			return
 		}
+		logger.Infof(context.Background(),"service: mail request: %v",mailReq)
 	}
-	return
 }

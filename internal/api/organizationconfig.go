@@ -14,7 +14,6 @@ import (
 
 func getOrganizationConfigHandler(orgSvc organizationConfig.Service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-
 		logger.Debug(req.Context(),"getOrganizationConfigHandler: req: ",req)
 		orgConfig, err := orgSvc.GetOrganizationConfig(req.Context())
 		if err != nil {
@@ -23,6 +22,7 @@ func getOrganizationConfigHandler(orgSvc organizationConfig.Service) http.Handle
 			return
 		}
 		logger.Debug(req.Context(),"getOrganizationConfigHandler: resp: ",orgConfig)
+		logger.Info(req.Context(),"organization config fetched successfully")
 		dto.SuccessRepsonse(rw, http.StatusOK, "organization config fetched successfully",orgConfig)
 	})
 }
@@ -31,7 +31,7 @@ func getOrganizationConfigHandler(orgSvc organizationConfig.Service) http.Handle
 func createOrganizationConfigHandler(orgSvc organizationConfig.Service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		
-		logger.Debug(req.Context(),"createOrganizationConfigHandler: req: ",req)
+		logger.Debug(req.Context(),"createOrganizationConfigHandler: request: ",req)
 		var orgConfig dto.OrganizationConfig
 		err := json.NewDecoder(req.Body).Decode(&orgConfig)
 		if err != nil {
@@ -54,6 +54,7 @@ func createOrganizationConfigHandler(orgSvc organizationConfig.Service) http.Han
 			return
 		}
 		logger.Debug(req.Context(),"createOrganizationConfigHandler: resp: ",createdOrganizationConfig)
+		logger.Info(req.Context(),"Organization Config Created Successfully")
 		dto.SuccessRepsonse(rw, http.StatusCreated, "Organization Config Created Successfully" ,createdOrganizationConfig)
 	})
 }
@@ -69,7 +70,7 @@ func updateOrganizationConfigHandler(orgSvc organizationConfig.Service) http.Han
 			return
 		}
 		
-		logger.Debug(req.Context(),"updateOrganizationConfigHandler: request: ",req)
+		logger.Info(req.Context(),"updateOrganizationConfigHandler: request: ",req)
 		organizationConfig.ID = 1
 		err = organizationConfig.OrgUpdateValidate()
 		if err != nil {
@@ -86,6 +87,7 @@ func updateOrganizationConfigHandler(orgSvc organizationConfig.Service) http.Han
 		}
 
 		logger.Debug(req.Context(),"updateOrganizationConfigHandler: resp: ",updatedOrganization)
+		logger.Info(req.Context(),"Organization Config Updated Successfully" )
 		dto.SuccessRepsonse(rw, http.StatusOK, "Organization Config Updated Successfully" ,updatedOrganization)
 
 	})

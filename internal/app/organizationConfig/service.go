@@ -30,13 +30,13 @@ func NewService(organizationConfigRepo repository.OrganizationConfigStorer) Serv
 
 func (orgSvc *service) GetOrganizationConfig(ctx context.Context) (dto.OrganizationConfig, error) {
 
-	logger.Debug(ctx," orgSvc: GetOrganizationConfig")
+	logger.Debug(ctx,"orgSvc: GetOrganizationConfig")
 	organization, err := orgSvc.OrganizationConfigRepo.GetOrganizationConfig(ctx,nil)
-	logger.Debug(context.Background()," orgSvc: GetOrganizationConfig: organization: ",organization," err: ",err)
 	if err != nil {
 		logger.Errorf(context.Background(),"err: %v",err)
 		return dto.OrganizationConfig{}, err
 	}
+	logger.Debug(ctx,"orgSvc: GetOrganizationConfig: organization: ",organization)
 	org := organizationConfigToDTO(organization)
 	return org, nil
 
@@ -49,13 +49,13 @@ func (orgSvc *service) CreateOrganizationConfig(ctx context.Context, organizatio
 	data := ctx.Value(constants.UserId)
 	userID, ok := data.(int64)
 	if !ok {
-		logger.Error(context.Background(),"err in parsing userid from token")
+		logger.Error(context.Background(),"orgsvc: err in parsing userid from token")
 		return dto.OrganizationConfig{},apperrors.InternalServer
 	}
 	organizationConfig.CreatedBy = userID
 	organizationConfig.UpdatedBy = userID
 
-	logger.Debug(ctx," organizationConfig: ",organizationConfig)
+	logger.Debug(ctx,"orgSvc: organizationConfig: ",organizationConfig)
 	_ ,err := orgSvc.OrganizationConfigRepo.GetOrganizationConfig(ctx,nil);
 	if err != apperrors.OrganizationConfigNotFound {
 		return dto.OrganizationConfig{},apperrors.OrganizationConfigAlreadyPresent
@@ -63,7 +63,7 @@ func (orgSvc *service) CreateOrganizationConfig(ctx context.Context, organizatio
 
 	createdOrganizationConfig, err := orgSvc.OrganizationConfigRepo.CreateOrganizationConfig(ctx,nil, organizationConfig)
 	if err != nil {
-		logger.Errorf(context.Background(),"err: %v",err)
+		logger.Errorf(ctx,"err: %v",err)
 		return dto.OrganizationConfig{}, err
 	}
 	
@@ -92,11 +92,11 @@ func (orgSvc *service) UpdateOrganizationConfig(ctx context.Context, organizatio
 	logger.Debug(ctx," orgSvc: UpdateOrganizationConfig: organizationConfig: ",organizationConfig)
 	updatedOrganization, err := orgSvc.OrganizationConfigRepo.UpdateOrganizationConfig(ctx,nil, organizationConfig)
 	if err != nil {
-		logger.Errorf(ctx,"err: %v",err)
+		logger.Errorf(ctx,"orgSvc: err: %v",err)
 		return dto.OrganizationConfig{}, err
 	}
 
 	org := organizationConfigToDTO(updatedOrganization)
-	logger.Debug(ctx," org: ",org)
+	logger.Debug(ctx,"orgSvc: updated organization: ",org)
 	return org, nil
 }
