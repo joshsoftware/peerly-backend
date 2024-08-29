@@ -28,9 +28,6 @@ type Service interface {
 	ListAppreciations(ctx context.Context, filter dto.AppreciationFilter) (dto.ListAppreciationsResponse, error)
 	DeleteAppreciation(ctx context.Context, apprId int32) error
 	UpdateAppreciation(ctx context.Context) (bool, error)
-	sendAppreciationNotificationToReceiver(ctx context.Context, appr repository.AppreciationResponse)
-	sendAppreciationNotificationToAll(ctx context.Context, appr repository.AppreciationResponse)
-	sendEmailForBadgeAllocation(userBadgeDetails []repository.UserBadgeDetails)
 }
 
 func NewService(appreciationRepo repository.AppreciationStorer, coreValuesRepo repository.CoreValueStorer, userRepo repository.UserStorer) Service {
@@ -120,17 +117,17 @@ func (apprSvc *service) CreateAppreciation(ctx context.Context, appreciation dto
 		UserId:          sender,
 		QuaterTimeStamp: quaterTimeStamp,
 	}
-	senderInfo,err := apprSvc.userRepo.GetUserById(ctx,reqGetUserById)
-	if err != nil{
+	senderInfo, err := apprSvc.userRepo.GetUserById(ctx, reqGetUserById)
+	if err != nil {
 		logger.Info("error in getting create appreciation sender info")
 	}
 
 	reqGetUserById.UserId = appreciation.Receiver
-	receiverInfo,err := apprSvc.userRepo.GetUserById(ctx,reqGetUserById)
-	if err != nil{
+	receiverInfo, err := apprSvc.userRepo.GetUserById(ctx, reqGetUserById)
+	if err != nil {
 		logger.Info("error in getting create appreciation sender info")
 	}
-	err = sendAppreciationEmail(apprInfo,senderInfo.Email,receiverInfo.Email)
+	err = sendAppreciationEmail(apprInfo, senderInfo.Email, receiverInfo.Email)
 	apprSvc.sendAppreciationNotificationToReceiver(ctx, apprInfo)
 	apprSvc.sendAppreciationNotificationToAll(ctx, apprInfo)
 	return res, nil
@@ -210,25 +207,25 @@ func (apprSvc *service) UpdateAppreciation(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-func sendAppreciationEmail(emailData repository.AppreciationResponse,senderEmail string,receiverEmail string) error {
+func sendAppreciationEmail(emailData repository.AppreciationResponse, senderEmail string, receiverEmail string) error {
 	// Plain text content
 	plainTextContent := "Samnit " + "123456"
 
 	templateData := struct {
 		SenderName    string
-		ReceiverName string
+		ReceiverName  string
 		Description   string
 		CoreValueName string
 	}{
 		SenderName:    fmt.Sprint(emailData.SenderFirstName, " ", emailData.SenderLastName),
-		ReceiverName: fmt.Sprint(emailData.ReceiverFirstName, " ", emailData.ReceiverLastName),
+		ReceiverName:  fmt.Sprint(emailData.ReceiverFirstName, " ", emailData.ReceiverLastName),
 		Description:   emailData.Description,
 		CoreValueName: emailData.CoreValueName,
 	}
 
-	logger.Info("appreciation sender email: -----------> ",senderEmail)
-	logger.Info("appreciation receiver email: -----------> ",receiverEmail)
-	mailReq := email.NewMail([]string{receiverEmail}, []string{senderEmail}, []string{}, fmt.Sprintf("%s %s appreciated %s %s",emailData.SenderFirstName,emailData.SenderLastName,emailData.ReceiverFirstName,emailData.ReceiverLastName))
+	logger.Info("appreciation sender email: -----------> ", senderEmail)
+	logger.Info("appreciation receiver email: -----------> ", receiverEmail)
+	mailReq := email.NewMail([]string{receiverEmail}, []string{senderEmail}, []string{}, fmt.Sprintf("%s %s appreciated %s %s", emailData.SenderFirstName, emailData.SenderLastName, emailData.ReceiverFirstName, emailData.ReceiverLastName))
 	err := mailReq.ParseTemplate("./internal/app/email/templates/createAppreciation.html", templateData)
 	if err != nil {
 		logger.Errorf("err in creating html file : %v", err)

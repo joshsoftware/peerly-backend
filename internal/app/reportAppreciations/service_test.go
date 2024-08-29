@@ -15,7 +15,8 @@ import (
 func TestReportAppreciation(t *testing.T) {
 	reportAppreciationRepo := mocks.NewReportAppreciationStorer(t)
 	userRepo := mocks.NewUserStorer(t)
-	service := NewService(reportAppreciationRepo, userRepo)
+	appreciationRepo := mocks.NewAppreciationStorer(t)
+	service := NewService(reportAppreciationRepo, userRepo, appreciationRepo)
 
 	tests := []struct {
 		name            string
@@ -140,7 +141,8 @@ func TestReportAppreciation(t *testing.T) {
 func TestListReportedAppreciations(t *testing.T) {
 	reportAppreciationRepo := mocks.NewReportAppreciationStorer(t)
 	userRepo := mocks.NewUserStorer(t)
-	service := NewService(reportAppreciationRepo, userRepo)
+	appreciationRepo := mocks.NewAppreciationStorer(t)
+	service := NewService(reportAppreciationRepo, userRepo, appreciationRepo)
 
 	tests := []struct {
 		name            string
