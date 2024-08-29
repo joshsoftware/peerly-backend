@@ -240,21 +240,32 @@ func sendAppreciationEmail(emailData repository.AppreciationResponse,senderEmail
 		SenderIconImageURL: fmt.Sprint(config.PeerlyBaseUrl()+constants.OpenEnvelopeIconImagePath),
 	}
 
-	logger.Info(context.Background(),"appreciation sender email: -----------> ",senderEmail)
-	logger.Info(context.Background(),"appreciation receiver email: -----------> ",receiverEmail)
-	mailReq := email.NewMail([]string{receiverEmail}, []string{}, []string{}, fmt.Sprintf("Kudos! You've Been Praised by %s %s! 🎉 ",emailData.SenderFirstName,emailData.SenderLastName))
-	err := mailReq.ParseTemplate("./internal/app/email/templates/receiverAppreciation.html", templateData)
+	tos := []string{receiverEmail}
+	ccs := []string{}
+	bccs := []string{}
+	sub := fmt.Sprintf("Kudos! You've Been Praised by %s %s! 🎉 ",emailData.SenderFirstName,emailData.SenderLastName)
+	body,err := email.ParseTemplate("./internal/app/email/templates/receiverAppreciation.html", templateData)
 	if err != nil {
-		logger.Errorf(context.Background(),"err in creating html file : %v", err)
+		logger.Errorf(context.Background(),"err in creating receiverAppreciation.html file : %v", err)
 		return err
 	}
+	mailReq := email.NewMail(tos, ccs, bccs, sub,body)
 	err = mailReq.Send()
 	if err != nil {
 		logger.Errorf(context.Background(),"err: %v", err)
 		return err
 	}
-	mailReq = email.NewMail([]string{senderEmail}, []string{}, []string{}, fmt.Sprintf("Your appreciation to %s %s has been sent! 🙌",emailData.ReceiverFirstName,emailData.ReceiverLastName))
-	err = mailReq.ParseTemplate("./internal/app/email/templates/senderAppreciation.html", templateData)
+
+	tos = []string{senderEmail}
+	ccs = []string{}
+	bccs = []string{}
+	sub = fmt.Sprintf("Your appreciation to %s %s has been sent! 🙌",emailData.ReceiverFirstName,emailData.ReceiverLastName)
+	body,err = email.ParseTemplate("./internal/app/email/templates/senderAppreciation.html", templateData)
+	if err != nil {
+		logger.Errorf(context.Background(),"err in creating senderAppreciation.html file : %v", err)
+		return err
+	}
+	mailReq = email.NewMail(tos, ccs, bccs, sub,body)
 	if err != nil {
 		logger.Errorf(context.Background(),"err: %v",err)
 		return err
@@ -329,17 +340,22 @@ func (apprSvc *service) sendEmailForBadgeAllocation(userBadgeDetails []repositor
 			AppreciationPoints: userBadgeDetail.BadgePoints,
 		}
 		logger.Info(context.Background(),"badge data: ", templateData)
-		mailReq := email.NewMail([]string{userBadgeDetail.Email}, []string{}, []string{}, fmt.Sprintf("You've Bagged the %s for Crushing %d Points! 🏆",userBadgeDetail.BadgeName.String, userBadgeDetail.BadgePoints))
-		err := mailReq.ParseTemplate("./internal/app/email/templates/badge.html", templateData)
+
+		tos := []string{userBadgeDetail.Email}
+		ccs := []string{}
+		bccs := []string{}
+		sub := fmt.Sprintf("You've Bagged the %s for Crushing %d Points! 🏆",userBadgeDetail.BadgeName.String, userBadgeDetail.BadgePoints)
+		body, err := email.ParseTemplate("./internal/app/email/templates/badge.html", templateData)
 		if err != nil {
-			logger.Errorf(context.Background(),"err in creating html file : %v", err)
+			logger.Errorf(context.Background(),"err in creating badge.html file : %v", err)
 			return
 		}
+
+		mailReq := email.NewMail(tos, ccs, bccs, sub,body)
 		err = mailReq.Send()
 		if err != nil {
 			logger.Errorf(context.Background(),"err: %v", err)
 			return
 		}
 	}
-	return
 }

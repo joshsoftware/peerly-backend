@@ -69,3 +69,9 @@ const (
 	OpenEnvelopeIconImagePath       = "/peerly/assets/openEnvelopeIcon.png"
 	RewardQuotaRenewalIconImagePath = "/peerly/assets/rewardQuotaRenewal.png"
 )
+
+//notificatio service account key file
+const ServiceAccountKey = "serviceAccountKey.json"
+
+// Email Dl group of HRs
+const HRDLGroup = "dl_peerly.support@joshsoftware.com"

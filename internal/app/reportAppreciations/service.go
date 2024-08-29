@@ -305,10 +305,17 @@ func sendReportEmail(senderEmail string, senderFirstName string, senderLastName 
 		ReportIconImageURL:       fmt.Sprint(config.PeerlyBaseUrl() + constants.CheckIconImagePath),
 	}
 
-	logger.Info(ctx, "report sender email: ---------> ", senderEmail)
-	mailReq := email.NewMail([]string{senderEmail}, []string{"dl_peerly.support@joshsoftware.com"}, []string{}, "🙏 Thanks for Your Feedback! We’re On It! 🔧")
-	mailReq.ParseTemplate("./internal/app/email/templates/reportAppreciation.html", templateData)
-	err := mailReq.Send()
+	tos := []string{senderEmail}
+	ccs := []string{constants.HRDLGroup}
+	bccs := []string{}
+	sub := "🙏 Thanks for Your Feedback! We’re On It! 🔧"
+	body, err := email.ParseTemplate("./internal/app/email/templates/reportAppreciation.html", templateData)
+	if err != nil {
+		logger.Errorf(context.Background(),"err in creating reportAppreciation.html file : %v", err)
+		return err
+	}
+	mailReq := email.NewMail(tos,ccs ,bccs,sub,body )
+	err = mailReq.Send()
 	if err != nil {
 		logger.Errorf(ctx, "err: %v", err)
 		return err
@@ -387,17 +394,34 @@ func sendDeleteEmail(reporterEmail string, senderEmail string, receiverEmail str
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, constants.RequestID, "deleteEmail")
 	logger.Info(ctx, "reporter email: ---------> ", reporterEmail)
-	mailReq := email.NewMail([]string{reporterEmail}, []string{}, []string{}, "Results of reported appreciation")
-	mailReq.ParseTemplate("./internal/app/email/templates/deleteAppreciation.html", templateData)
-	err := mailReq.Send()
+	tos := []string{reporterEmail}
+	ccs := []string{}
+	bccs := []string{}
+	sub := "Results of reported appreciation"
+	body, err := email.ParseTemplate("./internal/app/email/templates/deleteAppreciation.html", templateData)
+	if err != nil {
+		logger.Errorf(context.Background(),"err in creating deleteAppreciation.html file : %v", err)
+		return err
+	}
+	mailReq := email.NewMail(tos,ccs ,bccs,sub ,body )
+	err = mailReq.Send()
 	if err != nil {
 		logger.Errorf(context.Background(), "err: %v", err)
 		return err
 	}
 
 	logger.Info(ctx, "sender email: ---------> ", reporterEmail)
-	mailReq = email.NewMail([]string{senderEmail}, []string{}, []string{}, "Results of reported appreciation")
-	mailReq.ParseTemplate("./internal/app/email/templates/senderDeleteEmail.html", templateData)
+
+	tos = []string{senderEmail}
+	ccs = []string{}
+	bccs =  []string{}
+	sub = "Results of reported appreciation"
+	body,err = email.ParseTemplate("./internal/app/email/templates/senderDeleteEmail.html", templateData)
+	if err != nil {
+		logger.Errorf(context.Background(),"err in creating senderDeleteEmail.html file : %v", err)
+		return err
+	}
+	mailReq = email.NewMail(tos,ccs ,bccs,sub,body )
 	err = mailReq.Send()
 	if err != nil {
 		logger.Errorf(ctx, "err: %v", err)
@@ -405,8 +429,17 @@ func sendDeleteEmail(reporterEmail string, senderEmail string, receiverEmail str
 	}
 
 	logger.Info(ctx, "receiver email: ---------> ", reporterEmail)
-	mailReq = email.NewMail([]string{receiverEmail}, []string{}, []string{}, "Results of reported appreciation")
-	mailReq.ParseTemplate("./internal/app/email/templates/receiverDeleteEmail.html", templateData)
+
+	tos = []string{receiverEmail}
+	ccs = []string{}
+	bccs =  []string{}
+	sub = "Results of reported appreciation"
+	body,err = email.ParseTemplate("./internal/app/email/templates/receiverDeleteEmail.html", templateData)
+	if err != nil {
+		logger.Errorf(context.Background(),"err in creating receiverDeleteEmail.html file : %v", err)
+		return err
+	}
+	mailReq = email.NewMail(tos,ccs,bccs, sub,body )
 	err = mailReq.Send()
 	if err != nil {
 		logger.Errorf(ctx, "err: %v", err)
@@ -419,9 +452,17 @@ func sendDeleteEmail(reporterEmail string, senderEmail string, receiverEmail str
 func sendResolveEmail(senderEmail string, templateData dto.ResolveAppreciationMail) error {
 
 	logger.Info(context.Background(), "report sender email: ---------> ", senderEmail)
-	mailReq := email.NewMail([]string{senderEmail}, []string{}, []string{}, "Results of reported appreciation")
-	mailReq.ParseTemplate("./internal/app/email/templates/resolveAppreciation.html", templateData)
-	err := mailReq.Send()
+	tos := []string{senderEmail}
+	ccs := []string{}
+	bccs := []string{}
+	sub := "Results of reported appreciation"
+	body ,err := email.ParseTemplate("./internal/app/email/templates/resolveAppreciation.html", templateData)
+	if err != nil {
+		logger.Errorf(context.Background(),"err in creating resolveAppreciation.html file : %v", err)
+		return err
+	}
+	mailReq := email.NewMail(tos, ccs, bccs, sub,body)
+	err = mailReq.Send()
 	if err != nil {
 		logger.Errorf(context.Background(), "err: %v", err)
 		return err

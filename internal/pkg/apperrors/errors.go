@@ -75,6 +75,10 @@ const (
 	NegativeBadgePoints                = CustomError("Badge reward points cannot be negative")
 	UnauthorizedDeveloper              = CustomError("Unauthorised developer")
 	InvalidLoggerLevel                 = CustomError("Invalid Logger Level")
+	InvalidTos                         = CustomError("recipient email addresses are required")
+	InvalidFrom                        = CustomError("sender email address is required")
+	InvalidBody                        = CustomError("email body is required")
+	InvalidSub                         = CustomError("email subject is required")
 )
 
 // ErrKeyNotSet - Returns error object specific to the key value passed in
@@ -89,7 +93,7 @@ func GetHTTPStatusCode(err error) int {
 		return http.StatusInternalServerError
 	case OrganizationConfigNotFound, OrganizationNotFound, InvalidOrgId, GradeNotFound, AppreciationNotFound, PageParamNotFound, InvalidCoreValueData, InvalidIntranetData:
 		return http.StatusNotFound
-	case InvalidLoggerLevel,BadRequest, InvalidId, JSONParsingErrorReq, TextFieldBlank, InvalidParentValue, DescFieldBlank, UniqueCoreValue, SelfAppreciationError, CannotReportOwnAppreciation, RepeatedReport, InvalidCoreValueID, InvalidReceiverID, InvalidRewardMultiplier, InvalidRewardQuotaRenewalFrequency, InvalidTimezone, InvalidRewardPoint, InvalidEmail, InvalidPassword, DescriptionLengthExceed, InvalidPageSize, InvalidPage, NegativeGradePoints, NegativeBadgePoints:
+	case InvalidLoggerLevel, BadRequest, InvalidId, JSONParsingErrorReq, TextFieldBlank, InvalidParentValue, DescFieldBlank, UniqueCoreValue, SelfAppreciationError, CannotReportOwnAppreciation, RepeatedReport, InvalidCoreValueID, InvalidReceiverID, InvalidRewardMultiplier, InvalidRewardQuotaRenewalFrequency, InvalidTimezone, InvalidRewardPoint, InvalidEmail, InvalidPassword, DescriptionLengthExceed, InvalidPageSize, InvalidPage, NegativeGradePoints, NegativeBadgePoints:
 		return http.StatusBadRequest
 	case InvalidContactEmail, InvalidDomainName, UserAlreadyPresent, RewardAlreadyPresent, RepeatedUser:
 		return http.StatusConflict

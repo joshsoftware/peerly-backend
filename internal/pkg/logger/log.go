@@ -27,7 +27,9 @@ func Error(ctx context.Context, args ...interface{}) {
 	if !ok {
 		requestID = ""
 	}
-	Logger.Error(requestID, args)
+	// Logger.Error(requestID, args)
+	logger := Logger.WithField("req_id", requestID)
+	logger.Log(l.ErrorLevel, args...)
 }
 
 // Errorf - prints out an error with formatted output
