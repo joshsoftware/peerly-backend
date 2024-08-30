@@ -96,6 +96,27 @@ func (_m *ReportAppreciationStorer) DeleteAppreciation(ctx context.Context, mode
 	return r0
 }
 
+// GetResolution provides a mock function with given fields: ctx, id
+func (_m *ReportAppreciationStorer) GetResolution(ctx context.Context, id int64) (repository.ListReportedAppreciations, error) {
+	ret := _m.Called(ctx, id)
+
+	var r0 repository.ListReportedAppreciations
+	if rf, ok := ret.Get(0).(func(context.Context, int64) repository.ListReportedAppreciations); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Get(0).(repository.ListReportedAppreciations)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, int64) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetSenderAndReceiver provides a mock function with given fields: ctx, reqData
 func (_m *ReportAppreciationStorer) GetSenderAndReceiver(ctx context.Context, reqData dto.ReportAppreciationReq) (dto.GetSenderAndReceiverResp, error) {
 	ret := _m.Called(ctx, reqData)
@@ -159,6 +180,20 @@ func (_m *ReportAppreciationStorer) ReportAppreciation(ctx context.Context, repo
 	}
 
 	return r0, r1
+}
+
+// ResolveAppreciation provides a mock function with given fields: ctx, moderationReq
+func (_m *ReportAppreciationStorer) ResolveAppreciation(ctx context.Context, moderationReq dto.ModerationReq) error {
+	ret := _m.Called(ctx, moderationReq)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, dto.ModerationReq) error); ok {
+		r0 = rf(ctx, moderationReq)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 func NewReportAppreciationStorer(t interface {
