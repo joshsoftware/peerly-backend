@@ -196,7 +196,6 @@ func (_m *ReportAppreciationStorer) ResolveAppreciation(ctx context.Context, mod
 	return r0
 }
 
-
 func NewReportAppreciationStorer(t interface {
 	mock.TestingT
 	Cleanup(func())
