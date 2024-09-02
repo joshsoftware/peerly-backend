@@ -19,6 +19,11 @@ const (
 	GET                    = "GET"
 )
 
+const (
+	Admin int = iota
+	User
+)
+
 // User required constants
 const (
 	AuthorizationHeader                  = "Authorization"
