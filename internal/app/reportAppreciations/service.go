@@ -235,7 +235,7 @@ func (rs *service) DeleteAppreciation(ctx context.Context, reqData dto.Moderatio
 	nanoseconds := (appreciation.CreatedAt % 1000) * 1e6
 
 	tm := time.Unix(seconds, nanoseconds)
-	formattedDate := tm.Format("02/01/2006")
+	formattedDate := tm.Format("02/01/2006") // date format: dd/mm/yyyy
 
 	templateData := dto.DeleteAppreciationMail{
 		ModeratorComment: reqData.ModeratorComment,
@@ -396,7 +396,7 @@ func sendDeleteEmail(reporterEmail string, senderEmail string, receiverEmail str
 		return err
 	}
 
-	logger.Info("sender email: ---------> ", reporterEmail)
+	logger.Info("sender email: ---------> ", senderEmail)
 	mailReq = email.NewMail([]string{senderEmail}, []string{}, []string{}, "Results of reported appreciation")
 	mailReq.ParseTemplate("./internal/app/email/templates/senderDeleteEmail.html", templateData)
 	err = mailReq.Send()
@@ -405,7 +405,7 @@ func sendDeleteEmail(reporterEmail string, senderEmail string, receiverEmail str
 		return err
 	}
 
-	logger.Info("receiver email: ---------> ", reporterEmail)
+	logger.Info("receiver email: ---------> ", receiverEmail)
 	mailReq = email.NewMail([]string{receiverEmail}, []string{}, []string{}, "Results of reported appreciation")
 	mailReq.ParseTemplate("./internal/app/email/templates/receiverDeleteEmail.html", templateData)
 	err = mailReq.Send()
