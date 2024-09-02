@@ -2,6 +2,7 @@ package cronjob
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/go-co-op/gocron/v2"
 	apprSvc "github.com/joshsoftware/peerly-backend/internal/app/appreciation"
@@ -55,7 +56,7 @@ func (cron *DailyJob) Schedule() {
 	cron.scheduler.Start()
 
 	if err != nil {
-		logger.Warn(context.Background(), "error occurred while scheduling %s, message %+v", cron.name, err.Error())
+		logger.Warn(context.TODO(), fmt.Sprintf("error occurred while scheduling %s, message %+v", cron.name, err.Error()))
 	}
 }
 func (cron *DailyJob) Task(ctx context.Context) {
@@ -67,6 +68,7 @@ func (cron *DailyJob) Task(ctx context.Context) {
 
 		logger.Info(ctx," isSuccess: ",isSuccess," err: ",err)
 		if err==nil && isSuccess{
+			logger.Info(ctx,"cronjob: UpdateDaily data completed")
 			break
 		}
 	}

@@ -22,7 +22,7 @@ func giveRewardHandler(rewardSvc reward.Service) http.HandlerFunc {
 			return
 		}
 
-		log.Debug(req.Context(),"giveRewardHandler: request: ",req)
+		log.Info(req.Context(),"giveRewardHandler: request: ",req)
 
 		var reward dto.Reward
 		err = json.NewDecoder(req.Body).Decode(&reward)
@@ -47,7 +47,7 @@ func giveRewardHandler(rewardSvc reward.Service) http.HandlerFunc {
 		}
 
 		log.Debug(req.Context(),"giveRewardHandler: resp: ",resp)
-		
+		log.Info(req.Context(),"Reward given successfully")
 		dto.SuccessRepsonse(rw, http.StatusCreated, "Reward given successfully", resp)
 	})
 }

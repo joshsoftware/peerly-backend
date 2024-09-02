@@ -23,72 +23,49 @@ var lumberjackLogger = &lumberjack.Logger{
 
 // Error - prints out an error
 func Error(ctx context.Context, args ...interface{}) {
-	requestID, ok := ctx.Value(constants.RequestID).(string)
-	if !ok {
-		requestID = ""
-	}
-	// Logger.Error(requestID, args)
-	logger := Logger.WithField("req_id", requestID)
-	logger.Log(l.ErrorLevel, args...)
+	log := setRequestId(ctx)
+	log.Error(args...)
 }
 
 // Errorf - prints out an error with formatted output
 func Errorf(ctx context.Context, format string, args ...interface{}) {
-	requestID, ok := ctx.Value(constants.RequestID).(string)
-	if !ok {
-		requestID = ""
-	}
-	Logger.Errorf("req_id: [%s] "+format, append([]interface{}{requestID}, args...)...)
+	log := setRequestId(ctx)
+	log.Errorf(format,args...)
 }
 
 // Warn - prints out a warning
 func Warn(ctx context.Context, args ...interface{}) {
-	requestID, ok := ctx.Value(constants.RequestID).(string)
-	if !ok {
-		requestID = ""
-	}
-	Logger.Warn("req_id: ", requestID, args)
+	log := setRequestId(ctx)
+	log.Warn(args...)
 }
 
 // Fatal - will print out the error info and exit the program
 func Fatal(ctx context.Context, args ...interface{}) {
-	requestID, ok := ctx.Value(constants.RequestID).(string)
-	if !ok {
-		requestID = ""
-	}
-	Logger.Fatal("req_id: ", requestID, args)
+	log := setRequestId(ctx)
+	log.Fatal(args...)
 }
 
 // Info - prints out basic information
 func Info(ctx context.Context, args ...interface{}) {
-	requestID, ok := ctx.Value(constants.RequestID).(string)
-	if !ok {
-		requestID = ""
-	}
-	Logger.Info("req_id: ", requestID, args)
+	log := setRequestId(ctx)
+	log.Info(args...)
 }
 
 // Infof - prints out basic information
 func Infof(ctx context.Context, format string, args ...interface{}) {
-	requestID, ok := ctx.Value(constants.RequestID).(string)
-	if !ok {
-		requestID = ""
-	}
-	Logger.Infof("req_id: [%s] "+format, append([]interface{}{requestID}, args...)...)
+	log := setRequestId(ctx)
+	log.Infof(format,args...)
 }
 
 // Debug - prints out debug information
 func Debug(ctx context.Context, args ...interface{}) {
-	requestID, ok := ctx.Value(constants.RequestID).(string)
-	if !ok {
-		requestID = ""
-	}
-	Logger.Debug("req_id: ", requestID, args)
+	log := setRequestId(ctx)
+	log.Debug(args...)
 }
 
 func SetupLogger() (*l.Logger, error) {
 
-	lumberjackLogger.Filename = fmt.Sprintf("./logs/%s_peerly_backend.log", time.Now().Format("2006-01-02_15-04-05"))
+	lumberjackLogger.Filename = fmt.Sprintf("/var/log/peerly/%s_peerly_backend.log", time.Now().Format("2006-01-02_15-04-05"))
 	file, err := os.Create(lumberjackLogger.Filename)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create log file: %w", err)
@@ -107,4 +84,12 @@ func SetupLogger() (*l.Logger, error) {
 
 	Logger = logger
 	return logger, nil
+}
+
+func setRequestId(ctx context.Context) *l.Entry{
+	requestID, ok := ctx.Value(constants.RequestID).(string)
+	if !ok {
+		requestID = "N/A"
+	}
+	return Logger.WithField("req_id",requestID)
 }

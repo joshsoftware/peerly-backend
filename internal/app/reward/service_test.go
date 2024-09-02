@@ -15,7 +15,6 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-
 func TestGiveReward(t *testing.T) {
 	tests := []struct {
 		name            string
@@ -66,7 +65,7 @@ func TestGiveReward(t *testing.T) {
 				Point:          10,
 			},
 			setup: func(rwrdMock *mocks.RewardStorer, apprMock *mocks.AppreciationStorer) {
-				apprMock.On("GetAppreciationById", mock.Anything, nil, 1).Return(repository.AppreciationResponse{SenderID: 1, ReceiverID: 2}, nil)
+				apprMock.On("GetAppreciationById", mock.Anything, nil, 1).Return(repository.AppreciationResponse{SenderID: 2, ReceiverID: 3}, nil)
 			},
 			isErrorExpected: true,
 			expectedResult:  dto.Reward{},
@@ -80,7 +79,7 @@ func TestGiveReward(t *testing.T) {
 				Point:          10,
 			},
 			setup: func(rwrdMock *mocks.RewardStorer, apprMock *mocks.AppreciationStorer) {
-				apprMock.On("GetAppreciationById", mock.Anything, nil, 1).Return(repository.AppreciationResponse{SenderID: 2, ReceiverID: 1}, nil)
+				apprMock.On("GetAppreciationById", mock.Anything, nil, 1).Return(repository.AppreciationResponse{SenderID: 2, ReceiverID: 3}, nil)
 			},
 			isErrorExpected: true,
 			expectedResult:  dto.Reward{},
@@ -166,8 +165,8 @@ func TestGiveReward(t *testing.T) {
 			}
 
 			service := &service{
-				rewardRepo:        rwrdMock,
-				appreciationRepo:  apprMock,
+				rewardRepo:       rwrdMock,
+				appreciationRepo: apprMock,
 			}
 
 			result, err := service.GiveReward(test.ctx, test.rewardReq)

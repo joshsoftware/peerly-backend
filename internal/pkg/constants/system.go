@@ -22,6 +22,11 @@ const (
 	DeveloperKey           = "DEVELOPER_KEY"
 )
 
+const (
+	Admin int = iota
+	User
+)
+
 // User required constants
 const (
 	RequestID               RequestIDCtxKey = "RequestID"

@@ -7,6 +7,7 @@ import (
 	"github.com/go-co-op/gocron/v2"
 	logger "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
 )
+
 type Job interface {
 	// Schedules the cron job
 	Schedule()

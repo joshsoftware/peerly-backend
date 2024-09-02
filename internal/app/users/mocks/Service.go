@@ -11,6 +11,48 @@ type Service struct {
 	mock.Mock
 }
 
+// AdminLogin provides a mock function with given fields: ctx, loginReq
+func (_m *Service) AdminLogin(ctx context.Context, loginReq dto.AdminLoginReq) (dto.LoginUserResp, error) {
+	ret := _m.Called(ctx, loginReq)
+
+	var r0 dto.LoginUserResp
+	if rf, ok := ret.Get(0).(func(context.Context, dto.AdminLoginReq) dto.LoginUserResp); ok {
+		r0 = rf(ctx, loginReq)
+	} else {
+		r0 = ret.Get(0).(dto.LoginUserResp)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, dto.AdminLoginReq) error); ok {
+		r1 = rf(ctx, loginReq)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// AllAppreciationReport provides a mock function with given fields: ctx, appreciations
+func (_m *Service) AllAppreciationReport(ctx context.Context, appreciations []dto.AppreciationResponse) (string, error) {
+	ret := _m.Called(ctx, appreciations)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(context.Context, []dto.AppreciationResponse) string); ok {
+		r0 = rf(ctx, appreciations)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, []dto.AppreciationResponse) error); ok {
+		r1 = rf(ctx, appreciations)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetActiveUserList provides a mock function with given fields: ctx
 func (_m *Service) GetActiveUserList(ctx context.Context) ([]dto.ActiveUser, error) {
 	ret := _m.Called(ctx)
@@ -164,6 +206,20 @@ func (_m *Service) LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.L
 	return r0, r1
 }
 
+// NotificationByAdmin provides a mock function with given fields: ctx, notificationReq
+func (_m *Service) NotificationByAdmin(ctx context.Context, notificationReq dto.AdminNotificationReq) error {
+	ret := _m.Called(ctx, notificationReq)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, dto.AdminNotificationReq) error); ok {
+		r0 = rf(ctx, notificationReq)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // RegisterUser provides a mock function with given fields: ctx, u
 func (_m *Service) RegisterUser(ctx context.Context, u dto.IntranetUserData) (dto.User, error) {
 	ret := _m.Called(ctx, u)
@@ -178,6 +234,27 @@ func (_m *Service) RegisterUser(ctx context.Context, u dto.IntranetUserData) (dt
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, dto.IntranetUserData) error); ok {
 		r1 = rf(ctx, u)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ReportedAppreciationReport provides a mock function with given fields: ctx, appreciations
+func (_m *Service) ReportedAppreciationReport(ctx context.Context, appreciations []dto.ReportedAppreciation) (string, error) {
+	ret := _m.Called(ctx, appreciations)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(context.Context, []dto.ReportedAppreciation) string); ok {
+		r0 = rf(ctx, appreciations)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, []dto.ReportedAppreciation) error); ok {
+		r1 = rf(ctx, appreciations)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -220,6 +297,10 @@ func (_m *Service) ValidatePeerly(ctx context.Context, authToken string) (dto.Va
 	return r0, r1
 }
 
+// sendRewardQuotaRefillEmailToAll provides a mock function with given fields: ctx
+func (_m *Service) sendRewardQuotaRefillEmailToAll(ctx context.Context) {
+	_m.Called(ctx)
+}
 
 func NewService(t interface {
 	mock.TestingT

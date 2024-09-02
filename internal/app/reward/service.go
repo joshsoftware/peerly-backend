@@ -38,48 +38,55 @@ func (rwrdSvc *service) GiveReward(ctx context.Context, rewardReq dto.Reward) (d
 	data := ctx.Value(constants.UserId)
 	sender, ok := data.(int64)
 	if !ok {
-		logger.Error(ctx, "err in parsing userid from token")
+		logger.Error(ctx,"rwrdSvc: err in parsing userid from token")
 		return dto.Reward{}, apperrors.InternalServer
 	}
 	rewardReq.SenderId = sender
 
 	appr, err := rwrdSvc.appreciationRepo.GetAppreciationById(ctx, nil, int32(rewardReq.AppreciationId))
-	logger.Debug(ctx, " appr: ", appr)
 	if err != nil {
+		logger.Errorf(ctx,"rwrdSvc: gerAppreciationById err : %v",err)
 		return dto.Reward{}, err
 	}
+	logger.Debug(ctx,"rwrdSvc: appr: ",appr)
 
 	if appr.SenderID == sender {
+		logger.Error(ctx,"rwrdSvc: SelfAppreciationRewardError")
 		return dto.Reward{}, apperrors.SelfAppreciationRewardError
 	}
 
 	if appr.ReceiverID == sender {
+		logger.Error(ctx,"rwrdSvc: SelfRewardError")
 		return dto.Reward{}, apperrors.SelfRewardError
 	}
 
 	userChk, err := rwrdSvc.rewardRepo.UserHasRewardQuota(ctx, nil, rewardReq.SenderId, rewardReq.Point)
-	logger.Debug(ctx, " userChk: ", userChk, " err: ", err)
 	if err != nil {
+		logger.Errorf(ctx,"rwrdSvc: UserHasRewardQuota: err: %v",err)
 		return dto.Reward{}, err
 	}
+	logger.Debug(ctx," userChk: ",userChk)
 
 	if !userChk {
+		logger.Error(ctx,"rwrdSvc: RewardQuotaIsNotSufficient")
 		return dto.Reward{}, apperrors.RewardQuotaIsNotSufficient
 	}
 
 	rwrdChk, err := rwrdSvc.rewardRepo.IsUserRewardForAppreciationPresent(ctx, nil, rewardReq.AppreciationId, rewardReq.SenderId)
-	logger.Debug(ctx, " rwrdChk: ", rwrdChk, " err: ", err)
 	if err != nil {
+		logger.Errorf(ctx,"rwrdSvc: IsUserRewardForAppreciationPresent: err: %v",err)
 		return dto.Reward{}, err
 	}
-
+	
 	if rwrdChk {
+		logger.Error(ctx," rwrdChk: RewardAlreadyPresent")
 		return dto.Reward{}, apperrors.RewardAlreadyPresent
 	}
 
 	//initializing database transaction
 	tx, err := rwrdSvc.rewardRepo.BeginTx(ctx)
 	if err != nil {
+		logger.Error(ctx,"rwrdSvc: error in BeginTx")
 		return dto.Reward{}, err
 	}
 
@@ -87,7 +94,7 @@ func (rwrdSvc *service) GiveReward(ctx context.Context, rewardReq dto.Reward) (d
 		rvr := recover()
 		defer func() {
 			if rvr != nil {
-				logger.Info(ctx, "Transaction aborted because of panic: %v, Propagating panic further", rvr)
+				logger.Infof(ctx, "Transaction aborted because of panic: %v, Propagating panic further", rvr)
 				panic(rvr)
 			}
 		}()
@@ -95,12 +102,13 @@ func (rwrdSvc *service) GiveReward(ctx context.Context, rewardReq dto.Reward) (d
 		txErr := rwrdSvc.appreciationRepo.HandleTransaction(ctx, tx, err == nil && rvr == nil)
 		if txErr != nil {
 			err = txErr
-			logger.Info(ctx, "error in creating transaction, err: %s", txErr.Error())
+			logger.Infof(ctx, "error in creating transaction, err: %s", txErr.Error())
 			return
 		}
 	}()
 	repoRewardRes, err := rwrdSvc.rewardRepo.GiveReward(ctx, tx, rewardReq)
 	if err != nil {
+		logger.Errorf(ctx,"rwrdSvc: GiveReward: err: %v",err)
 		return dto.Reward{}, err
 	}
 
@@ -108,10 +116,12 @@ func (rwrdSvc *service) GiveReward(ctx context.Context, rewardReq dto.Reward) (d
 
 	deduceChk, err := rwrdSvc.rewardRepo.DeduceRewardQuotaOfUser(ctx, tx, rewardReq.SenderId, int(rewardReq.Point))
 	if err != nil {
+		logger.Errorf(ctx,"rwrdSvc: DeduceRewardQuotaOfUser: err: %v",err)
 		return dto.Reward{}, err
 	}
 
 	if !deduceChk {
+		logger.Error(ctx,"rwrdSvc: DeduceRewardQuotaOfUser")
 		return dto.Reward{}, apperrors.InternalServer
 	}
 

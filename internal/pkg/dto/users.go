@@ -64,7 +64,7 @@ type GetIntranetUserDataReq struct {
 
 type Claims struct {
 	Id   int64
-	Role string
+	Role int
 	jwt.StandardClaims
 }
 
@@ -109,10 +109,10 @@ type ListUsersReq struct {
 }
 
 type ActiveUser struct {
-	ID                 int    `json:"id"`
-	FirstName          string `json:"first_name"`
-	LastName           string `json:"last_name"`
-	ProfileImageURL    string `json:"profile_image_url"`
+	ID              int    `json:"id"`
+	FirstName       string `json:"first_name"`
+	LastName        string `json:"last_name"`
+	ProfileImageURL string `json:"profile_image_url"`
 	// BadgeName          string `json:"badge_name"`
 	// AppreciationPoints int    `json:"appreciation_points"`
 }

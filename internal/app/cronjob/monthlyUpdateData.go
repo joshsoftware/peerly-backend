@@ -63,6 +63,7 @@ func (cron *MonthlyJob) Task(ctx context.Context) {
 		logger.Error(ctx,"err: ",err)
 		if err == nil {
 			sendRewardQuotaRefilledNotificationToAll()
+			logger.Info(ctx,"cronjob: monthly task completed")
 			break
 		}
 	}
