@@ -73,5 +73,7 @@ const (
 //notificatio service account key file
 const ServiceAccountKey = "serviceAccountKey.json"
 
+const AppreciationID = "appreciation_id"
+
 // Email Dl group of HRs
 const HRDLGroup = "dl_peerly.support@joshsoftware.com"
