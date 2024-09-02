@@ -8,8 +8,8 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
+	logger "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
-	logger "github.com/sirupsen/logrus"
 )
 
 type reportAppreciationStore struct {
@@ -39,7 +39,7 @@ func (rs *reportAppreciationStore) CheckAppreciation(ctx context.Context, reqDat
 		reqData.AppreciationId,
 	)
 	if err != nil {
-		logger.WithField("err", err.Error()).Error("Error in retriving appreciation count")
+		logger.Errorf(ctx, "error in retriving appreciation, err: %v")
 		return
 	}
 	if count == 0 {
@@ -60,7 +60,7 @@ func (rs *reportAppreciationStore) CheckDuplicateReport(ctx context.Context, req
 		reqData.ReportedBy,
 	)
 	if err != nil {
-		logger.WithField("err", err.Error()).Error("Error in looking for duplicate report")
+		logger.Errorf(ctx, "error in looking for duplicate report, err: %v", err)
 		return
 	}
 	if count > 0 {
@@ -79,7 +79,7 @@ func (rs *reportAppreciationStore) GetSenderAndReceiver(ctx context.Context, req
 		reqData.AppreciationId,
 	)
 	if err != nil {
-		logger.WithField("err", err.Error()).Error("Error in fetching appreciation sender and receiver")
+		logger.Errorf(ctx, "error in fetching appreciation sender and receiver, err: %v", err)
 		return
 	}
 	return
@@ -96,7 +96,7 @@ func (rs *reportAppreciationStore) ReportAppreciation(ctx context.Context, repor
 		reportReq.ReportedBy,
 	)
 	if err != nil {
-		logger.WithField("err", err.Error()).Error("Error in creating report")
+		logger.Error(ctx, "error in creating report, err:%v", err)
 		return
 	}
 	return
@@ -190,11 +190,11 @@ func (rs *reportAppreciationStore) GetResolution(ctx context.Context, id int64) 
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			logger.Errorf("no such resolution exists")
+			logger.Errorf(ctx, "no such resolution exists")
 			err = apperrors.InvalidId
 			return
 		}
-		logger.Errorf("error in retriving reported appriciation, err:%w", err)
+		logger.Errorf(ctx, "error in retriving reported appriciation, err:%w", err)
 		err = apperrors.InternalServerError
 		return
 	}

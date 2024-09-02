@@ -13,7 +13,8 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
-	logger "github.com/sirupsen/logrus"
+	log "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
+	logger "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
 )
 
 func loginUser(userSvc user.Service) http.HandlerFunc {
@@ -69,7 +70,7 @@ func loginAdmin(userSvc user.Service) http.HandlerFunc {
 		var reqData dto.AdminLoginReq
 		err := json.NewDecoder(req.Body).Decode(&reqData)
 		if err != nil {
-			logger.Errorf("error while decoding request data. err: %s", err.Error())
+			logger.Errorf(req.Context(), "error while decoding request data. err: %v", err)
 			err = apperrors.JSONParsingErrorReq
 			dto.ErrorRepsonse(rw, err)
 			return
@@ -93,9 +94,11 @@ func listIntranetUsersHandler(userSvc user.Service) http.HandlerFunc {
 			return
 		}
 
+		ctx := req.Context()
+
 		page := req.URL.Query().Get("page")
 		if page == "" {
-			logger.Error("page query parameter is required")
+			logger.Error(ctx, "page query parameter is required")
 			err := apperrors.PageParamNotFound
 			dto.ErrorRepsonse(rw, err)
 			return
@@ -103,13 +106,11 @@ func listIntranetUsersHandler(userSvc user.Service) http.HandlerFunc {
 
 		pageInt, err := strconv.ParseInt(page, 10, 64)
 		if err != nil {
-			logger.Errorf("error page string to int64 conversion. err:%s ", err.Error())
+			logger.Errorf(ctx, "error page string to int64 conversion. err:%s ", err.Error())
 			err = apperrors.InternalServerError
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
-
-		ctx := req.Context()
 
 		validateResp, err := userSvc.ValidatePeerly(ctx, authToken)
 		if err != nil {
@@ -134,10 +135,13 @@ func listIntranetUsersHandler(userSvc user.Service) http.HandlerFunc {
 
 func registerUser(userSvc user.Service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
+
+		ctx := req.Context()
+
 		var user dto.IntranetUserData
 		err := json.NewDecoder(req.Body).Decode(&user)
 		if err != nil {
-			logger.Errorf("error while decoding request data. err: %s", err.Error())
+			logger.Errorf(ctx, "error while decoding request data. err: %s", err.Error())
 			err = apperrors.JSONParsingErrorReq
 			dto.ErrorRepsonse(rw, err)
 			return
@@ -148,8 +152,6 @@ func registerUser(userSvc user.Service) http.HandlerFunc {
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
-
-		ctx := req.Context()
 
 		resp, err := userSvc.RegisterUser(ctx, user)
 		if err != nil {
@@ -169,9 +171,11 @@ func listUsersHandler(userSvc user.Service) http.HandlerFunc {
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
+
+		ctx := req.Context()
 		pageInt, err := strconv.ParseInt(page, 10, 64)
 		if err != nil {
-			logger.Errorf("error in page  string to int64 conversion, err:%s", err.Error())
+			logger.Errorf(ctx, "error in page  string to int64 conversion, err:%s", err.Error())
 			err = apperrors.InternalServerError
 			dto.ErrorRepsonse(rw, err)
 		}
@@ -188,7 +192,7 @@ func listUsersHandler(userSvc user.Service) http.HandlerFunc {
 		} else {
 			perPageInt, err = strconv.ParseInt(perPage, 10, 64)
 			if err != nil {
-				logger.Errorf("error in page size string to int64 conversion, err:%s", err.Error())
+				logger.Errorf(ctx, "error in page size string to int64 conversion, err:%s", err.Error())
 				err = apperrors.InternalServerError
 				dto.ErrorRepsonse(rw, err)
 			}
@@ -224,35 +228,42 @@ func listUsersHandler(userSvc user.Service) http.HandlerFunc {
 func getActiveUserListHandler(userSvc user.Service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
 
+		log.Info(req.Context(), "getActiveUserListHandler: req: ", req)
 		resp, err := userSvc.GetActiveUserList(req.Context())
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
+		log.Debug(req.Context(), "getActiveUserListHandler: resp: ", resp)
+		log.Info(req.Context(),"Active Users list")
 		dto.SuccessRepsonse(rw, http.StatusOK, "Active Users list", resp)
 	}
 }
 func getUserByIdHandler(userSvc user.Service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
 
+		log.Info(req.Context(),"getUserByIdHandler: request: ",req)
 		resp, err := userSvc.GetUserById(req.Context())
 		if err != nil {
+			log.Errorf(req.Context(),"getUserByIdHandler: err: %v",err)
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
 
+		log.Info(req.Context(),)
 		dto.SuccessRepsonse(rw, 200, "User fetched successfully", resp)
-
 	}
 }
 
 func getTop10UserHandler(userSvc user.Service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
+		log.Info(req.Context(),"getTop10UserHandler: request: ",req)
 		resp, err := userSvc.GetTop10Users(req.Context())
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
+		log.Info(req.Context(),"Top 10 users fetched successfully")
 		dto.SuccessRepsonse(rw, 200, "Top 10 users fetched successfully", resp)
 	}
 }
@@ -262,7 +273,7 @@ func adminNotificationHandler(userSvc user.Service) http.HandlerFunc {
 		var notificationReq dto.AdminNotificationReq
 		err := json.NewDecoder(req.Body).Decode(&notificationReq)
 		if err != nil {
-			logger.Errorf("error while decoding request data. err: %s", err.Error())
+			logger.Errorf(req.Context(), "error while decoding request data. err: %s", err.Error())
 			err = apperrors.JSONParsingErrorReq
 			dto.ErrorRepsonse(rw, err)
 			return
@@ -304,7 +315,6 @@ func appreciationReportHandler(userSvc user.Service, appreciationSvc appreciatio
 		// dto.SuccessRepsonse(rw, 200, "Excel downloaded successfully", nil)
 	}
 }
-
 
 func reportedAppreciationReportHandler(userSvc user.Service, reportAppreciationSvc reportappreciations.Service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {

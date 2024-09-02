@@ -1,20 +1,19 @@
 package email
 
 import (
-	"bytes"
+	"context"
 	"fmt"
-	"html/template"
 
+	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/config"
+	logger "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
-	logger "github.com/sirupsen/logrus"
 )
 
 // MailService represents the interface for our mail service.
 type MailService interface {
 	Send() error
-	ParseTemplate(templateFileName string, data interface{}) error
 }
 
 // Mail represents a email request
@@ -23,26 +22,26 @@ type Mail struct {
 	to      []string
 	subject string
 	body    string
-	CC      []string
-	BCC     []string
+	cc      []string
+	bcc     []string
 }
 
 func (ms *Mail) Send() error {
 
-	senderEmail := config.ReadEnvString("SENDER_EMAIL")
-	if senderEmail == "" {
-		logger.Error("SENDER_EMAIL environment variable is not set")
-		return fmt.Errorf("sender email not configured")
-	}
+	logger.Info(context.Background(), " Mail: ", ms)
 
 	sendGridAPIKey := config.ReadEnvString("SENDGRID_API_KEY")
 	if sendGridAPIKey == "" {
-		logger.Error("SENDGRID_API_KEY environment variable is not set")
+		logger.Error(context.Background(), "SENDGRID_API_KEY environment variable is not set")
 		return fmt.Errorf("sendgrid API key not configured")
 	}
-	logger.Info("from_------------->, ",senderEmail)
 
-	fromEmail := mail.NewEmail("Peerly", senderEmail)
+	err := ms.validateMail()
+	if err != nil {
+		logger.Errorf(context.Background(),"err: error in mail validation: %v",err)
+		return err
+	}
+	fromEmail := mail.NewEmail("Peerly", ms.from)
 	content := mail.NewContent("text/html", ms.body)
 
 	// create new *SGMailV3
@@ -52,21 +51,21 @@ func (ms *Mail) Send() error {
 
 	personalization := mail.NewPersonalization()
 
-	for _,email := range ms.to{
+	for _, email := range ms.to {
 		toEmail := mail.NewEmail("to", email)
 		personalization.AddTos(toEmail)
 	}
 
-	for _,email := range ms.CC{
+	for _, email := range ms.cc {
 		ccEmail := mail.NewEmail("cc", email)
 		personalization.AddCCs(ccEmail)
 	}
 
-	for _,email := range ms.BCC{
+	for _, email := range ms.bcc {
 		bccEmail := mail.NewEmail("bcc", email)
 		personalization.AddBCCs(bccEmail)
 	}
-	
+
 	personalization.Subject = ms.subject
 	m.AddPersonalizations(personalization)
 
@@ -74,39 +73,43 @@ func (ms *Mail) Send() error {
 
 	response, err := client.Send(m)
 	if err != nil {
-		logger.Error("unable to send mail", "error", err)
+		logger.Error(context.Background(), "unable to send mail", "error", err)
 		return err
 	}
 
-	logger.Info("Email request sent successfully!")
-	logger.Infof("Response status code: %v", response.StatusCode)
-	logger.Infof("Response body: %v", response.Body)
-	logger.Infof("Response headers: %v", response.Headers)
+	logger.Infof(context.Background(),"email sent successfully to %v ",ms.to)
+	logger.Debug(context.Background(), "Email response: %v ",response)
 	return nil
 }
-func (r *Mail) ParseTemplate(templateFileName string, data interface{}) error {
-	t, err := template.ParseFiles(templateFileName)
-	if err != nil {
-		return err
-	}
-	buf := new(bytes.Buffer)
-	if err = t.Execute(buf, data); err != nil {
-		return err
-	}
-	r.body = buf.String()
-	logger.Info("--------------------->")
-	logger.Info(r.body)
-	logger.Info("--------------------->")
-	return nil
+
+func (ms *Mail) validateMail() error {
+    if len(ms.to) == 0 {
+        return apperrors.InvalidTos
+    }
+
+    if len(ms.from) == 0 {
+        return apperrors.InvalidFrom
+    }
+
+    if len(ms.body) == 0 {
+        return apperrors.InvalidBody
+    }
+
+    if len(ms.subject) == 0 {
+        return apperrors.InvalidSub
+    }
+
+    return nil
 }
 
 // NewMail returns a new mail request.
-func NewMail(to []string, cc []string, bcc []string, subject string) MailService {
+func NewMail(to []string, cc []string, bcc []string, subject string, body string) MailService {
 	return &Mail{
 		from:    config.ReadEnvString("SENDER_EMAIL"),
 		to:      to,
-		CC:      cc,
-		BCC:     bcc,
+		cc:      cc,
+		bcc:     bcc,
 		subject: subject,
+		body:    body,
 	}
 }

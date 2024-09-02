@@ -8,9 +8,9 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
+	logger "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/utils"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
-	logger "github.com/sirupsen/logrus"
 )
 
 type service struct {
@@ -38,7 +38,7 @@ func (bs *service) ListBadges(ctx context.Context) ([]dto.Badge, error) {
 
 	dbResp, err := bs.badgesRepo.ListBadges(ctx)
 	if err != nil {
-		logger.Error(err.Error())
+		logger.Error(ctx, err.Error())
 		err = apperrors.InternalServerError
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func (gs *service) EditBadge(ctx context.Context, id string, rewardPoints int64)
 	var reqData dto.UpdateBadgeReq
 	reqData.Id = badgeId
 	if rewardPoints < 0 {
-		logger.Errorf("badge reward points cannot be negative, reward points: %d", rewardPoints)
+		logger.Errorf(ctx, "badge reward points cannot be negative, reward points: %d", rewardPoints)
 		err = apperrors.NegativeBadgePoints
 		return
 	}
@@ -83,14 +83,14 @@ func (gs *service) EditBadge(ctx context.Context, id string, rewardPoints int64)
 	userId := ctx.Value(constants.UserId)
 	data, ok := userId.(int64)
 	if !ok {
-		logger.Error("Error in typecasting user id")
+		logger.Error(context.Background(),"Error in typecasting user id")
 		err = apperrors.InternalServerError
 		return
 	}
 	reqData.UserId = data
 	err = gs.badgesRepo.EditBadge(ctx, reqData)
 	if err != nil {
-		logger.Error(err.Error())
+		logger.Error(ctx, err.Error())
 		err = apperrors.InternalServerError
 		return
 	}

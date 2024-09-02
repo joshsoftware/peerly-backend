@@ -18,7 +18,8 @@ import (
 func TestCreateAppreciation(t *testing.T) {
 	appreciationRepo := mocks.NewAppreciationStorer(t)
 	corevalueRepo := mocks.NewCoreValueStorer(t)
-	service := NewService(appreciationRepo, corevalueRepo)
+	userRepo := mocks.NewUserStorer(t)
+	service := NewService(appreciationRepo, corevalueRepo, userRepo)
 
 	tests := []struct {
 		name            string
@@ -41,11 +42,11 @@ func TestCreateAppreciation(t *testing.T) {
 				apprMock.On("IsUserPresent", mock.Anything, nil, int64(2)).Return(true, nil).Once()
 				apprMock.On("BeginTx", mock.Anything).Return(tx, nil).Once()
 				coreValueRepo.On("GetCoreValue", mock.Anything, int64(1)).Return(repository.CoreValue{
-					ID: 1,
-					Name:"Trust",
-					Description:"We foster trust by being transparent,reliable, and accountable in all our actions",
-					ParentCoreValueID:sql.NullInt64{Int64:int64(0),Valid: true},
-					}, nil).Once()
+					ID:                1,
+					Name:              "Trust",
+					Description:       "We foster trust by being transparent,reliable, and accountable in all our actions",
+					ParentCoreValueID: sql.NullInt64{Int64: int64(0), Valid: true},
+				}, nil).Once()
 				apprMock.On("CreateAppreciation", mock.Anything, tx, mock.Anything).Return(repository.Appreciation{ID: 1}, nil).Once()
 				apprMock.On("HandleTransaction", mock.Anything, tx, true).Return(nil).Once()
 			},
@@ -110,7 +111,9 @@ func TestCreateAppreciation(t *testing.T) {
 
 func TestGetAppreciationById(t *testing.T) {
 	appreciationRepo := mocks.NewAppreciationStorer(t)
-	service := NewService(appreciationRepo, nil)
+	coreVaueRepo := mocks.NewCoreValueStorer(t)
+	userRepo := mocks.NewUserStorer(t)
+	service := NewService(appreciationRepo, coreVaueRepo, userRepo)
 
 	tests := []struct {
 		name            string
@@ -210,7 +213,9 @@ func TestGetAppreciationById(t *testing.T) {
 
 func TestValidateAppreciation(t *testing.T) {
 	appreciationRepo := mocks.NewAppreciationStorer(t)
-	service := NewService(appreciationRepo, nil)
+	coreVaueRepo := mocks.NewCoreValueStorer(t)
+	userRepo := mocks.NewUserStorer(t)
+	service := NewService(appreciationRepo, coreVaueRepo, userRepo)
 
 	tests := []struct {
 		name            string
