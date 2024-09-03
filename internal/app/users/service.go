@@ -12,14 +12,15 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/joshsoftware/peerly-backend/internal/app/email"
+	"github.com/xuri/excelize/v2"
+
+	// "github.com/joshsoftware/peerly-backend/internal/app/email"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/config"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 	logger "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
-	"github.com/xuri/excelize/v2"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -499,10 +500,6 @@ func (us *service) GetActiveUserList(ctx context.Context) ([]dto.ActiveUser, err
 }
 func (us *service) UpdateRewardQuota(ctx context.Context) error {
 	err := us.userRepo.UpdateRewardQuota(ctx, nil)
-
-	if err == nil {
-		us.sendRewardQuotaRefillEmailToAll(ctx)
-	}
 	return err
 }
 func GetQuarterStartUnixTime() int64 {
@@ -550,47 +547,7 @@ func mapIntranetUserDataToSvcUser(intranetData dto.IntranetUserData) (svcData dt
 	return svcData
 }
 
-func (us *service) sendRewardQuotaRefillEmailToAll(ctx context.Context) {
 
-	reqData := dto.ListUsersReq{
-		Page:     1,
-		PageSize: 1000,
-	}
-	dbUsers, _, err := us.userRepo.ListUsers(ctx, reqData)
-	if err != nil {
-		logger.Errorf(ctx, "error in getting users for email")
-		return
-	}
-
-	usersEmails := make([]string, 0)
-	for _, user := range dbUsers {
-		usersEmails = append(usersEmails, user.Email)
-	}
-
-	logger.Info(ctx, "user emails : ")
-
-	for _, userEmail := range usersEmails {
-		logger.Info(ctx, "email: ", userEmail)
-	}
-
-	templateData := struct {
-		UserName string
-	}{
-		UserName: fmt.Sprint("first name ", " ", "lastname"),
-	}
-
-	mailReq := email.NewMail([]string{"samnitpatil9882@gmail.com"}, []string{"samnitpatil@gmail.com"}, []string{"samirpatil9882@gmail.com"}, "Reward Quota Refilled")
-	err = mailReq.ParseTemplate("./internal/app/email/templates/rewardQuotaReset.html", templateData)
-	if err != nil {
-		logger.Errorf(ctx, "err in creating html file : %v", err)
-		return
-	}
-	err = mailReq.Send("reward quota renewal")
-	if err != nil {
-		logger.Errorf(ctx, "err: %v", err)
-		return
-	}
-}
 func mapDbUserToUserListResp(dbStruct repository.User) (svcData dto.UserDetails) {
 	svcData.Id = dbStruct.Id
 	svcData.FirstName = dbStruct.FirstName

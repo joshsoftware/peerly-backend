@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 )
@@ -12,7 +13,8 @@ type GradesStorer interface {
 }
 
 type Grade struct {
-	Id     int64  `db:"id"`
-	Name   string `db:"name"`
-	Points int64  `db:"points"`
+	Id        int64         `db:"id"`
+	Name      string        `db:"name"`
+	Points    int64         `db:"points"`
+	UpdatedBy sql.NullInt64 `db:"updated_by"`
 }

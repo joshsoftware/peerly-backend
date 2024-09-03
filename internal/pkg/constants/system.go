@@ -61,3 +61,5 @@ const (
 )
 
 const DefaultOrgID = 1
+
+const CheckIconLogo = "/peerly/assets/checkIcon.png"

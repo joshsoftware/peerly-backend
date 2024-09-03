@@ -158,7 +158,7 @@ func (rwrdSvc *service) sendRewardNotificationToSender(ctx context.Context, user
 	}
 
 	msg := notification.Message{
-		Title: "Reward Give Successfully",
+		Title: "Reward Given Successfully",
 		Body:  "You have successfully given a reward! ",
 	}
 
@@ -180,7 +180,7 @@ func (rwrdSvc *service) sendRewardNotificationToReceiver(ctx context.Context, us
 	}
 
 	msg := notification.Message{
-		Title: "Received Reward",
+		Title: "Reward's incoming!",
 		Body:  "You've been awarded a reward! Well done and keep up the JOSH!",
 	}
 
