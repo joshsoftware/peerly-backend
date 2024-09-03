@@ -13,9 +13,9 @@ import (
 
 
 const DAILY_JOB = "DAILY_JOB"
-const SAY_HELLO_DAILY_CRON_JOB_INTERVAL_DAYS = 1
+const DAILY_CRON_JOB_INTERVAL_DAYS = 1
 
-var SayHelloDailyJobTiming = JobTime{
+var DailyJobTiming = JobTime{
 	hours:   0,
 	minutes: 0,
 	seconds: 0,
@@ -46,12 +46,12 @@ func (cron *DailyJob) Schedule() error {
 	var err error
 	cron.job, err = cron.scheduler.NewJob(
 		gocron.DailyJob(
-			SAY_HELLO_DAILY_CRON_JOB_INTERVAL_DAYS,
+			DAILY_CRON_JOB_INTERVAL_DAYS,
 			gocron.NewAtTimes(
 				gocron.NewAtTime(
-					SayHelloDailyJobTiming.hours,
-					SayHelloDailyJobTiming.minutes,
-					SayHelloDailyJobTiming.seconds,
+					DailyJobTiming.hours,
+					DailyJobTiming.minutes,
+					DailyJobTiming.seconds,
 				),
 			),
 		),
@@ -83,9 +83,4 @@ func (cron *DailyJob) Task(ctx context.Context) {
 		}
 		log.Info(fmt.Sprintf("daily cron job err: %v ",err))
 	}
-	// return nil
-	return
 }
-
-
-

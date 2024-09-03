@@ -234,10 +234,6 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 
 	queryExecutor = appr.InitiateQueryExecutor(tx)
 	res := make([]repository.AppreciationResponse, 0)
-
-	logger.Info("sp : filter: ", filter)
-	logger.Info("sp : sql: ", sql)
-	logger.Info("sp : args: ", args)
 	err = sqlx.Select(queryExecutor, &res, sql, args...)
 	if err != nil {
 		logger.Error("failed to execute query appreciation: ", err.Error())
@@ -358,7 +354,6 @@ func (appr *appreciationsStore) UpdateAppreciationTotalRewardsOfYesterday(ctx co
 	todayMidnightUnixMilli := todayMidnight.UnixMilli()
 	yesterdayMidnightUnixMilli := yesterdayMidnight.UnixMilli()
 
-
 	// Build the SQL update query with subquery
 	query := `
 	UPDATE appreciations AS app
@@ -378,7 +373,7 @@ func (appr *appreciationsStore) UpdateAppreciationTotalRewardsOfYesterday(ctx co
     `
 
 	// Execute the query using the query executor
-	_, err = queryExecutor.Exec(query,yesterdayMidnightUnixMilli,todayMidnightUnixMilli)
+	_, err = queryExecutor.Exec(query, yesterdayMidnightUnixMilli, todayMidnightUnixMilli)
 	if err != nil {
 		logger.Error("Error executing SQL query:", err.Error())
 		return false, apperrors.InternalServer

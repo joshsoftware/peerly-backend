@@ -13,7 +13,7 @@ import (
 
 // MailService represents the interface for our mail service.
 type MailService interface {
-	Send(plainTextContent string) error
+	Send() error
 	ParseTemplate(templateFileName string, data interface{}) error
 }
 
@@ -27,7 +27,7 @@ type Mail struct {
 	BCC     []string
 }
 
-func (ms *Mail) Send(plainTextContent string) error {
+func (ms *Mail) Send() error {
 
 	senderEmail := config.ReadEnvString("SENDER_EMAIL")
 	if senderEmail == "" {

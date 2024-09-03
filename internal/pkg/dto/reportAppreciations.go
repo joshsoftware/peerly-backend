@@ -73,6 +73,8 @@ type DeleteAppreciationMail struct {
 	AppreciationTo   string
 	ReportingComment string
 	AppreciationDesc string
+	Date             string
+	Icon             string
 }
 
 type ResolveAppreciationMail struct {
@@ -81,4 +83,5 @@ type ResolveAppreciationMail struct {
 	AppreciationTo   string
 	ReportingComment string
 	AppreciationDesc string
+	Icon             string
 }
