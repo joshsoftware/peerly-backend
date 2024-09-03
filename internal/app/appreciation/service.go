@@ -208,30 +208,41 @@ func (apprSvc *service) UpdateAppreciation(ctx context.Context) (bool, error) {
 }
 
 func sendAppreciationEmail(emailData repository.AppreciationResponse, senderEmail string, receiverEmail string) error {
-	// Plain text content
-	plainTextContent := "Samnit " + "123456"
 
 	templateData := struct {
-		SenderName    string
-		ReceiverName  string
-		Description   string
-		CoreValueName string
+		SenderName               string
+		ReceiverName             string
+		Description              string
+		CoreValueName            string
+		CoreValueBackgroundColor string
 	}{
-		SenderName:    fmt.Sprint(emailData.SenderFirstName, " ", emailData.SenderLastName),
-		ReceiverName:  fmt.Sprint(emailData.ReceiverFirstName, " ", emailData.ReceiverLastName),
-		Description:   emailData.Description,
-		CoreValueName: emailData.CoreValueName,
+		SenderName:               fmt.Sprint(emailData.SenderFirstName, " ", emailData.SenderLastName),
+		ReceiverName:             fmt.Sprint(emailData.ReceiverFirstName, " ", emailData.ReceiverLastName),
+		Description:              emailData.Description,
+		CoreValueName:            emailData.CoreValueName,
+		CoreValueBackgroundColor: utils.GetCoreValueBackgroundColor(emailData.CoreValueName),
 	}
 
 	logger.Info("appreciation sender email: -----------> ", senderEmail)
 	logger.Info("appreciation receiver email: -----------> ", receiverEmail)
-	mailReq := email.NewMail([]string{receiverEmail}, []string{senderEmail}, []string{}, fmt.Sprintf("%s %s appreciated %s %s", emailData.SenderFirstName, emailData.SenderLastName, emailData.ReceiverFirstName, emailData.ReceiverLastName))
-	err := mailReq.ParseTemplate("./internal/app/email/templates/createAppreciation.html", templateData)
+	mailReq := email.NewMail([]string{receiverEmail}, []string{}, []string{}, fmt.Sprintf("Kudos! You've Been Praised by %s %s! 🎉 ", emailData.SenderFirstName, emailData.SenderLastName))
+	err := mailReq.ParseTemplate("./internal/app/email/templates/receiverAppreciation.html", templateData)
 	if err != nil {
 		logger.Errorf("err in creating html file : %v", err)
 		return err
 	}
-	err = mailReq.Send(plainTextContent)
+	err = mailReq.Send()
+	if err != nil {
+		logger.Errorf("err: %v", err)
+		return err
+	}
+	mailReq = email.NewMail([]string{senderEmail}, []string{}, []string{}, fmt.Sprintf("Your appreciation to %s %s has been sent! 🙌", emailData.ReceiverFirstName, emailData.ReceiverLastName))
+	err = mailReq.ParseTemplate("./internal/app/email/templates/senderAppreciation.html", templateData)
+	if err != nil {
+		logger.Errorf("err: %v", err)
+		return err
+	}
+	err = mailReq.Send()
 	if err != nil {
 		logger.Errorf("err: %v", err)
 		return err
@@ -248,7 +259,7 @@ func (apprSvc *service) sendAppreciationNotificationToReceiver(ctx context.Conte
 	}
 
 	msg := notification.Message{
-		Title: "Received Appreciation",
+		Title: "Appreciation incoming!",
 		Body:  fmt.Sprintf("You've been appreciated by %s %s! Well done and keep up the JOSH!", appr.SenderFirstName, appr.SenderLastName),
 	}
 
@@ -298,13 +309,13 @@ func (apprSvc *service) sendEmailForBadgeAllocation(userBadgeDetails []repositor
 			AppreciationPoints: userBadgeDetail.BadgePoints,
 		}
 		logger.Info("badge data: ", templateData)
-		mailReq := email.NewMail([]string{userBadgeDetail.Email}, []string{}, []string{}, "Received an badge")
+		mailReq := email.NewMail([]string{userBadgeDetail.Email}, []string{}, []string{}, fmt.Sprintf("You've Bagged the %s for Crushing %d Points! 🏆", userBadgeDetail.BadgeName.String, userBadgeDetail.BadgePoints))
 		err := mailReq.ParseTemplate("./internal/app/email/templates/badge.html", templateData)
 		if err != nil {
 			logger.Errorf("err in creating html file : %v", err)
 			return
 		}
-		err = mailReq.Send("badge allocation")
+		err = mailReq.Send()
 		if err != nil {
 			logger.Errorf("err: %v", err)
 			return
