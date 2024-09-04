@@ -2,10 +2,12 @@ package cronjob
 
 import (
 	"context"
+	"fmt"
+	"time"
+
 	"github.com/go-co-op/gocron/v2"
 	"github.com/joshsoftware/peerly-backend/internal/app/notification"
 	user "github.com/joshsoftware/peerly-backend/internal/app/users"
-	"time"
 
 	logger "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
 )
@@ -40,7 +42,7 @@ func (cron *MonthlyJob) Schedule() {
 	// Load the location for Asia/Kolkata
 	location, err := time.LoadLocation("Asia/Kolkata")
 	if err != nil {
-		logger.Warn(context.TODO(), "error loading location: %+v", err.Error())
+		logger.Warn(context.TODO(), fmt.Sprintf("error loading location: %+v", err.Error()))
 		return
 	}
 

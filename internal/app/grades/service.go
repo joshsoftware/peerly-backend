@@ -75,7 +75,7 @@ func (gs *service) EditGrade(ctx context.Context, id string, points int64) (err 
 	userId := ctx.Value(constants.UserId)
 	data, ok := userId.(int64)
 	if !ok {
-		logger.Error("Error in typecasting user id")
+		logger.Error(ctx,"Error in typecasting user id")
 		err = apperrors.InternalServerError
 		return
 	}

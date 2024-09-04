@@ -91,5 +91,14 @@ func setRequestId(ctx context.Context) *l.Entry{
 	if !ok {
 		requestID = "N/A"
 	}
-	return Logger.WithField("req_id",requestID)
+
+	userID, ok := ctx.Value(constants.UserId).(string)
+	if !ok {
+		userID = "N/A"
+	}
+	
+	return Logger.WithFields(l.Fields{
+		"req_id":requestID,
+		"user_id": userID,
+	})
 }

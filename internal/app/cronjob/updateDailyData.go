@@ -44,7 +44,7 @@ func (cron *DailyJob) Schedule() {
 	// Load the location for Asia/Kolkata
 	location, err := time.LoadLocation("Asia/Kolkata")
 	if err != nil {
-		logger.Warn(context.TODO(), "error loading location: %+v", err.Error())
+		logger.Warn(context.TODO(), fmt.Sprintf("error loading location: %+v", err.Error()))
 		return
 	}
 
