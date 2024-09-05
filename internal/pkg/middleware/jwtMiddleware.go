@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"slices"
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
@@ -16,7 +15,7 @@ import (
 	logger "github.com/sirupsen/logrus"
 )
 
-func JwtAuthMiddleware(next http.Handler, roles []string) http.Handler {
+func JwtAuthMiddleware(next http.Handler, role int) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		jwtKey := config.JWTKey()
 		authToken := req.Header.Get(constants.AuthorizationHeader)
@@ -51,7 +50,7 @@ func JwtAuthMiddleware(next http.Handler, roles []string) http.Handler {
 		Id := claims.Id
 		Role := claims.Role
 
-		if !slices.Contains(roles, Role) {
+		if Role > role {
 			err := apperrors.RoleUnathorized
 			dto.ErrorRepsonse(rw, err)
 			return

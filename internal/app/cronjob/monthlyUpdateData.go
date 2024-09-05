@@ -3,6 +3,7 @@ package cronjob
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/go-co-op/gocron/v2"
 	"github.com/joshsoftware/peerly-backend/internal/app/notification"
@@ -13,23 +14,24 @@ import (
 )
 
 const MONTHLY_JOB = "MONTHLY_JOB"
+
 var MONTHLY_CRON_JOB_INTERVAL_MONTHS = 1
 
 var MonthlyJobTiming = JobTime{
-	hours:   0,
-	minutes: 0,
+	hours:   23,
+	minutes: 59,
 	seconds: 0,
 }
 
 type MonthlyJob struct {
 	CronJob
-	userService user.Service
+	userService               user.Service
 	organizationConfigService orgSvc.Service
 }
 
-func NewMontlyJob(userSvc user.Service,organizationConfigService orgSvc.Service,scheduler gocron.Scheduler) Job {
+func NewMontlyJob(userSvc user.Service, organizationConfigService orgSvc.Service, scheduler gocron.Scheduler) Job {
 	return &MonthlyJob{
-		userService: userSvc,
+		userService:               userSvc,
 		organizationConfigService: organizationConfigService,
 		CronJob: CronJob{
 			name:      MONTHLY_JOB,
@@ -38,19 +40,41 @@ func NewMontlyJob(userSvc user.Service,organizationConfigService orgSvc.Service,
 	}
 }
 
-func (cron *MonthlyJob) Schedule() error{
+func (cron *MonthlyJob) Schedule() error {
 	var err error
-	err = cron.setMonthlyInterval()
-	if err != nil{
+
+	// Load the location for Asia/Kolkata
+	location, err := time.LoadLocation("Asia/Kolkata")
+	if err != nil {
+		logger.Warn(context.TODO(), "error loading location: %+v", err.Error())
 		return err
 	}
+
+	// Get the current date in Asia/Kolkata
+	currentTimeInKolkata := time.Now().In(location)
+
+	// Create a new time for today's date with MonthlyJobTiming hours, minutes, and seconds
+	jobTimeInKolkata := time.Date(
+		currentTimeInKolkata.Year(),   // Year: current year
+		currentTimeInKolkata.Month(),  // Month: current month
+		currentTimeInKolkata.Day(),    // Day: today's date
+		int(MonthlyJobTiming.hours),   // Hour: from MonthlyJobTiming
+		int(MonthlyJobTiming.minutes), // Minute: from MonthlyJobTiming
+		int(MonthlyJobTiming.seconds), // Second: from MonthlyJobTiming
+		0,                             // Nanosecond: 0
+		location,                      // Timezone: Asia/Kolkata
+	)
+
+	// Convert to UTC
+	jobTimeInUTC := jobTimeInKolkata.UTC()
+
 	cron.job, err = cron.scheduler.NewJob(
 		gocron.MonthlyJob(uint(MONTHLY_CRON_JOB_INTERVAL_MONTHS), gocron.NewDaysOfTheMonth(1),
 			gocron.NewAtTimes(
 				gocron.NewAtTime(
-					MonthlyJobTiming.hours,
-					MonthlyJobTiming.minutes,
-					MonthlyJobTiming.seconds,
+					uint(jobTimeInUTC.Hour()),
+					uint(jobTimeInUTC.Minute()),
+					uint(jobTimeInUTC.Second()),
 				),
 			)),
 		gocron.NewTask(cron.Execute, cron.Task),
@@ -69,14 +93,14 @@ func (cron *MonthlyJob) Task(ctx context.Context) {
 	logger.Info(ctx, "in monthly job task")
 	var err error
 	for i := 0; i < 3; i++ {
-		logger.Info(ctx,"cron job attempt:", i+1)
+		logger.Info(ctx, "cron job attempt:", i+1)
 		err = cron.userService.UpdateRewardQuota(ctx)
-		logger.Error(ctx,"err: ",err)
+		logger.Error(ctx, "err: ", err)
 		if err == nil {
 			sendRewardQuotaRefilledNotificationToAll()
-			return 
+			return
 		}
-		logger.Info(ctx,fmt.Sprintf("cronjob fail error: %v",err.Error()))
+		logger.Info(ctx, fmt.Sprintf("cronjob fail error: %v", err.Error()))
 	}
 }
 
@@ -86,16 +110,6 @@ func sendRewardQuotaRefilledNotificationToAll() {
 		Body:  "Quota for Rewards Renewed. Time to Shower Your Peers with Kudos! 🎁",
 	}
 
-	logger.Debug(context.Background(),"msg:",msg)
+	logger.Debug(context.Background(), "msg:", msg)
 	msg.SendNotificationToTopic("peerly")
-}
-
-func (cron *MonthlyJob) setMonthlyInterval()error{
-	orgInfo, err := cron.organizationConfigService.GetOrganizationConfig(context.Background())
-	if err != nil{
-		return err
-	}
-	MONTHLY_CRON_JOB_INTERVAL_MONTHS = orgInfo.RewardQuotaRenewalFrequency;
-	logger.Info(context.Background(),fmt.Sprintf("MONTHLY_CRON_JOB_INTERVAL_MONTHS = %d",MONTHLY_CRON_JOB_INTERVAL_MONTHS))
-	return nil
 }

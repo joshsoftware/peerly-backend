@@ -231,14 +231,20 @@ func (rs *service) DeleteAppreciation(ctx context.Context, reqData dto.Moderatio
 		return
 	}
 
+	seconds := appreciation.CreatedAt / 1000
+	nanoseconds := (appreciation.CreatedAt % 1000) * 1e6
+
+	tm := time.Unix(seconds, nanoseconds)
+	formattedDate := tm.Format("02/01/2006") // date format: dd/mm/yyyy
+
 	templateData := dto.DeleteAppreciationMail{
-		ModeratorComment:   reqData.ModeratorComment,
-		AppreciationBy:     sender.FirstName + " " + sender.LastName,
-		AppreciationTo:     receiver.FirstName + " " + receiver.LastName,
-		ReportingComment:   appreciation.ReportingComment,
-		AppreciationDesc:   appreciation.AppreciationDesc,
-		Date:               appreciation.CreatedAt,
-		ReportIconImageURL: fmt.Sprint(config.PeerlyBaseUrl() + constants.CheckIconImagePath),
+		ModeratorComment: reqData.ModeratorComment,
+		AppreciationBy:   sender.FirstName + " " + sender.LastName,
+		AppreciationTo:   receiver.FirstName + " " + receiver.LastName,
+		ReportingComment: appreciation.ReportingComment,
+		AppreciationDesc: appreciation.AppreciationDesc,
+		Date:             formattedDate,
+		Icon:             config.PeerlyBaseUrl() + constants.CheckIconLogo,
 	}
 
 	fmt.Println("Reporter mail: ", reporter.Email)
@@ -302,7 +308,7 @@ func sendReportEmail(senderEmail string, senderFirstName string, senderLastName 
 		ReportingComment:         reportingComment,
 		AppreciationSenderName:   fmt.Sprint(apprSenderFirstName, " ", apprSenderLastName),
 		AppreciationReceiverName: fmt.Sprint(apprReceiverFirstName, " ", apprReceiverLastName),
-		ReportIconImageURL:       fmt.Sprint(config.PeerlyBaseUrl() + constants.CheckIconImagePath),
+		ReportIconImageURL:       fmt.Sprint(config.PeerlyBaseUrl() + constants.CheckIconLogo),
 	}
 
 	logger.Info(ctx, "report sender email: ---------> ", senderEmail)
@@ -375,6 +381,7 @@ func (rs *service) ResolveAppreciation(ctx context.Context, reqData dto.Moderati
 		AppreciationTo:   receiver.FirstName + " " + receiver.LastName,
 		ReportingComment: appreciation.ReportingComment,
 		AppreciationDesc: appreciation.AppreciationDesc,
+		Icon:             config.PeerlyBaseUrl() + constants.CheckIconLogo,
 	}
 
 	fmt.Println("Reporter mail: ", reporter.Email)

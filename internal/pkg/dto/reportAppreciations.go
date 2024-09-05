@@ -68,13 +68,13 @@ type ModerationReq struct {
 }
 
 type DeleteAppreciationMail struct {
-	ModeratorComment   string
-	AppreciationBy     string
-	AppreciationTo     string
-	ReportingComment   string
-	AppreciationDesc   string
-	Date               int64
-	ReportIconImageURL string
+	ModeratorComment string
+	AppreciationBy   string
+	AppreciationTo   string
+	ReportingComment string
+	AppreciationDesc string
+	Date             string
+	Icon             string
 }
 
 type ResolveAppreciationMail struct {
@@ -83,4 +83,5 @@ type ResolveAppreciationMail struct {
 	AppreciationTo   string
 	ReportingComment string
 	AppreciationDesc string
+	Icon             string
 }

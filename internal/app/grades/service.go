@@ -2,7 +2,6 @@ package grades
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
@@ -39,11 +38,11 @@ func (gs *service) ListGrades(ctx context.Context) (resp []dto.Grade, err error)
 	}
 
 	for _, item := range dbResp {
-		fmt.Println("updated by: ", item.UpdatedBy)
+		// If grade is updated by any admin user, fetch the user details
 		if item.UpdatedBy.Valid {
 			reqData := dto.GetUserByIdReq{
 				UserId:          item.UpdatedBy.Int64,
-				QuaterTimeStamp: GetQuarterStartUnixTime(),
+				QuaterTimeStamp: utils.GetQuarterStartUnixTime(),
 			}
 			user, err := gs.userRepo.GetUserById(ctx, reqData)
 			if err != nil {
@@ -77,7 +76,7 @@ func (gs *service) EditGrade(ctx context.Context, id string, points int64) (err 
 	userId := ctx.Value(constants.UserId)
 	data, ok := userId.(int64)
 	if !ok {
-		logger.Error(ctx,"Error in typecasting user id")
+		logger.Error(ctx, "Error in typecasting user id")
 		err = apperrors.InternalServerError
 		return
 	}

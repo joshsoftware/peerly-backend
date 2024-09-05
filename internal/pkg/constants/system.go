@@ -1,6 +1,5 @@
 package constants
 
-
 type UserIdCtxKey string
 type RoleCtxKey string
 type RequestIDCtxKey string
@@ -20,6 +19,11 @@ const (
 	POST                   = "POST"
 	GET                    = "GET"
 	DeveloperKey           = "DEVELOPER_KEY"
+)
+
+const (
+	Admin int = iota
+	User
 )
 
 // User required constants
@@ -69,3 +73,4 @@ const (
 	OpenEnvelopeIconImagePath       = "/peerly/assets/openEnvelopeIcon.png"
 	RewardQuotaRenewalIconImagePath = "/peerly/assets/rewardQuotaRenewal.png"
 )
+const CheckIconLogo = "/peerly/assets/checkIcon.png"

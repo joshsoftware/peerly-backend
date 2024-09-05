@@ -8,6 +8,7 @@ import (
 	"github.com/go-co-op/gocron/v2"
 	logger "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
 )
+
 type Job interface {
 	// Schedules the cron job
 	Schedule() error
@@ -30,9 +31,9 @@ func (cron *CronJob) Execute(task func(context.Context)) {
 
 	ctx := context.Background()
 	startTime := time.Now()
-	logger.Info(ctx,fmt.Sprintf("cron job Started at %s", startTime.Format("2006-01-02 15:04:05")))
+	logger.Info(ctx, fmt.Sprintf("cron job Started at %s", startTime.Format("2006-01-02 15:04:05")))
 	defer func() {
-		logger.Info(ctx,fmt.Sprintf("cron job done %s, took: %v", cron.name, time.Since(startTime)))
+		logger.Info(ctx, fmt.Sprintf("cron job done %s, took: %v", cron.name, time.Since(startTime)))
 	}()
 
 	// Channel to check if signal task is completed

@@ -85,18 +85,25 @@ func GetSelfParam(req *http.Request) bool {
 }
 func GetCoreValueBackgroundColor(corevalueName string) string {
 
-	if (corevalueName == "Trust"){
+	if corevalueName == "Trust" {
 		return "#FFBEBE"
-	}else if (corevalueName == "Technical Excellence"){
+	} else if corevalueName == "Technical Excellence" {
 		return "#E0FA79"
-	}else if (corevalueName == "Integrity & Ethics"){
+	} else if corevalueName == "Integrity & Ethics" {
 		return "#A4F1FF"
-	}else if (corevalueName == "Customer Focus"){
+	} else if corevalueName == "Customer Focus" {
 		return "#93F7DE"
-	}else if (corevalueName == "Respect"){
+	} else if corevalueName == "Respect" {
 		return "#FFE2B7"
-	}else if (corevalueName == "Employee Focus"){
+	} else if corevalueName == "Employee Focus" {
 		return "#A2DBFF"
 	}
 	return "#E5EDDC"
+}
+
+func GetQuarterStartUnixTime() int64 {
+	// Example function to get the Unix timestamp of the start of the quarter
+	now := time.Now()
+	quarterStart := time.Date(now.Year(), (now.Month()-1)/3*3+1, 1, 0, 0, 0, 0, time.UTC)
+	return quarterStart.Unix() * 1000 // convert to milliseconds
 }

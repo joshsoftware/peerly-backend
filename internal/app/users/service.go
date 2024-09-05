@@ -13,6 +13,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/xuri/excelize/v2"
+
 	// "github.com/joshsoftware/peerly-backend/internal/app/email"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/config"
@@ -39,12 +40,10 @@ type Service interface {
 	GetActiveUserList(ctx context.Context) ([]dto.ActiveUser, error)
 	GetTop10Users(ctx context.Context) (users []dto.Top10User, err error)
 	AdminLogin(ctx context.Context, loginReq dto.AdminLoginReq) (resp dto.LoginUserResp, err error)
-	// sendRewardQuotaRefillEmailToAll(ctx context.Context)
 	NotificationByAdmin(ctx context.Context, notificationReq dto.AdminNotificationReq) (err error)
 	AllAppreciationReport(ctx context.Context, appreciations []dto.AppreciationResponse) (tempFileName string, err error)
 	ReportedAppreciationReport(ctx context.Context, appreciations []dto.ReportedAppreciation) (tempFileName string, err error)
 }
-
 
 func NewService(userRepo repository.UserStorer) Service {
 	return &service{
@@ -182,7 +181,7 @@ func (us *service) LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.L
 
 	claims := &dto.Claims{
 		Id:   user.Id,
-		Role: constants.UserRole,
+		Role: constants.User,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},
@@ -376,7 +375,7 @@ func (us *service) AdminLogin(ctx context.Context, loginReq dto.AdminLoginReq) (
 
 	claims := &dto.Claims{
 		Id:   user.Id,
-		Role: constants.AdminRole,
+		Role: constants.Admin,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},
@@ -571,7 +570,6 @@ func mapIntranetUserDataToSvcUser(intranetData dto.IntranetUserData) (svcData dt
 // 	return
 // }
 
-
 func mapDbUserToUserListResp(dbStruct repository.User) (svcData dto.UserDetails) {
 	svcData.Id = dbStruct.Id
 	svcData.FirstName = dbStruct.FirstName
@@ -623,7 +621,8 @@ func (us *service) AllAppreciationReport(ctx context.Context, appreciations []dt
 	// Set header
 	headers := []string{"Core value", "Core value description", "Appreciation description", "Sender first name", "Sender last name", "Sender designation", "Receiver first name", "Receiver last name", "Receiver designation", "Total rewards", "Total reward points"}
 	for colIndex, header := range headers {
-		cell := fmt.Sprintf("%s1", string('A'+colIndex))
+
+		cell := fmt.Sprintf("%c1", 'A'+colIndex)
 		f.SetCellValue(sheetName, cell, header)
 	}
 
@@ -672,7 +671,7 @@ func (us *service) ReportedAppreciationReport(ctx context.Context, appreciations
 	// Set header
 	headers := []string{"Core value", "Core value description", "Appreciation description", "Sender first name", "Sender last name", "Sender designation", "Receiver first name", "Receiver last name", "Receiver designation", "Reporting Comment", "Reported by first name", "Reported by last name", "Reported at", "Moderator comment", "Moderator first name", "Moderator last name", "Status"}
 	for colIndex, header := range headers {
-		cell := fmt.Sprintf("%s1", string('A'+colIndex))
+		cell := fmt.Sprintf("%c1", 'A'+colIndex)
 		f.SetCellValue(sheetName, cell, header)
 	}
 

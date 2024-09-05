@@ -2,7 +2,6 @@ package badges
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
@@ -34,8 +33,6 @@ func (bs *service) ListBadges(ctx context.Context) ([]dto.Badge, error) {
 
 	var resp []dto.Badge
 
-	fmt.Println("In list badges")
-
 	dbResp, err := bs.badgesRepo.ListBadges(ctx)
 	if err != nil {
 		logger.Error(ctx, err.Error())
@@ -44,11 +41,11 @@ func (bs *service) ListBadges(ctx context.Context) ([]dto.Badge, error) {
 	}
 
 	for _, item := range dbResp {
-		fmt.Println("updated by: ", item.UpdatedBy)
+		// If badge is updated by any admin user, fetch the user details
 		if item.UpdatedBy.Valid {
 			reqData := dto.GetUserByIdReq{
 				UserId:          item.UpdatedBy.Int64,
-				QuaterTimeStamp: GetQuarterStartUnixTime(),
+				QuaterTimeStamp: utils.GetQuarterStartUnixTime(),
 			}
 			user, err := bs.userRepo.GetUserById(ctx, reqData)
 			if err != nil {
@@ -83,7 +80,7 @@ func (gs *service) EditBadge(ctx context.Context, id string, rewardPoints int64)
 	userId := ctx.Value(constants.UserId)
 	data, ok := userId.(int64)
 	if !ok {
-		logger.Error(context.Background(),"Error in typecasting user id")
+		logger.Error(context.Background(), "Error in typecasting user id")
 		err = apperrors.InternalServerError
 		return
 	}
