@@ -127,12 +127,12 @@ func startApp() (err error) {
 		return err
 	}
 
-	cronjob.InitializeJobs(services.AppreciationService, services.UserService, scheduler)
-	defer func() {
-        if err := scheduler.Shutdown(); err != nil {
-            log.Error(ctx, "Scheduler shutdown failed: %s", err.Error())
-        }
-    }()
+	err = cronjob.InitializeJobs(services.AppreciationService, services.UserService,services.OrganizationConfigService, scheduler)
+	if err != nil {
+		logger.WithField("err", err.Error()).Error("CronJob Initialize failed")
+		return
+	}
+	defer scheduler.Shutdown()
 	//initialize router
 	router := api.NewRouter(services)
 

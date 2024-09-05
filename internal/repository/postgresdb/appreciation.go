@@ -352,18 +352,20 @@ func (appr *appreciationsStore) IsUserPresent(ctx context.Context, tx repository
 	return count > 0, nil
 }
 
-func (appr *appreciationsStore) UpdateAppreciationTotalRewardsOfYesterday(ctx context.Context, tx repository.Transaction) (bool, error) {
+func (appr *appreciationsStore) UpdateAppreciationTotalRewardsOfYesterday(ctx context.Context, tx repository.Transaction, orgTimezone string) (bool, error) {
 	logger.Info(ctx,"appr: UpdateAppreciationTotalRewardsOfYesterday")
+
 	// Initialize query executor
 	queryExecutor := appr.InitiateQueryExecutor(tx)
 
 	// Load the location for Asia/Kolkata
-	location, err := time.LoadLocation("Asia/Kolkata")
+	location, err := time.LoadLocation(orgTimezone)
 	if err != nil {
 		fmt.Printf("error loading location: %v\n", err)
 		return false, apperrors.InternalServerError
 	}
-	// Get today's date in Asia/Kolkata at 00:00:00
+
+	// Get today's date  00:00:00
 	now := time.Now().In(location)
 	todayMidnight := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, location)
 
@@ -376,9 +378,9 @@ func (appr *appreciationsStore) UpdateAppreciationTotalRewardsOfYesterday(ctx co
 
 	// Build the SQL update query with subquery
 	query := `
-UPDATE appreciations AS app
-SET total_reward_points = total_reward_points + agg.total_points
-FROM (
+	UPDATE appreciations AS app
+	SET total_reward_points = total_reward_points + agg.total_points
+	FROM (
     SELECT appreciation_id, SUM(r.point * g.points) AS total_points
     FROM rewards r
     JOIN appreciations a ON r.appreciation_id = a.id
@@ -388,8 +390,8 @@ FROM (
       AND r.created_at >= $1
      AND r.created_at < $2
     GROUP BY appreciation_id
-) AS agg
-WHERE app.id = agg.appreciation_id;
+	) AS agg
+	WHERE app.id = agg.appreciation_id;
     `
 
 	logger.Debug(ctx," query: ",query)
