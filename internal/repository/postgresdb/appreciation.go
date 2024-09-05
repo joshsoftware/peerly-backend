@@ -370,12 +370,13 @@ func (appr *appreciationsStore) UpdateAppreciationTotalRewardsOfYesterday(ctx co
 	queryExecutor := appr.InitiateQueryExecutor(tx)
 
 	// Load the location for Asia/Kolkata
-	location, err := time.LoadLocation("Asia/Kolkata")
+	location, err := time.LoadLocation(orgTimezone)
 	if err != nil {
 		fmt.Printf("error loading location: %v\n", err)
 		return false, apperrors.InternalServerError
 	}
-	// Get today's date in Asia/Kolkata at 00:00:00
+
+	// Get today's date  00:00:00
 	now := time.Now().In(location)
 	todayMidnight := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, location)
 
