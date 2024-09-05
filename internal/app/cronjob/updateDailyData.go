@@ -15,8 +15,8 @@ const DAILY_JOB = "DAILY_JOB"
 const DAILY_CRON_JOB_INTERVAL_DAYS = 1
 
 var DailyJobTiming = JobTime{
-	hours:   0,
-	minutes: 0,
+	hours:   10,
+	minutes: 55,
 	seconds: 0,
 }
 
