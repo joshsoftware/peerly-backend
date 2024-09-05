@@ -10,7 +10,7 @@ import (
 
 type Job interface {
 	// Schedules the cron job
-	Schedule()
+	Schedule() error
 }
 
 type CronJob struct {
