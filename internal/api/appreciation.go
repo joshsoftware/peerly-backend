@@ -65,8 +65,8 @@ func getAppreciationByIDHandler(appreciationSvc appreciation.Service) http.Handl
 		}
 
 		log.Debug(ctx, "getAppreciationByIDHandler: response: ", resp)
-		log.Info(ctx, "Appreciation data fetch successfully")
-		dto.SuccessRepsonse(rw, http.StatusOK, "Appreciation data fetch successfully", resp)
+		log.Info(ctx, "Appreciation data fetched successfully")
+		dto.SuccessRepsonse(rw, http.StatusOK, "Appreciation data fetched successfully", resp)
 	})
 }
 
@@ -92,8 +92,8 @@ func listAppreciationsHandler(appreciationSvc appreciation.Service) http.Handler
 			return
 		}
 		log.Debug(ctx, "listAppreciationsHandler: response: ", appreciations)
-		log.Info(ctx, "Appreciations data fetch successfully")
-		dto.SuccessRepsonse(rw, http.StatusOK, "Appreciations data fetch successfully ", appreciations)
+		log.Info(ctx, "Appreciations data fetched successfully")
+		dto.SuccessRepsonse(rw, http.StatusOK, "Appreciations data fetched successfully ", appreciations)
 	})
 }
 
