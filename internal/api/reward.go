@@ -45,8 +45,8 @@ func giveRewardHandler(rewardSvc reward.Service) http.HandlerFunc {
 			return
 		}
 
-		log.Debug(req.Context(), "giveRewardHandler: resp: ", resp)
-		log.Info(req.Context(), "Reward given successfully")
+		log.Debug(ctx, "giveRewardHandler: resp: ", resp)
+		log.Info(ctx, "Reward given successfully")
 		dto.SuccessRepsonse(rw, http.StatusCreated, "Reward given successfully", resp)
 	})
 }

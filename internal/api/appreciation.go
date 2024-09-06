@@ -28,12 +28,12 @@ func createAppreciationHandler(appreciationSvc appreciation.Service) http.Handle
 		log.Debug(ctx, "createAppreciationHandler: request: ", req)
 		err = appreciation.ValidateCreateAppreciation()
 		if err != nil {
-			log.Errorf(req.Context(), "Error while validating request data : %v", err)
+			log.Errorf(ctx, "Error while validating request data : %v", err)
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
 
-		resp, err := appreciationSvc.CreateAppreciation(req.Context(), appreciation)
+		resp, err := appreciationSvc.CreateAppreciation(ctx, appreciation)
 		if err != nil {
 			log.Errorf(ctx, "createAppreciationHandler: err : %v", err)
 			dto.ErrorRepsonse(rw, err)
@@ -57,7 +57,7 @@ func getAppreciationByIDHandler(appreciationSvc appreciation.Service) http.Handl
 		}
 
 		log.Debug(ctx, "getAppreciationByIDHandler: request: ", req)
-		resp, err := appreciationSvc.GetAppreciationById(req.Context(), int32(apprID))
+		resp, err := appreciationSvc.GetAppreciationById(ctx, int32(apprID))
 		if err != nil {
 			log.Errorf(ctx, "getAppreciationByIDHandler: err : %v", err)
 			dto.ErrorRepsonse(rw, err)
@@ -85,9 +85,9 @@ func listAppreciationsHandler(appreciationSvc appreciation.Service) http.Handler
 		filter.Page = page
 		filter.Self = utils.GetSelfParam(req)
 		log.Debug(ctx, "listAppreciationsHandler: request: ", req)
-		appreciations, err := appreciationSvc.ListAppreciations(req.Context(), filter)
+		appreciations, err := appreciationSvc.ListAppreciations(ctx, filter)
 		if err != nil {
-			log.Errorf(req.Context(), "listAppreciationsHandler: err : %v", err)
+			log.Errorf(ctx, "listAppreciationsHandler: err : %v", err)
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
@@ -109,7 +109,7 @@ func deleteAppreciationHandler(appreciationSvc appreciation.Service) http.Handle
 		}
 
 		log.Info(ctx, "deleteAppreciationHandler: request: ", req)
-		err = appreciationSvc.DeleteAppreciation(req.Context(), int32(apprId))
+		err = appreciationSvc.DeleteAppreciation(ctx, int32(apprId))
 		if err != nil {
 			log.Errorf(ctx, "deleteAppreciationHandler: err : %v", err)
 			dto.ErrorRepsonse(rw, err)

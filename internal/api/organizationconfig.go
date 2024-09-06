@@ -14,7 +14,7 @@ func getOrganizationConfigHandler(orgSvc organizationConfig.Service) http.Handle
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		ctx := req.Context()
 		logger.Debug(ctx, "getOrganizationConfigHandler: req: ", req)
-		orgConfig, err := orgSvc.GetOrganizationConfig(req.Context())
+		orgConfig, err := orgSvc.GetOrganizationConfig(ctx)
 		if err != nil {
 			logger.Errorf(ctx, "Error while fetching organization: %v", err)
 			dto.ErrorRepsonse(rw, err)
@@ -45,7 +45,7 @@ func createOrganizationConfigHandler(orgSvc organizationConfig.Service) http.Han
 			return
 		}
 
-		createdOrganizationConfig, err := orgSvc.CreateOrganizationConfig(req.Context(), orgConfig)
+		createdOrganizationConfig, err := orgSvc.CreateOrganizationConfig(ctx, orgConfig)
 		if err != nil {
 			logger.Errorf(ctx, "Error in creating organization config: %v", err)
 			dto.ErrorRepsonse(rw, err)
@@ -77,7 +77,7 @@ func updateOrganizationConfigHandler(orgSvc organizationConfig.Service) http.Han
 			return
 		}
 
-		updatedOrganization, err := orgSvc.UpdateOrganizationConfig(req.Context(), organizationConfig)
+		updatedOrganization, err := orgSvc.UpdateOrganizationConfig(ctx, organizationConfig)
 		if err != nil {
 			logger.Errorf(ctx, "Error while updating organization: %v", err)
 			dto.ErrorRepsonse(rw, err)

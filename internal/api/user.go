@@ -67,10 +67,11 @@ func loginUser(userSvc user.Service) http.HandlerFunc {
 
 func loginAdmin(userSvc user.Service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
+		ctx := req.Context()
 		var reqData dto.AdminLoginReq
 		err := json.NewDecoder(req.Body).Decode(&reqData)
 		if err != nil {
-			logger.Errorf(req.Context(), "error while decoding request data. err: %v", err)
+			logger.Errorf(ctx, "error while decoding request data. err: %v", err)
 			err = apperrors.JSONParsingErrorReq
 			dto.ErrorRepsonse(rw, err)
 			return
@@ -228,52 +229,56 @@ func listUsersHandler(userSvc user.Service) http.HandlerFunc {
 func getActiveUserListHandler(userSvc user.Service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
 
-		log.Info(req.Context(), "getActiveUserListHandler: req: ", req)
+		ctx := req.Context()
+		log.Info(ctx, "getActiveUserListHandler: req: ", req)
 		resp, err := userSvc.GetActiveUserList(req.Context())
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
-		log.Debug(req.Context(), "getActiveUserListHandler: resp: ", resp)
-		log.Info(req.Context(),"Active Users list")
+		log.Debug(ctx, "getActiveUserListHandler: resp: ", resp)
+		log.Info(ctx,"Active Users list")
 		dto.SuccessRepsonse(rw, http.StatusOK, "Active Users list", resp)
 	}
 }
 func getUserByIdHandler(userSvc user.Service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
 
-		log.Info(req.Context(),"getUserByIdHandler: request: ",req)
-		resp, err := userSvc.GetUserById(req.Context())
+		ctx := req.Context()
+		log.Info(ctx,"getUserByIdHandler: request: ",req)
+		resp, err := userSvc.GetUserById(ctx)
 		if err != nil {
-			log.Errorf(req.Context(),"getUserByIdHandler: err: %v",err)
+			log.Errorf(ctx,"getUserByIdHandler: err: %v",err)
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
 
-		log.Info(req.Context(),)
+		log.Info(ctx,)
 		dto.SuccessRepsonse(rw, 200, "User fetched successfully", resp)
 	}
 }
 
 func getTop10UserHandler(userSvc user.Service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
-		log.Info(req.Context(),"getTop10UserHandler: request: ",req)
+		ctx := req.Context()
+		log.Info(ctx,"getTop10UserHandler: request: ",req)
 		resp, err := userSvc.GetTop10Users(req.Context())
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
-		log.Info(req.Context(),"Top 10 users fetched successfully")
+		log.Info(ctx,"Top 10 users fetched successfully")
 		dto.SuccessRepsonse(rw, 200, "Top 10 users fetched successfully", resp)
 	}
 }
 
 func adminNotificationHandler(userSvc user.Service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
+		ctx := req.Context()
 		var notificationReq dto.AdminNotificationReq
 		err := json.NewDecoder(req.Body).Decode(&notificationReq)
 		if err != nil {
-			logger.Errorf(req.Context(), "error while decoding request data. err: %s", err.Error())
+			logger.Errorf(ctx, "error while decoding request data. err: %s", err.Error())
 			err = apperrors.JSONParsingErrorReq
 			dto.ErrorRepsonse(rw, err)
 			return

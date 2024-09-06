@@ -14,12 +14,12 @@ import (
 
 
 func loggerHandler(rw http.ResponseWriter, req *http.Request) {
-
-	log.Debug(req.Context(),"loggerHandler: req: ",req)
+	ctx := req.Context()
+	log.Debug(ctx,"loggerHandler: req: ",req)
 	var changeLogRequest dto.ChangeLogLevelRequest
 	err := json.NewDecoder(req.Body).Decode(&changeLogRequest)
 	if err != nil {
-		log.Errorf(req.Context(),"Error while decoding request data : %v", err)
+		log.Errorf(ctx,"Error while decoding request data : %v", err)
 		err = apperrors.JSONParsingErrorReq
 		dto.ErrorRepsonse(rw, err)
 		return
@@ -30,7 +30,7 @@ func loggerHandler(rw http.ResponseWriter, req *http.Request) {
 		return 
 	}
 
-	log.Info(req.Context(), "loggerHandler")
+	log.Info(ctx, "loggerHandler")
 	if changeLogRequest.LogLevel == "DebugLevel" {
 		log.Logger.SetLevel(logrus.DebugLevel)
 	}else if changeLogRequest.LogLevel == "InfoLevel" {
