@@ -7,10 +7,8 @@ import (
 	"github.com/go-co-op/gocron/v2"
 	apprSvc "github.com/joshsoftware/peerly-backend/internal/app/appreciation"
 	orgSvc "github.com/joshsoftware/peerly-backend/internal/app/organizationConfig"
-	log "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
-	logger "github.com/sirupsen/logrus"
+	logger "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
 )
-
 
 const DAILY_JOB = "DAILY_JOB"
 const DAILY_CRON_JOB_INTERVAL_DAYS = 1
@@ -23,7 +21,7 @@ var DailyJobTiming = JobTime{
 
 type DailyJob struct {
 	CronJob
-	appreciationService apprSvc.Service
+	appreciationService       apprSvc.Service
 	organizationConfigService orgSvc.Service
 }
 
@@ -33,7 +31,7 @@ func NewDailyJob(
 	scheduler gocron.Scheduler,
 ) Job {
 	return &DailyJob{
-		appreciationService: appreciationService,
+		appreciationService:       appreciationService,
 		organizationConfigService: organizationConfigService,
 		CronJob: CronJob{
 			name:      DAILY_JOB,
@@ -70,16 +68,16 @@ func (cron *DailyJob) Task(ctx context.Context) {
 	logger.Info(ctx, "in daily job task")
 
 	orgInfo, err := cron.organizationConfigService.GetOrganizationConfig(ctx)
-	if err != nil{
-		log.Info(ctx,fmt.Sprintf("daily cron job err: %v ",err))
-		return 
+	if err != nil {
+		logger.Info(ctx, fmt.Sprintf("daily cron job err: %v ", err))
+		return
 	}
-	for  i:=0;i<3;i++{
-		logger.Info("cron job attempt:",i+1)
-		isSuccess,err := cron.appreciationService.UpdateAppreciation(ctx,orgInfo.Timezone)
-		if err==nil && isSuccess{
+	for i := 0; i < 3; i++ {
+		logger.Info(ctx, "cron job attempt:", i+1)
+		isSuccess, err := cron.appreciationService.UpdateAppreciation(ctx, orgInfo.Timezone)
+		if err == nil && isSuccess {
 			break
 		}
-		log.Info(ctx,fmt.Sprintf("daily cron job err: %v ",err))
+		logger.Info(ctx, fmt.Sprintf("daily cron job err: %v ", err))
 	}
 }
