@@ -14,6 +14,7 @@ import (
 
 func reportAppreciationHandler(reportAppreciationSvc reportappreciations.Service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		ctx := req.Context()
 		vars := mux.Vars(req)
 		if vars["id"] == "" {
 			err := apperrors.InvalidId
@@ -23,7 +24,7 @@ func reportAppreciationHandler(reportAppreciationSvc reportappreciations.Service
 
 		appreciationId, err := strconv.ParseInt(vars["id"], 10, 64)
 		if err != nil {
-			logger.Errorf(req.Context(), "error while parsing appreciation id from url, err: %v", err)
+			logger.Errorf(ctx, "error while parsing appreciation id from url, err: %v", err)
 			err = apperrors.InternalServerError
 			return
 
@@ -31,13 +32,13 @@ func reportAppreciationHandler(reportAppreciationSvc reportappreciations.Service
 		var reqData dto.ReportAppreciationReq
 		err = json.NewDecoder(req.Body).Decode(&reqData)
 		if err != nil {
-			logger.Errorf(req.Context(), "err while decoding request data, err: %v", err)
+			logger.Errorf(ctx, "err while decoding request data, err: %v", err)
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
 		reqData.AppreciationId = appreciationId
 
-		resp, err := reportAppreciationSvc.ReportAppreciation(req.Context(), reqData)
+		resp, err := reportAppreciationSvc.ReportAppreciation(ctx, reqData)
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)
 			return
@@ -60,6 +61,7 @@ func listReportedAppreciations(reportAppreciationSvc reportappreciations.Service
 
 func moderateAppreciation(reportAppreciationSvc reportappreciations.Service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		ctx := req.Context()
 		vars := mux.Vars(req)
 		if vars["id"] == "" {
 			err := apperrors.InvalidId
@@ -68,14 +70,14 @@ func moderateAppreciation(reportAppreciationSvc reportappreciations.Service) htt
 		}
 		resolutionId, err := strconv.ParseInt(vars["id"], 10, 64)
 		if err != nil {
-			logger.Errorf(req.Context(), "error while parsing id, err: %s", err.Error())
+			logger.Errorf(ctx, "error while parsing id, err: %s", err.Error())
 			err = apperrors.InternalServerError
 			return
 		}
 		var reqData dto.ModerationReq
 		err = json.NewDecoder(req.Body).Decode(&reqData)
 		if err != nil {
-			logger.Errorf(req.Context(), "error while decoding request data, err:%s", err.Error())
+			logger.Errorf(ctx, "error while decoding request data, err:%s", err.Error())
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
@@ -91,6 +93,7 @@ func moderateAppreciation(reportAppreciationSvc reportappreciations.Service) htt
 
 func resolveAppreciation(reportAppreciationSvc reportappreciations.Service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		ctx := req.Context()
 		vars := mux.Vars(req)
 		if vars["id"] == "" {
 			err := apperrors.InvalidId
@@ -99,14 +102,14 @@ func resolveAppreciation(reportAppreciationSvc reportappreciations.Service) http
 		}
 		resolutionId, err := strconv.ParseInt(vars["id"], 10, 64)
 		if err != nil {
-			logger.Errorf(req.Context(), "error while parsing id, err: %s", err.Error())
+			logger.Errorf(ctx, "error while parsing id, err: %s", err.Error())
 			err = apperrors.InternalServerError
 			return
 		}
 		var reqData dto.ModerationReq
 		err = json.NewDecoder(req.Body).Decode(&reqData)
 		if err != nil {
-			logger.Errorf(req.Context(), "error while decoding request data, err:%s", err.Error())
+			logger.Errorf(ctx, "error while decoding request data, err:%s", err.Error())
 			dto.ErrorRepsonse(rw, err)
 			return
 		}

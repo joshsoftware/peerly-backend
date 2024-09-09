@@ -488,6 +488,7 @@ func (us *service) GetUserById(ctx context.Context) (user dto.GetUserByIdResp, e
 func (us *service) GetActiveUserList(ctx context.Context) ([]dto.ActiveUser, error) {
 	activeUserDb, err := us.userRepo.GetActiveUserList(ctx, nil)
 	if err != nil {
+		logger.Errorf(ctx, "usrSvc: GetActiveUserList: err: %v", err)
 		return []dto.ActiveUser{}, err
 	}
 	res := make([]dto.ActiveUser, 0)
@@ -499,10 +500,6 @@ func (us *service) GetActiveUserList(ctx context.Context) ([]dto.ActiveUser, err
 }
 func (us *service) UpdateRewardQuota(ctx context.Context) error {
 	err := us.userRepo.UpdateRewardQuota(ctx, nil)
-
-	if err == nil {
-		// us.sendRewardQuotaRefillEmailToAll(ctx)
-	}
 	return err
 }
 func GetQuarterStartUnixTime() int64 {
@@ -549,26 +546,6 @@ func mapIntranetUserDataToSvcUser(intranetData dto.IntranetUserData) (svcData dt
 	svcData.Designation = intranetData.EmpolyeeDetail.Designation.Name
 	return svcData
 }
-
-// func (us *service) sendRewardQuotaRefillEmailToAll(ctx context.Context) {
-
-// 	reqData := dto.ListUsersReq{
-// 		Page:     1,
-// 		PageSize: 1000,
-// 	}
-// 	dbUsers, _, err := us.userRepo.ListUsers(ctx, reqData)
-// 	if err != nil {
-// 		logger.Errorf("error in getting users for email")
-// 		return
-// 	}
-
-// 	usersEmails := make([]string, 0)
-// 	for _, user := range dbUsers {
-// 		usersEmails = append(usersEmails, user.Email)
-// 	}
-
-// 	return
-// }
 
 func mapDbUserToUserListResp(dbStruct repository.User) (svcData dto.UserDetails) {
 	svcData.Id = dbStruct.Id

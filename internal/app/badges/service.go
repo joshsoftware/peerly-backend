@@ -80,7 +80,7 @@ func (gs *service) EditBadge(ctx context.Context, id string, rewardPoints int64)
 	userId := ctx.Value(constants.UserId)
 	data, ok := userId.(int64)
 	if !ok {
-		logger.Error(context.Background(), "Error in typecasting user id")
+		logger.Error(ctx, "Error in typecasting user id")
 		err = apperrors.InternalServerError
 		return
 	}

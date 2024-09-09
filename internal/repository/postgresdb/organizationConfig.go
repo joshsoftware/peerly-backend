@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -29,8 +30,7 @@ func NewOrganizationConfigRepo(db *sqlx.DB) repository.OrganizationConfigStorer 
 
 func (org *OrganizationConfigStore) CreateOrganizationConfig(ctx context.Context,tx repository.Transaction, orgConfigInfo dto.OrganizationConfig) (createdOrganization repository.OrganizationConfig, err error) {
 
-	logger.Info(ctx," org: CreateOrganizationConfig")
-	logger.Debug(ctx," orgConfigInfo: ",orgConfigInfo)
+	logger.Infof(ctx,"orgRepo: CreateOrganizationConfig: %v",orgConfigInfo)
 	queryExecutor := org.InitiateQueryExecutor(tx)
 
 	insertQuery, args, err := repository.Sq.
@@ -47,6 +47,8 @@ func (org *OrganizationConfigStore) CreateOrganizationConfig(ctx context.Context
 		logger.Errorf(ctx,"err in creating query: %v",err)
 		return repository.OrganizationConfig{}, apperrors.InternalServer
 	}
+
+	logger.Debug(ctx,fmt.Sprintf("orgRepo: query: %s,args: %v",insertQuery,args))
 	
 	err = queryExecutor.QueryRowx(insertQuery, args...).StructScan(&createdOrganization)
 	if err != nil {
@@ -56,13 +58,12 @@ func (org *OrganizationConfigStore) CreateOrganizationConfig(ctx context.Context
 		}
 	}
 
-	logger.Debug(ctx," query: ",insertQuery)
-	logger.Debug(ctx," args: ",args)
+	logger.Debug(ctx,fmt.Sprintf("orgRepo: query: %s,args: %v",insertQuery,args))
 	return
 }
 
 func (org *OrganizationConfigStore) UpdateOrganizationConfig(ctx context.Context, tx repository.Transaction, reqOrganization dto.OrganizationConfig) (updatedOrganization repository.OrganizationConfig, err error) {
-	logger.Info(ctx," org: UpdateOrganizationConfig: ")
+	logger.Infof(ctx,"orgRepo: UpdateOrganizationConfig: %v",reqOrganization)
 	queryExecutor := org.InitiateQueryExecutor(tx)
 	
 	updateBuilder := repository.Sq.Update(org.OrganizationConfigTable).
@@ -89,12 +90,11 @@ func (org *OrganizationConfigStore) UpdateOrganizationConfig(ctx context.Context
 		return repository.OrganizationConfig{}, err
 	}
 
-	logger.Debug(ctx," query: ",query)
-	logger.Debug(ctx," args: ",args)
+	logger.Debug(ctx,fmt.Sprintf("orgRepo: query: %s,args: %v",query,args))
 	err = queryExecutor.QueryRowx(query, args...).StructScan(&updatedOrganization)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			logger.Errorf(ctx,"err in updating orgconfig : %v ", err)
+			logger.Errorf(ctx,"orgRepo: err in updating orgconfig : %v ", err)
 			return repository.OrganizationConfig{}, apperrors.InternalServer
 		}
 	}
@@ -103,7 +103,7 @@ func (org *OrganizationConfigStore) UpdateOrganizationConfig(ctx context.Context
 
 // GetOrganization - returns an organization from the database if it exists based on its ID primary key
 func (org *OrganizationConfigStore) GetOrganizationConfig(ctx context.Context, tx repository.Transaction) (updatedOrgConfig repository.OrganizationConfig, err error) {
-	logger.Debug(ctx," org: GetOrganizationConfig")
+	logger.Debug(ctx,"orgRepo: GetOrganizationConfig")
 	queryExecutor := org.InitiateQueryExecutor(tx)
 
 	queryBuilder := repository.Sq.
@@ -116,6 +116,8 @@ func (org *OrganizationConfigStore) GetOrganizationConfig(ctx context.Context, t
 		logger.Errorf(ctx,"Error building select query: %v",err)
 		return repository.OrganizationConfig{}, err
 	}
+
+	logger.Debug(ctx,fmt.Sprintf("orgRepo: query: %s,args: %v",query,args))
 
 	err = queryExecutor.QueryRowx( query, args...).StructScan(&updatedOrgConfig)
 	if err != nil {

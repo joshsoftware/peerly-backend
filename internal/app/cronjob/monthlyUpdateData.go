@@ -46,7 +46,7 @@ func (cron *MonthlyJob) Schedule() error {
 		return err
 	}
 	cron.job, err = cron.scheduler.NewJob(
-		gocron.MonthlyJob(uint(MONTHLY_CRON_JOB_INTERVAL_MONTHS), gocron.NewDaysOfTheMonth(5),
+		gocron.MonthlyJob(uint(MONTHLY_CRON_JOB_INTERVAL_MONTHS), gocron.NewDaysOfTheMonth(-1),
 			gocron.NewAtTimes(
 				gocron.NewAtTime(
 					MonthlyJobTiming.hours,

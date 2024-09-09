@@ -8,15 +8,15 @@ import (
 	apprSvc "github.com/joshsoftware/peerly-backend/internal/app/appreciation"
 	orgSvc "github.com/joshsoftware/peerly-backend/internal/app/organizationConfig"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
-	logger "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
+	logger "github.com/sirupsen/logrus"
 )
 
 const DAILY_JOB = "DAILY_JOB"
 const DAILY_CRON_JOB_INTERVAL_DAYS = 1
 
 var DailyJobTiming = JobTime{
-	hours:   10,
-	minutes: 55,
+	hours:   0,
+	minutes: 0,
 	seconds: 0,
 }
 
@@ -60,8 +60,7 @@ func (cron *DailyJob) Schedule() error {
 	cron.scheduler.Start()
 
 	if err != nil {
-		logger.Warn(context.Background(), "error occurred while scheduling %s, message %+v", cron.name, err.Error())
-		return err
+		logger.Warn(context.TODO(), fmt.Sprintf("error occurred while scheduling %s, message %+v", cron.name, err.Error()))
 	}
 	return nil
 }

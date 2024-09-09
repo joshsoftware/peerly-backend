@@ -310,7 +310,6 @@ func sendReportEmail(senderEmail string, senderFirstName string, senderLastName 
 		AppreciationReceiverName: fmt.Sprint(apprReceiverFirstName, " ", apprReceiverLastName),
 		ReportIconImageURL:       fmt.Sprint(config.PeerlyBaseUrl() + constants.CheckIconLogo),
 	}
-
 	logger.Info(ctx, "report sender email: ---------> ", senderEmail)
 	mailReq := email.NewMail([]string{senderEmail}, []string{"dl_peerly.support@joshsoftware.com"}, []string{}, "🙏 Thanks for Your Feedback! We’re On It! 🔧")
 	mailReq.ParseTemplate("./internal/app/email/templates/reportAppreciation.html", templateData)
@@ -398,11 +397,11 @@ func sendDeleteEmail(reporterEmail string, senderEmail string, receiverEmail str
 	mailReq.ParseTemplate("./internal/app/email/templates/deleteAppreciation.html", templateData)
 	err := mailReq.Send()
 	if err != nil {
-		logger.Errorf(context.Background(), "err: %v", err)
+		logger.Errorf(ctx, "err: %v", err)
 		return err
 	}
 
-	logger.Info(ctx, "sender email: ---------> ", reporterEmail)
+	logger.Info(ctx, "sender email: ---------> ", senderEmail)
 	mailReq = email.NewMail([]string{senderEmail}, []string{}, []string{}, "Results of reported appreciation")
 	mailReq.ParseTemplate("./internal/app/email/templates/senderDeleteEmail.html", templateData)
 	err = mailReq.Send()
@@ -411,7 +410,7 @@ func sendDeleteEmail(reporterEmail string, senderEmail string, receiverEmail str
 		return err
 	}
 
-	logger.Info(ctx, "receiver email: ---------> ", reporterEmail)
+	logger.Info(ctx, "receiver email: ---------> ", receiverEmail)
 	mailReq = email.NewMail([]string{receiverEmail}, []string{}, []string{}, "Results of reported appreciation")
 	mailReq.ParseTemplate("./internal/app/email/templates/receiverDeleteEmail.html", templateData)
 	err = mailReq.Send()
@@ -425,7 +424,8 @@ func sendDeleteEmail(reporterEmail string, senderEmail string, receiverEmail str
 
 func sendResolveEmail(senderEmail string, templateData dto.ResolveAppreciationMail) error {
 
-	logger.Info(context.Background(), "report sender email: ---------> ", senderEmail)
+	ctx := context.Background()
+	logger.Info(ctx, "report sender email: ---------> ", senderEmail)
 	mailReq := email.NewMail([]string{senderEmail}, []string{}, []string{}, "Results of reported appreciation")
 	mailReq.ParseTemplate("./internal/app/email/templates/resolveAppreciation.html", templateData)
 	err := mailReq.Send()

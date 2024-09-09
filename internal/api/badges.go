@@ -30,7 +30,7 @@ func editBadgesHandler(badgeSvc badges.Service) http.HandlerFunc {
 		var reqData dto.UpdateBadgeReq
 		err := json.NewDecoder(req.Body).Decode(&reqData)
 		if err != nil {
-			logger.Errorf(req.Context(), "error while decoding request data, err: %s", err.Error())
+			logger.Errorf(ctx, "error while decoding request data, err: %s", err.Error())
 			err = apperrors.JSONParsingErrorReq
 			dto.ErrorRepsonse(rw, err)
 			return

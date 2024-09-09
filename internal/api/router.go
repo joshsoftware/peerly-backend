@@ -27,7 +27,7 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 
 	peerlySubrouter.HandleFunc("/ping", pingHandler).Methods(http.MethodGet)
 
-	peerlySubrouter.HandleFunc("/set_logger_level", loggerHandler).Methods(http.MethodPost)
+	peerlySubrouter.HandleFunc("/set_logger_level", loggerHandler).Methods(http.MethodPatch)
 
 	// Version 1 API management
 	v1 := fmt.Sprintf("application/vnd.%s.v1", config.AppName())
