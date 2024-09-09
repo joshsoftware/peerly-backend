@@ -30,7 +30,7 @@ func Error(ctx context.Context, args ...interface{}) {
 // Errorf - prints out an error with formatted output
 func Errorf(ctx context.Context, format string, args ...interface{}) {
 	log := setRequestId(ctx)
-	log.Errorf(format,args...)
+	log.Errorf(format, args...)
 }
 
 // Warn - prints out a warning
@@ -54,7 +54,7 @@ func Info(ctx context.Context, args ...interface{}) {
 // Infof - prints out basic information
 func Infof(ctx context.Context, format string, args ...interface{}) {
 	log := setRequestId(ctx)
-	log.Infof(format,args...)
+	log.Infof(format, args...)
 }
 
 // Debug - prints out debug information
@@ -86,19 +86,20 @@ func SetupLogger() (*l.Logger, error) {
 	return logger, nil
 }
 
-func setRequestId(ctx context.Context) *l.Entry{
+func setRequestId(ctx context.Context) *l.Entry {
 	requestID, ok := ctx.Value(constants.RequestID).(string)
 	if !ok {
 		requestID = "N/A"
 	}
 
-	userID, ok := ctx.Value(constants.UserId).(string)
+	data := ctx.Value(constants.UserId)
+	userID, ok := data.(int64)
 	if !ok {
-		userID = "N/A"
+		userID = 0
 	}
-	
+
 	return Logger.WithFields(l.Fields{
-		"req_id":requestID,
+		"req_id":  requestID,
 		"user_id": userID,
 	})
 }

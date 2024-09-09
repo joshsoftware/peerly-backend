@@ -8,7 +8,7 @@ import (
 	apprSvc "github.com/joshsoftware/peerly-backend/internal/app/appreciation"
 	orgSvc "github.com/joshsoftware/peerly-backend/internal/app/organizationConfig"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
-	logger "github.com/sirupsen/logrus"
+	logger "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
 )
 
 const DAILY_JOB = "DAILY_JOB"

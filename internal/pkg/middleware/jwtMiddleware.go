@@ -12,7 +12,7 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/pkg/config"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
-	logger "github.com/sirupsen/logrus"
+	logger "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
 )
 
 func JwtAuthMiddleware(next http.Handler, role int) http.Handler {
@@ -20,7 +20,7 @@ func JwtAuthMiddleware(next http.Handler, role int) http.Handler {
 		jwtKey := config.JWTKey()
 		authToken := req.Header.Get(constants.AuthorizationHeader)
 		if authToken == "" {
-			logger.Error("Empty auth token")
+			logger.Error(context.Background(), "Empty auth token")
 			err := apperrors.InvalidAuthToken
 			dto.ErrorRepsonse(rw, err)
 			return
@@ -34,14 +34,14 @@ func JwtAuthMiddleware(next http.Handler, role int) http.Handler {
 		})
 
 		if err != nil {
-			logger.WithField("err", err.Error()).Error("Error in parse with claims function")
+			logger.Error(context.Background(), "Error in parse with claims function")
 			err = apperrors.InvalidAuthToken
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
 
 		if !tkn.Valid {
-			logger.Error("Invalid token")
+			logger.Error(context.Background(), "Invalid token")
 			err = apperrors.InvalidAuthToken
 			dto.ErrorRepsonse(rw, err)
 			return
