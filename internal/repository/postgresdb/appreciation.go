@@ -222,9 +222,7 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 		"COUNT(r.id) AS total_rewards",
 		fmt.Sprintf(
 			`COALESCE((
-				SELECT SUM(r2.
-
-	logger "github.com/sirupsen/logrus"point) 
+				SELECT SUM(r2.point) 
 				FROM rewards r2 
 				WHERE r2.appreciation_id = a.id AND r2.sender = %d
 			), 0) AS given_reward_point`, userID),
