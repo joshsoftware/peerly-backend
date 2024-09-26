@@ -12,30 +12,29 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-
 func loggerHandler(rw http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
-	log.Debug(ctx,"loggerHandler: req: ",req)
+	log.Debug(ctx, "loggerHandler: req: ", req)
 	var changeLogRequest dto.ChangeLogLevelRequest
 	err := json.NewDecoder(req.Body).Decode(&changeLogRequest)
 	if err != nil {
-		log.Errorf(ctx,"Error while decoding request data : %v", err)
+		log.Errorf(ctx, "Error while decoding request data : %v", err)
 		err = apperrors.JSONParsingErrorReq
 		dto.ErrorRepsonse(rw, err)
 		return
 	}
 
 	if config.DeveloperKey() != changeLogRequest.DeveloperKey {
-		dto.ErrorRepsonse(rw,apperrors.UnauthorizedDeveloper)
-		return 
+		dto.ErrorRepsonse(rw, apperrors.UnauthorizedDeveloper)
+		return
 	}
 
 	log.Info(ctx, "loggerHandler")
 	if changeLogRequest.LogLevel == "DebugLevel" {
 		log.Logger.SetLevel(logrus.DebugLevel)
-	}else if changeLogRequest.LogLevel == "InfoLevel" {
+	} else if changeLogRequest.LogLevel == "InfoLevel" {
 		log.Logger.SetLevel(logrus.InfoLevel)
-	}else {
+	} else {
 		dto.ErrorRepsonse(rw, apperrors.InvalidLoggerLevel)
 		return
 	}

@@ -30,9 +30,9 @@ func (cron *CronJob) Execute(task func(context.Context)) {
 
 	ctx := context.Background()
 	startTime := time.Now()
-	logger.Infof(ctx,"cron job Started at %s", startTime.Format("2006-01-02 15:04:05"))
+	logger.Infof(ctx, "cron job Started at %s", startTime.Format("2006-01-02 15:04:05"))
 	defer func() {
-		logger.Infof(ctx,"cron job done %s, took: %v", cron.name, time.Since(startTime))
+		logger.Infof(ctx, "cron job done %s, took: %v", cron.name, time.Since(startTime))
 	}()
 
 	// Channel to check if signal task is completed

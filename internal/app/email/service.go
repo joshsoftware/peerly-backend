@@ -30,19 +30,19 @@ type Mail struct {
 
 func (ms *Mail) Send() error {
 
-	logger.Info(context.Background()," Mail: ",ms)
+	logger.Info(context.Background(), " Mail: ", ms)
 	senderEmail := config.ReadEnvString("SENDER_EMAIL")
 	if senderEmail == "" {
-		logger.Error(context.Background(),"SENDER_EMAIL environment variable is not set")
+		logger.Error(context.Background(), "SENDER_EMAIL environment variable is not set")
 		return fmt.Errorf("sender email not configured")
 	}
 
 	sendGridAPIKey := config.ReadEnvString("SENDGRID_API_KEY")
 	if sendGridAPIKey == "" {
-		logger.Error(context.Background(),"SENDGRID_API_KEY environment variable is not set")
+		logger.Error(context.Background(), "SENDGRID_API_KEY environment variable is not set")
 		return fmt.Errorf("sendgrid API key not configured")
 	}
-	logger.Info(context.Background(),"from_------------->, ",senderEmail)
+	logger.Info(context.Background(), "from_------------->, ", senderEmail)
 
 	fromEmail := mail.NewEmail("Peerly", senderEmail)
 	content := mail.NewContent("text/html", ms.body)
@@ -54,21 +54,21 @@ func (ms *Mail) Send() error {
 
 	personalization := mail.NewPersonalization()
 
-	for _,email := range ms.to{
+	for _, email := range ms.to {
 		toEmail := mail.NewEmail("to", email)
 		personalization.AddTos(toEmail)
 	}
 
-	for _,email := range ms.CC{
+	for _, email := range ms.CC {
 		ccEmail := mail.NewEmail("cc", email)
 		personalization.AddCCs(ccEmail)
 	}
 
-	for _,email := range ms.BCC{
+	for _, email := range ms.BCC {
 		bccEmail := mail.NewEmail("bcc", email)
 		personalization.AddBCCs(bccEmail)
 	}
-	
+
 	personalization.Subject = ms.subject
 	m.AddPersonalizations(personalization)
 
@@ -76,14 +76,14 @@ func (ms *Mail) Send() error {
 
 	response, err := client.Send(m)
 	if err != nil {
-		logger.Error(context.Background(),"unable to send mail", "error", err)
+		logger.Error(context.Background(), "unable to send mail", "error", err)
 		return err
 	}
 
-	logger.Info(context.Background(),"Email response: ")
-	logger.Infof(context.Background(),"Response status code: %v", response.StatusCode)
-	logger.Infof(context.Background(),"Response body: %v", response.Body)
-	logger.Infof(context.Background(),"Response headers: %v", response.Headers)
+	logger.Info(context.Background(), "Email response: ")
+	logger.Infof(context.Background(), "Response status code: %v", response.StatusCode)
+	logger.Infof(context.Background(), "Response body: %v", response.Body)
+	logger.Infof(context.Background(), "Response headers: %v", response.Headers)
 	return nil
 }
 func (r *Mail) ParseTemplate(templateFileName string, data interface{}) error {
@@ -96,9 +96,9 @@ func (r *Mail) ParseTemplate(templateFileName string, data interface{}) error {
 		return err
 	}
 	r.body = buf.String()
-	logger.Info(context.Background(),"--------------------->")
-	logger.Info(context.Background(),r.body)
-	logger.Info(context.Background(),"--------------------->")
+	logger.Info(context.Background(), "--------------------->")
+	logger.Info(context.Background(), r.body)
+	logger.Info(context.Background(), "--------------------->")
 	return nil
 }
 

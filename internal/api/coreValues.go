@@ -53,7 +53,6 @@ func createCoreValueHandler(coreValueSvc corevalues.Service) http.HandlerFunc {
 			return
 		}
 
-
 		resp, err := coreValueSvc.CreateCoreValue(ctx, coreValue)
 		if err != nil {
 

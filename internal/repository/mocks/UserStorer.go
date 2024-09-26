@@ -386,4 +386,3 @@ func NewUserStorer(t interface {
 
 	return mock
 }
-
