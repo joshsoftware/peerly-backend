@@ -431,7 +431,7 @@ func (us *userStore) GetUserById(ctx context.Context, reqData dto.GetUserByIdReq
 func (us *userStore) GetTop10Users(ctx context.Context, quarterTimestamp int64) (users []repository.Top10Users, err error) {
 
 	afterTime := GetQuarterStartUnixTime()
-	getTop10UserQuery := `select users.id, users.first_name, users.last_name, users.profile_image_url, sum(appreciations.total_reward_points) as AP from users join appreciations on users.id = appreciations.receiver where appreciations.created_at >= $1 group by users.id, appreciations.receiver order by AP desc limit 10`
+	getTop10UserQuery := `select users.id, users.first_name, users.last_name, users.profile_image_url, sum(appreciations.total_reward_points) as AP from users join appreciations on users.id = appreciations.receiver where appreciations.created_at >= $1 AND appreciations.is_valid = true group by users.id, appreciations.receiver order by AP desc limit 10`
 
 	err = us.DB.Select(&users, getTop10UserQuery, afterTime)
 	if err != nil {
