@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -48,7 +47,7 @@ func (org *OrganizationConfigStore) CreateOrganizationConfig(ctx context.Context
 		return repository.OrganizationConfig{}, apperrors.InternalServer
 	}
 
-	logger.Debug(ctx, fmt.Sprintf("orgRepo: query: %s,args: %v", insertQuery, args))
+	logger.Debug(ctx, "orgRepo: query: ", insertQuery, ",args: ", args)
 
 	err = queryExecutor.QueryRowx(insertQuery, args...).StructScan(&createdOrganization)
 	if err != nil {
@@ -58,7 +57,7 @@ func (org *OrganizationConfigStore) CreateOrganizationConfig(ctx context.Context
 		}
 	}
 
-	logger.Debug(ctx, fmt.Sprintf("orgRepo: query: %s,args: %v", insertQuery, args))
+	logger.Debug(ctx, "orgRepo: query: ", insertQuery, ",args: ", args)
 	return
 }
 
@@ -90,7 +89,7 @@ func (org *OrganizationConfigStore) UpdateOrganizationConfig(ctx context.Context
 		return repository.OrganizationConfig{}, err
 	}
 
-	logger.Debug(ctx, fmt.Sprintf("orgRepo: query: %s,args: %v", query, args))
+	logger.Debug(ctx, "orgRepo: query: ", query, ",args: ", args)
 	err = queryExecutor.QueryRowx(query, args...).StructScan(&updatedOrganization)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -117,7 +116,7 @@ func (org *OrganizationConfigStore) GetOrganizationConfig(ctx context.Context, t
 		return repository.OrganizationConfig{}, err
 	}
 
-	logger.Debug(ctx, fmt.Sprintf("orgRepo: query: %s,args: %v", query, args))
+	logger.Debug(ctx, "orgRepo: query: ", query, ",args: ", args)
 
 	err = queryExecutor.QueryRowx(query, args...).StructScan(&updatedOrgConfig)
 	if err != nil {

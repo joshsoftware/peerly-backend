@@ -103,14 +103,14 @@ func (us *service) GetIntranetUserData(ctx context.Context, req dto.GetIntranetU
 	intranetReq.Header.Add(constants.AuthorizationHeader, req.Token)
 	resp, err := client.Do(intranetReq)
 	if err != nil {
-		logger.Errorf(ctx, "error in intranet get user api. status returned: %d, err: %s  ", resp.StatusCode, err.Error())
 		logger.Errorf(ctx, "error response: %v", resp)
+		logger.Errorf(ctx, "error in intranet get user api. status returned: %d, err: %s  ", resp.StatusCode, err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
 	if resp.StatusCode != http.StatusOK {
-		logger.Errorf(ctx, "error in intranet get user api. status returned: %d ", resp.StatusCode)
 		logger.Errorf(ctx, "error response: %v", resp)
+		logger.Errorf(ctx, "error in intranet get user api. status returned: %d ", resp.StatusCode)
 		err = apperrors.InternalServerError
 		return
 	}
