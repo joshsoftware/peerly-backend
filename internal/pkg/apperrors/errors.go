@@ -73,7 +73,7 @@ const (
 	InvalidPage                        = CustomError("Invalid page value")
 	NegativeGradePoints                = CustomError("Grade points cannot be negative")
 	NegativeBadgePoints                = CustomError("Badge reward points cannot be negative")
-	PreviousQuarterRatingNotAllowed    = CustomError("Reward cannot be given for previous quarter appreciations")
+	PreviousQuarterRatingNotAllowed    = CustomError("Reward can be given for current quarter appreciations")
 )
 
 // ErrKeyNotSet - Returns error object specific to the key value passed in
