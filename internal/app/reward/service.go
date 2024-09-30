@@ -32,48 +32,48 @@ func NewService(rewardRepo repository.RewardStorer, appreciationRepo repository.
 
 func (rwrdSvc *service) GiveReward(ctx context.Context, rewardReq dto.Reward) (dto.Reward, error) {
 
-	logger.Debug(ctx, " reward service: GiveReward: ", rewardReq)
+	logger.Debug(ctx, " rewardService: GiveReward: ", rewardReq)
 	//add sender
 	data := ctx.Value(constants.UserId)
 	sender, ok := data.(int64)
 	if !ok {
-		logger.Error(ctx, "reward service: err in parsing userid from token")
+		logger.Error(ctx, "rewardService: err in parsing userid from token")
 		return dto.Reward{}, apperrors.InternalServer
 	}
 	rewardReq.SenderId = sender
 
 	appr, err := rwrdSvc.appreciationRepo.GetAppreciationById(ctx, nil, int32(rewardReq.AppreciationId))
 	if err != nil {
-		logger.Errorf(ctx, "reward service: gerAppreciationById err : %v", err)
+		logger.Errorf(ctx, "rewardService: gerAppreciationById err : %v", err)
 		return dto.Reward{}, err
 	}
-	logger.Debug(ctx, "reward service: appr: ", appr)
+	logger.Debug(ctx, "rewardService: appr: ", appr)
 
 	if appr.SenderID == sender {
-		logger.Error(ctx, "reward service: SelfAppreciationRewardError")
+		logger.Error(ctx, "rewardService: SelfAppreciationRewardError")
 		return dto.Reward{}, apperrors.SelfAppreciationRewardError
 	}
 
 	if appr.ReceiverID == sender {
-		logger.Error(ctx, "reward service: SelfRewardError")
+		logger.Error(ctx, "rewardService: SelfRewardError")
 		return dto.Reward{}, apperrors.SelfRewardError
 	}
 
 	userChk, err := rwrdSvc.rewardRepo.UserHasRewardQuota(ctx, nil, rewardReq.SenderId, rewardReq.Point)
 	if err != nil {
-		logger.Errorf(ctx, "reward service: UserHasRewardQuota: err: %v", err)
+		logger.Errorf(ctx, "rewardService: UserHasRewardQuota: err: %v", err)
 		return dto.Reward{}, err
 	}
 	logger.Debug(ctx, " userChk: ", userChk)
 
 	if !userChk {
-		logger.Error(ctx, "reward service: RewardQuotaIsNotSufficient")
+		logger.Error(ctx, "rewardService: RewardQuotaIsNotSufficient")
 		return dto.Reward{}, apperrors.RewardQuotaIsNotSufficient
 	}
 
 	rwrdChk, err := rwrdSvc.rewardRepo.IsUserRewardForAppreciationPresent(ctx, nil, rewardReq.AppreciationId, rewardReq.SenderId)
 	if err != nil {
-		logger.Errorf(ctx, "reward service: IsUserRewardForAppreciationPresent: err: %v", err)
+		logger.Errorf(ctx, "rewardService: IsUserRewardForAppreciationPresent: err: %v", err)
 		return dto.Reward{}, err
 	}
 
@@ -85,7 +85,7 @@ func (rwrdSvc *service) GiveReward(ctx context.Context, rewardReq dto.Reward) (d
 	//initializing database transaction
 	tx, err := rwrdSvc.rewardRepo.BeginTx(ctx)
 	if err != nil {
-		logger.Error(ctx, "reward service: error in BeginTx")
+		logger.Error(ctx, "rewardService: error in BeginTx")
 		return dto.Reward{}, err
 	}
 
@@ -107,7 +107,7 @@ func (rwrdSvc *service) GiveReward(ctx context.Context, rewardReq dto.Reward) (d
 	}()
 	repoRewardRes, err := rwrdSvc.rewardRepo.GiveReward(ctx, tx, rewardReq)
 	if err != nil {
-		logger.Errorf(ctx, "reward service: GiveReward: err: %v", err)
+		logger.Errorf(ctx, "rewardService: GiveReward: err: %v", err)
 		return dto.Reward{}, err
 	}
 
@@ -115,12 +115,12 @@ func (rwrdSvc *service) GiveReward(ctx context.Context, rewardReq dto.Reward) (d
 
 	deduceChk, err := rwrdSvc.rewardRepo.DeduceRewardQuotaOfUser(ctx, tx, rewardReq.SenderId, int(rewardReq.Point))
 	if err != nil {
-		logger.Errorf(ctx, "reward service: DeduceRewardQuotaOfUser: err: %v", err)
+		logger.Errorf(ctx, "rewardService: DeduceRewardQuotaOfUser: err: %v", err)
 		return dto.Reward{}, err
 	}
 
 	if !deduceChk {
-		logger.Error(ctx, "reward service: error in reduce Reward Quota")
+		logger.Error(ctx, "rewardService: error in reduce Reward Quota")
 		return dto.Reward{}, apperrors.InternalServer
 	}
 
@@ -137,7 +137,7 @@ func (rwrdSvc *service) GiveReward(ctx context.Context, rewardReq dto.Reward) (d
 	}
 	userInfo, err := rwrdSvc.userRepo.GetUserById(ctx, req)
 	if err != nil {
-		logger.Errorf(ctx, "reward service: err in getting user data: %v", err)
+		logger.Errorf(ctx, "rewardService: err in getting user data: %v", err)
 	}
 	rwrdSvc.sendRewardNotificationToSender(ctx, userInfo)
 	rwrdSvc.sendRewardNotificationToReceiver(ctx, appr.ReceiverID)
@@ -146,7 +146,7 @@ func (rwrdSvc *service) GiveReward(ctx context.Context, rewardReq dto.Reward) (d
 
 func (rwrdSvc *service) sendRewardNotificationToSender(ctx context.Context, user dto.GetUserByIdResp) {
 
-	logger.Debug(ctx, " reward service: sendRewardNotificationToSender: user: ", user)
+	logger.Debug(ctx, " rewardService: sendRewardNotificationToSender: user: ", user)
 	notificationTokens, err := rwrdSvc.userRepo.ListDeviceTokensByUserID(ctx, user.UserId)
 	if err != nil {
 		logger.Errorf(ctx, "err in getting device tokens: %v", err)
@@ -167,7 +167,7 @@ func (rwrdSvc *service) sendRewardNotificationToSender(ctx context.Context, user
 
 func (rwrdSvc *service) sendRewardNotificationToReceiver(ctx context.Context, userID int64) {
 
-	logger.Debug(ctx, " reward service: sendRewardNotificationToReceiver")
+	logger.Debug(ctx, " rewardService: sendRewardNotificationToReceiver")
 	notificationTokens, err := rwrdSvc.userRepo.ListDeviceTokensByUserID(ctx, userID)
 	logger.Debug(ctx, " notificationTokens: ", notificationTokens)
 	if err != nil {
@@ -180,7 +180,7 @@ func (rwrdSvc *service) sendRewardNotificationToReceiver(ctx context.Context, us
 		Body:  "You've been awarded a reward! Well done and keep up the JOSH!",
 	}
 
-	logger.Debug(ctx, " reward service: msg: ", msg)
+	logger.Debug(ctx, " rewardService: msg: ", msg)
 	for _, notificationToken := range notificationTokens {
 		msg.SendNotificationToNotificationToken(notificationToken)
 	}

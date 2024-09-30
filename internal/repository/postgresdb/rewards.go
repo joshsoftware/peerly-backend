@@ -24,7 +24,7 @@ func NewRewardRepo(db *sqlx.DB) repository.RewardStorer {
 
 func (rwrd *rewardStore) GiveReward(ctx context.Context, tx repository.Transaction, reward dto.Reward) (repository.Reward, error) {
 
-	logger.Debug(ctx, "reward Repo: GiveReward: ", reward)
+	logger.Debug(ctx, "rewardRepo: GiveReward: ", reward)
 	queryExecutor := rwrd.InitiateQueryExecutor(tx)
 	insertQuery, args, err := repository.Sq.
 		Insert("rewards").
@@ -38,7 +38,7 @@ func (rwrd *rewardStore) GiveReward(ctx context.Context, tx repository.Transacti
 		return repository.Reward{}, apperrors.InternalServer
 	}
 
-	logger.Debug(ctx, "reward Repo: insertQuery: ", insertQuery, ",args: ", args)
+	logger.Debug(ctx, "rewardRepo: insertQuery: ", insertQuery, ",args: ", args)
 	var rewardInfo repository.Reward
 	err = queryExecutor.QueryRowx(insertQuery, args...).Scan(&rewardInfo.Id, &rewardInfo.AppreciationId, &rewardInfo.Point, &rewardInfo.SenderId, &rewardInfo.CreatedAt)
 	if err != nil {
@@ -53,7 +53,7 @@ func (rwrd *rewardStore) GiveReward(ctx context.Context, tx repository.Transacti
 
 func (rwrd *rewardStore) IsUserRewardForAppreciationPresent(ctx context.Context, tx repository.Transaction, apprId int64, senderId int64) (bool, error) {
 	// Initialize the Squirrel query builder
-	logger.Infof(ctx, "reward Repo: appr id: %d,sender: %d", apprId, senderId)
+	logger.Infof(ctx, "rewardRepo: appr id: %d,sender: %d", apprId, senderId)
 	// Build the SQL query
 	query, args, err := repository.Sq.Select("COUNT(*)").
 		From("rewards").
@@ -63,11 +63,11 @@ func (rwrd *rewardStore) IsUserRewardForAppreciationPresent(ctx context.Context,
 		}).
 		ToSql()
 	if err != nil {
-		logger.Error(ctx, "reward Repo: err ", err.Error())
+		logger.Error(ctx, "rewardRepo: err ", err.Error())
 		return false, apperrors.InternalServer
 	}
 
-	logger.Debug(ctx, "reward Repo: query: ", query, ",args: ", args)
+	logger.Debug(ctx, "rewardRepo: query: ", query, ",args: ", args)
 
 	queryExecutor := rwrd.InitiateQueryExecutor(tx)
 
@@ -78,7 +78,7 @@ func (rwrd *rewardStore) IsUserRewardForAppreciationPresent(ctx context.Context,
 		logger.Error(ctx, "failed to execute query: ", err.Error())
 		return false, apperrors.InternalServer
 	}
-	logger.Info(ctx, "reward Repo: userCount: ", count)
+	logger.Info(ctx, "rewardRepo: userCount: ", count)
 	// Check if user and appreciation id is present
 	return count > 0, nil
 }
@@ -97,7 +97,7 @@ func (rwrd *rewardStore) DeduceRewardQuotaOfUser(ctx context.Context, tx reposit
 		return false, err
 	}
 
-	logger.Debug(ctx, "reward Repo: query: ", updateQuery, ",args: ", args)
+	logger.Debug(ctx, "rewardRepo: query: ", updateQuery, ",args: ", args)
 	// Execute the query within the transaction context
 	result, err := queryExecutor.Exec(updateQuery, args...)
 	if err != nil {
@@ -133,7 +133,7 @@ func (rwrd *rewardStore) UserHasRewardQuota(ctx context.Context, tx repository.T
 	// Arguments for the query
 	args := []interface{}{userID, points}
 
-	logger.Infof(ctx, "reward Repo: query: %s,id: %d,points: %d", query, userID, points)
+	logger.Infof(ctx, "rewardRepo: query: %s,id: %d,points: %d", query, userID, points)
 
 	queryExecutor := rwrd.InitiateQueryExecutor(tx)
 
@@ -144,7 +144,7 @@ func (rwrd *rewardStore) UserHasRewardQuota(ctx context.Context, tx repository.T
 		logger.Error(ctx, "failed to execute query: ", err.Error())
 		return false, apperrors.InternalServer
 	}
-	logger.Info(ctx, "reward Repo: count: ", count)
+	logger.Info(ctx, "rewardRepo: count: ", count)
 	// Check if user is present
 	return count > 0, nil
 }
