@@ -75,7 +75,7 @@ const (
 	NegativeBadgePoints                = CustomError("Badge reward points cannot be negative")
 	UnauthorizedDeveloper              = CustomError("Unauthorised developer")
 	InvalidLoggerLevel                 = CustomError("Invalid Logger Level")
-	PreviousQuarterRatingNotAllowed    = CustomError("Reward cannot be given for previous quarter appreciations")
+	PreviousQuarterRatingNotAllowed    = CustomError("Reward can be given for current quarter appreciations")
 )
 
 // ErrKeyNotSet - Returns error object specific to the key value passed in
