@@ -54,6 +54,10 @@ func (rwrdSvc *service) GiveReward(ctx context.Context, rewardReq dto.Reward) (d
 		return dto.Reward{}, apperrors.SelfRewardError
 	}
 
+	if appr.CreatedAt < user.GetQuarterStartUnixTime() {
+		return dto.Reward{}, apperrors.PreviousQuarterRatingNotAllowed
+	}
+
 	userChk, err := rwrdSvc.rewardRepo.UserHasRewardQuota(ctx, nil, rewardReq.SenderId, rewardReq.Point)
 	if err != nil {
 		return dto.Reward{}, err
@@ -110,25 +114,23 @@ func (rwrdSvc *service) GiveReward(ctx context.Context, rewardReq dto.Reward) (d
 		return dto.Reward{}, apperrors.InternalServer
 	}
 
-
-
 	var reward dto.Reward
 	reward.Id = repoRewardRes.Id
 	reward.AppreciationId = repoRewardRes.AppreciationId
 	reward.SenderId = repoRewardRes.SenderId
 	reward.Point = repoRewardRes.Point
 	quaterTimeStamp := user.GetQuarterStartUnixTime()
-	
+
 	req := dto.GetUserByIdReq{
 		UserId:          sender,
 		QuaterTimeStamp: quaterTimeStamp,
 	}
-	userInfo ,err := rwrdSvc.userRepo.GetUserById(ctx,req)
+	userInfo, err := rwrdSvc.userRepo.GetUserById(ctx, req)
 	if err != nil {
-		logger.Errorf("err in getting user data: %v",err)
+		logger.Errorf("err in getting user data: %v", err)
 	}
-	rwrdSvc.sendRewardNotificationToSender(ctx,userInfo)
-	rwrdSvc.sendRewardNotificationToReceiver(ctx,appr.ReceiverID)
+	rwrdSvc.sendRewardNotificationToSender(ctx, userInfo)
+	rwrdSvc.sendRewardNotificationToReceiver(ctx, appr.ReceiverID)
 	return reward, nil
 }
 
@@ -141,7 +143,7 @@ func (rwrdSvc *service) sendRewardNotificationToSender(ctx context.Context, user
 	notificationTokens, err := rwrdSvc.userRepo.ListDeviceTokensByUserID(ctx, user.UserId)
 	if err != nil {
 		logger.Errorf("err in getting device tokens: %v", err)
-		return 
+		return
 	}
 
 	msg := notification.Message{
@@ -160,7 +162,7 @@ func (rwrdSvc *service) sendRewardNotificationToReceiver(ctx context.Context, us
 	notificationTokens, err := rwrdSvc.userRepo.ListDeviceTokensByUserID(ctx, userID)
 	if err != nil {
 		logger.Errorf("err in getting device tokens: %v", err)
-		return 
+		return
 	}
 
 	msg := notification.Message{

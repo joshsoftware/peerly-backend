@@ -73,6 +73,7 @@ const (
 	InvalidPage                        = CustomError("Invalid page value")
 	NegativeGradePoints                = CustomError("Grade points cannot be negative")
 	NegativeBadgePoints                = CustomError("Badge reward points cannot be negative")
+	PreviousQuarterRatingNotAllowed    = CustomError("Reward can be given for current quarter appreciations")
 )
 
 // ErrKeyNotSet - Returns error object specific to the key value passed in
@@ -87,7 +88,7 @@ func GetHTTPStatusCode(err error) int {
 		return http.StatusInternalServerError
 	case OrganizationConfigNotFound, OrganizationNotFound, InvalidOrgId, GradeNotFound, AppreciationNotFound, PageParamNotFound, InvalidCoreValueData, InvalidIntranetData:
 		return http.StatusNotFound
-	case BadRequest, InvalidId, JSONParsingErrorReq, TextFieldBlank, InvalidParentValue, DescFieldBlank, UniqueCoreValue, SelfAppreciationError, CannotReportOwnAppreciation, RepeatedReport, InvalidCoreValueID, InvalidReceiverID, InvalidRewardMultiplier, InvalidRewardQuotaRenewalFrequency, InvalidTimezone, InvalidRewardPoint, InvalidEmail, InvalidPassword, DescriptionLengthExceed, InvalidPageSize, InvalidPage, NegativeGradePoints, NegativeBadgePoints:
+	case BadRequest, InvalidId, JSONParsingErrorReq, TextFieldBlank, InvalidParentValue, DescFieldBlank, UniqueCoreValue, SelfAppreciationError, CannotReportOwnAppreciation, RepeatedReport, InvalidCoreValueID, InvalidReceiverID, InvalidRewardMultiplier, InvalidRewardQuotaRenewalFrequency, InvalidTimezone, InvalidRewardPoint, InvalidEmail, InvalidPassword, DescriptionLengthExceed, InvalidPageSize, InvalidPage, NegativeGradePoints, NegativeBadgePoints, PreviousQuarterRatingNotAllowed:
 		return http.StatusBadRequest
 	case InvalidContactEmail, InvalidDomainName, UserAlreadyPresent, RewardAlreadyPresent, RepeatedUser:
 		return http.StatusConflict
