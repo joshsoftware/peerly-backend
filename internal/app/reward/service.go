@@ -59,6 +59,10 @@ func (rwrdSvc *service) GiveReward(ctx context.Context, rewardReq dto.Reward) (d
 		return dto.Reward{}, apperrors.SelfRewardError
 	}
 
+	if appr.CreatedAt < user.GetQuarterStartUnixTime() {
+		return dto.Reward{}, apperrors.PreviousQuarterRatingNotAllowed
+	}
+
 	userChk, err := rwrdSvc.rewardRepo.UserHasRewardQuota(ctx, nil, rewardReq.SenderId, rewardReq.Point)
 	if err != nil {
 		logger.Errorf(ctx, "rewardService: UserHasRewardQuota: err: %v", err)
