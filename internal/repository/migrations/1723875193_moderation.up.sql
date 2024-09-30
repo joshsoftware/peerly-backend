@@ -1,6 +1,6 @@
-create type status as enum('reported','resolved','deleted');
-
-alter table resolutions
-add status status
-constraint default_value
-default ('reported');
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'status') THEN
+    CREATE TYPE status AS ENUM ('reported', 'resolved', 'deleted');
+  END IF;
+END $$;
