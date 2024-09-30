@@ -10,8 +10,8 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
+	logger "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
-	logger "github.com/sirupsen/logrus"
 )
 
 var (
@@ -50,7 +50,7 @@ func (us *userStore) GetUserByEmail(ctx context.Context, email string) (user rep
 	queryBuilder := repository.Sq.Select(userColumns...).From(us.UsersTable).Where(squirrel.Like{"email": email})
 	getUserByEmailQuery, args, err := queryBuilder.ToSql()
 	if err != nil {
-		logger.Errorf("error in generating query, err: %s", err.Error())
+		logger.Errorf(ctx, "error in generating query, err: %s", err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
@@ -67,7 +67,7 @@ func (us *userStore) GetUserByEmail(ctx context.Context, email string) (user rep
 			return
 		} else {
 			// Possible that there's no rows in the result set
-			logger.Errorf("error selecting user from database by email, err: %s", err.Error())
+			logger.Errorf(ctx, "error selecting user from database by email, err: %s", err.Error())
 			err = apperrors.InternalServerError
 			return
 		}
@@ -126,7 +126,7 @@ func (us *userStore) GetGradeByName(ctx context.Context, name string) (grade rep
 	queryBuilder := repository.Sq.Select(gradeColumns...).From(us.GradesTable).Where(squirrel.Like{"name": name})
 	getGradeId, args, err := queryBuilder.ToSql()
 	if err != nil {
-		logger.Errorf("error in generating query, err: %s", err)
+		logger.Errorf(ctx, "error in generating query, err: %s", err)
 		err = apperrors.InternalServerError
 		return
 	}
@@ -137,7 +137,7 @@ func (us *userStore) GetGradeByName(ctx context.Context, name string) (grade rep
 			err = apperrors.GradeNotFound
 			return
 		}
-		logger.Errorf("error in retriving grade id, grade: %s, err: %s", name, err.Error())
+		logger.Errorf(ctx, "error in retriving grade id, grade: %s, err: %s", name, err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
@@ -251,7 +251,7 @@ func (us *userStore) ListUsers(ctx context.Context, reqData dto.ListUsersReq) (r
 	err = us.DB.Select(&resp, listUsersQuery, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			logger.Errorf("no fields returned, err:%s", err.Error())
+			logger.Errorf(ctx, "no fields returned, err:%s", err.Error())
 			err = nil
 			return
 		}
@@ -325,11 +325,11 @@ LEFT JOIN
      WHERE ub.id = (SELECT MAX(id) FROM user_badges WHERE user_id = ub.user_id)) AS b ON u.id = b.user_id
 LIMIT 10;
 `
-	logger.Info("afterTime: ", afterTime)
+	logger.Info(ctx, "afterTime: ", afterTime)
 
 	rows, err := queryExecutor.Query(query, afterTime, afterTime, afterTime)
 	if err != nil {
-		logger.Error("err: userStore ", err.Error())
+		logger.Error(ctx, "err: userStore ", err.Error())
 		return []repository.ActiveUser{}, err
 	}
 	defer rows.Close()
@@ -344,14 +344,14 @@ LIMIT 10;
 			&user.BadgeName,
 			&user.AppreciationPoints,
 		); err != nil {
-			logger.Error("err: userStore ", err.Error())
+			logger.Error(ctx, "err: userStore ", err.Error())
 			return nil, err
 		}
 		activeUsers = append(activeUsers, user)
 	}
 
 	if err = rows.Err(); err != nil {
-		logger.Error("err: userStore ", err.Error())
+		logger.Error(ctx, "err: userStore ", err.Error())
 		return []repository.ActiveUser{}, err
 	}
 
@@ -370,7 +370,7 @@ func (us *userStore) UpdateRewardQuota(ctx context.Context, tx repository.Transa
 
 	_, err = queryExecutor.Exec(query)
 	if err != nil {
-		logger.Error("err: userStore ", err.Error())
+		logger.Error(ctx, "err: userStore ", err.Error())
 		return err
 	}
 	return
@@ -402,11 +402,11 @@ func (us *userStore) GetUserById(ctx context.Context, reqData dto.GetUserByIdReq
 	err = us.DB.Select(&userList, getUserById, reqData.QuaterTimeStamp, reqData.UserId)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			logger.WithField("err", err.Error()).Error("No fields returned")
+			logger.Errorf(ctx, "no fields returned, err:%v", err)
 			err = apperrors.InvalidId
 			return
 		}
-		logger.WithField("err", err.Error()).Error("Error in fetching users from database")
+		logger.Errorf(ctx, "error in fetching users from database, err: %v", err)
 		err = apperrors.InternalServerError
 		return
 	}
@@ -480,11 +480,11 @@ func (us *userStore) GetAdmin(ctx context.Context, email string) (user repositor
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			logger.Errorf("invalid user email, err:%s", err.Error())
+			logger.Errorf(ctx, "invalid user email, err:%s", err.Error())
 			err = apperrors.InvalidEmail
 			return
 		}
-		logger.Errorf("error in get admin query, err: %s", err.Error())
+		logger.Errorf(ctx, "error in get admin query, err: %s", err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
@@ -502,7 +502,7 @@ func (us *userStore) AddDeviceToken(ctx context.Context, userID int64, notificat
 		Suffix("RETURNING id,user_id,notification_token").
 		ToSql()
 	if err != nil {
-		logger.Errorf("error in generating squirrel query, err: %v", err)
+		logger.Errorf(ctx, "error in generating squirrel query, err: %v", err)
 		return apperrors.InternalServerError
 	}
 
@@ -517,10 +517,10 @@ func (us *userStore) AddDeviceToken(ctx context.Context, userID int64, notificat
 	err = us.DB.QueryRowx(insertQuery, args...).StructScan(&device)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			logger.Error("device not found")
+			logger.Error(ctx, "device not found")
 			return apperrors.InternalServerError
 		}
-		logger.Errorf("failed to execute query: %v", err)
+		logger.Errorf(ctx, "failed to execute query: %v", err)
 		return apperrors.InternalServerError
 	}
 	return nil

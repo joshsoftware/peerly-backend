@@ -15,7 +15,7 @@ type AppreciationStorer interface {
 	ListAppreciations(ctx context.Context, tx Transaction, filter dto.AppreciationFilter) ([]AppreciationResponse, Pagination, error)
 	DeleteAppreciation(ctx context.Context, tx Transaction, apprId int32) error
 	IsUserPresent(ctx context.Context, tx Transaction, userID int64) (bool, error)
-	UpdateAppreciationTotalRewardsOfYesterday(ctx context.Context, tx Transaction,orgTimezone string) (bool, error)
+	UpdateAppreciationTotalRewardsOfYesterday(ctx context.Context, tx Transaction, orgTimezone string) (bool, error)
 	UpdateUserBadgesBasedOnTotalRewards(ctx context.Context, tx Transaction) ([]UserBadgeDetails, error)
 }
 

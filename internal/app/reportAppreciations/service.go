@@ -10,8 +10,8 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/pkg/config"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
+	logger "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
-	logger "github.com/sirupsen/logrus"
 )
 
 type service struct {
@@ -41,7 +41,7 @@ func (rs *service) ReportAppreciation(ctx context.Context, reqData dto.ReportApp
 	fmt.Printf("reporterId: %T", reporterId)
 	data, ok := reporterId.(int64)
 	if !ok {
-		logger.Error("Error in typecasting reporter id")
+		logger.Error(ctx, "Error in typecasting reporter id")
 		err = apperrors.InternalServerError
 		return
 	}
@@ -118,7 +118,7 @@ func (rs *service) ListReportedAppreciations(ctx context.Context) (dto.ListRepor
 
 	appreciations, err := rs.reportAppreciationRepo.ListReportedAppreciations(ctx)
 	if err != nil {
-		logger.Error(err.Error())
+		logger.Error(ctx, err.Error())
 		err = apperrors.InternalServerError
 		return resp, err
 	}
@@ -182,7 +182,7 @@ func (rs *service) DeleteAppreciation(ctx context.Context, reqData dto.Moderatio
 	fmt.Printf("moderatorId: %T", moderatorId)
 	data, ok := moderatorId.(int64)
 	if !ok {
-		logger.Error("Error in typecasting moderator id")
+		logger.Error(ctx, "Error in typecasting moderator id")
 		err = apperrors.InternalServerError
 		return
 	}
@@ -196,7 +196,7 @@ func (rs *service) DeleteAppreciation(ctx context.Context, reqData dto.Moderatio
 	reqData.AppreciationId = appreciation.Appreciation_id
 	err = rs.reportAppreciationRepo.DeleteAppreciation(ctx, reqData)
 	if err != nil {
-		logger.Error(err.Error())
+		logger.Error(ctx, err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
@@ -307,12 +307,13 @@ func sendReportEmail(senderEmail string, senderFirstName string, senderLastName 
 		AppreciationReceiverName: fmt.Sprint(apprReceiverFirstName, " ", apprReceiverLastName),
 	}
 
-	logger.Info("report sender email: ---------> ", senderEmail)
+	ctx := context.Background()
+	logger.Info(ctx, "report sender email: ---------> ", senderEmail)
 	mailReq := email.NewMail([]string{senderEmail}, []string{"dl_peerly.support@joshsoftware.com"}, []string{}, "🙏 Thanks for Your Feedback! We’re On It! 🔧")
 	mailReq.ParseTemplate("./internal/app/email/templates/reportAppreciation.html", templateData)
 	err := mailReq.Send()
 	if err != nil {
-		logger.Errorf("err: %v", err)
+		logger.Errorf(ctx, "err: %v", err)
 		return err
 	}
 	return nil
@@ -323,7 +324,7 @@ func (rs *service) ResolveAppreciation(ctx context.Context, reqData dto.Moderati
 	fmt.Printf("moderatorId: %T", moderatorId)
 	data, ok := moderatorId.(int64)
 	if !ok {
-		logger.Error("Error in typecasting moderator id")
+		logger.Error(ctx, "Error in typecasting moderator id")
 		err = apperrors.InternalServerError
 		return
 	}
@@ -336,7 +337,7 @@ func (rs *service) ResolveAppreciation(ctx context.Context, reqData dto.Moderati
 	reqData.AppreciationId = appreciation.Appreciation_id
 	err = rs.reportAppreciationRepo.ResolveAppreciation(ctx, reqData)
 	if err != nil {
-		logger.Error(err.Error())
+		logger.Error(ctx, err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
@@ -387,30 +388,31 @@ func (rs *service) ResolveAppreciation(ctx context.Context, reqData dto.Moderati
 
 func sendDeleteEmail(reporterEmail string, senderEmail string, receiverEmail string, templateData dto.DeleteAppreciationMail) error {
 
-	logger.Info("reporter email: ---------> ", reporterEmail)
+	ctx := context.Background()
+	logger.Info(ctx, "reporter email: ---------> ", reporterEmail)
 	mailReq := email.NewMail([]string{reporterEmail}, []string{}, []string{}, "Results of reported appreciation")
 	mailReq.ParseTemplate("./internal/app/email/templates/deleteAppreciation.html", templateData)
 	err := mailReq.Send()
 	if err != nil {
-		logger.Errorf("err: %v", err)
+		logger.Errorf(ctx, "err: %v", err)
 		return err
 	}
 
-	logger.Info("sender email: ---------> ", senderEmail)
+	logger.Info(ctx, "sender email: ---------> ", senderEmail)
 	mailReq = email.NewMail([]string{senderEmail}, []string{}, []string{}, "Results of reported appreciation")
 	mailReq.ParseTemplate("./internal/app/email/templates/senderDeleteEmail.html", templateData)
 	err = mailReq.Send()
 	if err != nil {
-		logger.Errorf("err: %v", err)
+		logger.Errorf(ctx, "err: %v", err)
 		return err
 	}
 
-	logger.Info("receiver email: ---------> ", receiverEmail)
+	logger.Info(ctx, "receiver email: ---------> ", receiverEmail)
 	mailReq = email.NewMail([]string{receiverEmail}, []string{}, []string{}, "Results of reported appreciation")
 	mailReq.ParseTemplate("./internal/app/email/templates/receiverDeleteEmail.html", templateData)
 	err = mailReq.Send()
 	if err != nil {
-		logger.Errorf("err: %v", err)
+		logger.Errorf(ctx, "err: %v", err)
 		return err
 	}
 
@@ -419,12 +421,13 @@ func sendDeleteEmail(reporterEmail string, senderEmail string, receiverEmail str
 
 func sendResolveEmail(senderEmail string, templateData dto.ResolveAppreciationMail) error {
 
-	logger.Info("report sender email: ---------> ", senderEmail)
+	ctx := context.Background()
+	logger.Info(ctx, "report sender email: ---------> ", senderEmail)
 	mailReq := email.NewMail([]string{senderEmail}, []string{}, []string{}, "Results of reported appreciation")
 	mailReq.ParseTemplate("./internal/app/email/templates/resolveAppreciation.html", templateData)
 	err := mailReq.Send()
 	if err != nil {
-		logger.Errorf("err: %v", err)
+		logger.Errorf(ctx, "err: %v", err)
 		return err
 	}
 	return nil

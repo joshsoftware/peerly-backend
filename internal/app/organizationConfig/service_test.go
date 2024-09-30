@@ -134,12 +134,12 @@ func TestCreateOrganizationConfig(t *testing.T) {
 			expectedError: nil,
 		},
 		{
-			name: "Organization config already present",
+			name:    "Organization config already present",
 			context: context.WithValue(context.Background(), constants.UserId, int64(1)),
 			setup: func(orgMock *mocks.OrganizationConfigStorer) {
-				orgMock.On("GetOrganizationConfig", mock.Anything,nil).Return(repository.OrganizationConfig{
-					ID:                           1,
-					RewardMultiplier:             200,
+				orgMock.On("GetOrganizationConfig", mock.Anything, nil).Return(repository.OrganizationConfig{
+					ID:                          1,
+					RewardMultiplier:            200,
 					RewardQuotaRenewalFrequency: 12,
 					Timezone:                    "ACT",
 					CreatedAt:                   1719918501194,
@@ -149,19 +149,19 @@ func TestCreateOrganizationConfig(t *testing.T) {
 				}, nil).Once()
 			},
 			organizationInput: dto.OrganizationConfig{
-				RewardMultiplier: 10,
+				RewardMultiplier:            10,
 				RewardQuotaRenewalFrequency: 5,
-				Timezone: "UTC",
+				Timezone:                    "UTC",
 			},
-			expectedResult:  dto.OrganizationConfig{},
-			expectedError:   apperrors.OrganizationConfigAlreadyPresent,
+			expectedResult: dto.OrganizationConfig{},
+			expectedError:  apperrors.OrganizationConfigAlreadyPresent,
 		},
 		{
-			name: "Error while creating organization config",
+			name:    "Error while creating organization config",
 			context: context.WithValue(context.Background(), constants.UserId, int64(1)),
 			setup: func(orgMock *mocks.OrganizationConfigStorer) {
-				orgMock.On("GetOrganizationConfig", mock.Anything,nil).Return(repository.OrganizationConfig{}, apperrors.OrganizationConfigNotFound).Once()
-				orgMock.On("CreateOrganizationConfig", mock.Anything,nil,dto.OrganizationConfig{
+				orgMock.On("GetOrganizationConfig", mock.Anything, nil).Return(repository.OrganizationConfig{}, apperrors.OrganizationConfigNotFound).Once()
+				orgMock.On("CreateOrganizationConfig", mock.Anything, nil, dto.OrganizationConfig{
 					RewardMultiplier:            10,
 					RewardQuotaRenewalFrequency: 5,
 					Timezone:                    "UTC",
@@ -170,12 +170,12 @@ func TestCreateOrganizationConfig(t *testing.T) {
 				}).Return(repository.OrganizationConfig{}, apperrors.InternalServer).Once()
 			},
 			organizationInput: dto.OrganizationConfig{
-				RewardMultiplier: 10,
+				RewardMultiplier:            10,
 				RewardQuotaRenewalFrequency: 5,
-				Timezone: "UTC",
+				Timezone:                    "UTC",
 			},
-			expectedResult:  dto.OrganizationConfig{},
-			expectedError:   apperrors.InternalServer,
+			expectedResult: dto.OrganizationConfig{},
+			expectedError:  apperrors.InternalServer,
 		},
 	}
 
@@ -216,7 +216,7 @@ func TestUpdateOrganizationConfig(t *testing.T) {
 			name:    "Successful organization config update",
 			context: context.WithValue(context.Background(), constants.UserId, int64(1)),
 			setup: func(orgMock *mocks.OrganizationConfigStorer) {
-				orgMock.On("GetOrganizationConfig", mock.Anything,nil).Return(repository.OrganizationConfig{
+				orgMock.On("GetOrganizationConfig", mock.Anything, nil).Return(repository.OrganizationConfig{
 					ID:                          1,
 					RewardMultiplier:            200,
 					RewardQuotaRenewalFrequency: 12,
@@ -226,8 +226,8 @@ func TestUpdateOrganizationConfig(t *testing.T) {
 					UpdatedAt:                   1719920402224,
 					UpdatedBy:                   7,
 				}, nil).Once()
-				orgMock.On("UpdateOrganizationConfig", mock.Anything,nil, dto.OrganizationConfig{
-					ID: 1,
+				orgMock.On("UpdateOrganizationConfig", mock.Anything, nil, dto.OrganizationConfig{
+					ID:                          1,
 					RewardMultiplier:            10,
 					RewardQuotaRenewalFrequency: 5,
 					Timezone:                    "UTC",
@@ -244,7 +244,7 @@ func TestUpdateOrganizationConfig(t *testing.T) {
 				}, nil).Once()
 			},
 			organizationInput: dto.OrganizationConfig{
-				ID: 1,
+				ID:                          1,
 				RewardMultiplier:            10,
 				RewardQuotaRenewalFrequency: 5,
 				Timezone:                    "UTC",
@@ -266,7 +266,7 @@ func TestUpdateOrganizationConfig(t *testing.T) {
 			name:    "Organization config not found",
 			context: context.WithValue(context.Background(), constants.UserId, int64(1)),
 			setup: func(orgMock *mocks.OrganizationConfigStorer) {
-				orgMock.On("GetOrganizationConfig", mock.Anything,nil).Return(repository.OrganizationConfig{}, apperrors.OrganizationConfigNotFound).Once()
+				orgMock.On("GetOrganizationConfig", mock.Anything, nil).Return(repository.OrganizationConfig{}, apperrors.OrganizationConfigNotFound).Once()
 			},
 			organizationInput: dto.OrganizationConfig{
 				ID: 1,
@@ -278,7 +278,7 @@ func TestUpdateOrganizationConfig(t *testing.T) {
 			name:    "Error while updating organization config",
 			context: context.WithValue(context.Background(), constants.UserId, int64(1)),
 			setup: func(orgMock *mocks.OrganizationConfigStorer) {
-				orgMock.On("GetOrganizationConfig", mock.Anything,nil).Return(repository.OrganizationConfig{
+				orgMock.On("GetOrganizationConfig", mock.Anything, nil).Return(repository.OrganizationConfig{
 					ID:                          1,
 					RewardMultiplier:            200,
 					RewardQuotaRenewalFrequency: 12,
@@ -289,7 +289,7 @@ func TestUpdateOrganizationConfig(t *testing.T) {
 					UpdatedBy:                   7,
 				}, nil).Once()
 				orgMock.On("UpdateOrganizationConfig", mock.Anything, nil, dto.OrganizationConfig{
-					ID: 1,
+					ID:                          1,
 					RewardMultiplier:            10,
 					RewardQuotaRenewalFrequency: 5,
 					Timezone:                    "UTC",
@@ -297,7 +297,7 @@ func TestUpdateOrganizationConfig(t *testing.T) {
 				}).Return(repository.OrganizationConfig{}, apperrors.InternalServer).Once()
 			},
 			organizationInput: dto.OrganizationConfig{
-				ID: 1,
+				ID:                          1,
 				RewardMultiplier:            10,
 				RewardQuotaRenewalFrequency: 5,
 				Timezone:                    "UTC",

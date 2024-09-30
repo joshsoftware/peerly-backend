@@ -11,9 +11,9 @@ func MapActiveUserDbtoDto(activeUserDb repository.ActiveUser) dto.ActiveUser {
 		profileImageURL = activeUserDb.ProfileImageURL.String
 	}
 	return dto.ActiveUser{
-		ID:                 activeUserDb.ID,
-		FirstName:          activeUserDb.FirstName,
-		LastName:           activeUserDb.LastName,
-		ProfileImageURL:    profileImageURL,
+		ID:              activeUserDb.ID,
+		FirstName:       activeUserDb.FirstName,
+		LastName:        activeUserDb.LastName,
+		ProfileImageURL: profileImageURL,
 	}
 }

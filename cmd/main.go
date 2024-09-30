@@ -17,6 +17,7 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/app"
 	"github.com/joshsoftware/peerly-backend/internal/app/cronjob"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/config"
+	log "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
 	script "github.com/joshsoftware/peerly-backend/scripts"
 	"github.com/rs/cors"
@@ -94,13 +95,18 @@ func startApp() (err error) {
 
 	// Context for main function
 	ctx := context.Background()
-	logger.Info("Starting Peerly Application...")
-	defer logger.Info("Shutting Down Peerly Application...")
+	lg, err := log.SetupLogger()
+	if err != nil {
+		logger.Error("logger setup failed ", err.Error())
+		return err
+	}
+	log.Info(ctx, "Starting Peerly Application...")
+	defer log.Info(ctx, "Shutting Down Peerly Application...")
 	//initialize database
 	dbInstance, err := repository.InitializeDatabase()
 	if err != nil {
-		logger.WithField("err", err.Error()).Error("Database init failed")
-		return
+		log.Error(ctx, "Database init failed")
+		return err
 	}
 
 	//cors
@@ -117,11 +123,11 @@ func startApp() (err error) {
 	// Initializing Cron Job
 	scheduler, err := gocron.NewScheduler()
 	if err != nil {
-		logger.Error(ctx, "scheduler creation failed with error: %s", err.Error())
-		return
+		log.Error(ctx, "scheduler creation failed with error: %s", err.Error())
+		return err
 	}
 
-	err = cronjob.InitializeJobs(services.AppreciationService, services.UserService,services.OrganizationConfigService, scheduler)
+	err = cronjob.InitializeJobs(services.AppreciationService, services.UserService, services.OrganizationConfigService, scheduler)
 	if err != nil {
 		logger.WithField("err", err.Error()).Error("CronJob Initialize failed")
 		return
@@ -130,8 +136,12 @@ func startApp() (err error) {
 	//initialize router
 	router := api.NewRouter(services)
 
-	// init web server
-	server := negroni.Classic()
+	// Negroni logger setup
+	negroniLogger := negroni.NewLogger()
+	negroniLogger.ALogger = lg
+
+	// Initialize web server
+	server := negroni.New(negroniLogger)
 	server.Use(c)
 	server.UseHandler(router)
 

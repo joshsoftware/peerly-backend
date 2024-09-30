@@ -6,9 +6,9 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
+	logger "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/utils"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
-	logger "github.com/sirupsen/logrus"
 )
 
 type service struct {
@@ -32,7 +32,7 @@ func (gs *service) ListGrades(ctx context.Context) (resp []dto.Grade, err error)
 
 	dbResp, err := gs.gradesRepo.ListGrades(ctx)
 	if err != nil {
-		logger.Error(err.Error())
+		logger.Error(ctx, err.Error())
 		err = apperrors.InternalServerError
 	}
 
@@ -67,7 +67,7 @@ func (gs *service) EditGrade(ctx context.Context, id string, points int64) (err 
 	var reqData dto.UpdateGradeReq
 	reqData.Id = gradeId
 	if points < 0 {
-		logger.Errorf("grade points cannot be negative, grade points: %d", points)
+		logger.Errorf(ctx, "grade points cannot be negative, grade points: %d", points)
 		err = apperrors.NegativeGradePoints
 		return
 	}
@@ -75,14 +75,14 @@ func (gs *service) EditGrade(ctx context.Context, id string, points int64) (err 
 	userId := ctx.Value(constants.UserId)
 	data, ok := userId.(int64)
 	if !ok {
-		logger.Error("Error in typecasting user id")
+		logger.Error(ctx, "Error in typecasting user id")
 		err = apperrors.InternalServerError
 		return
 	}
 	reqData.UpdatedBy = data
 	err = gs.gradesRepo.EditGrade(ctx, reqData)
 	if err != nil {
-		logger.Error(err.Error())
+		logger.Error(ctx, err.Error())
 		err = apperrors.InternalServerError
 		return
 	}

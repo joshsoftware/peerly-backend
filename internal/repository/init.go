@@ -40,7 +40,7 @@ func InitializeDatabase() (db *sqlx.DB, err error) {
 
 	conn, err := sqlx.Connect(dbDriver, uri)
 	if err != nil {
-		logger.Errorf("Cannot initialize database: %v",err)
+		logger.Errorf("Cannot initialize database: %v", err)
 		return
 	}
 	return conn, nil
@@ -54,13 +54,13 @@ func RunMigrations() (err error) {
 
 	driver, err := postgres.WithInstance(db, &postgres.Config{})
 	if err != nil {
-		logger.Errorf("failure to create driver obj: %v",err)
+		logger.Errorf("failure to create driver obj: %v", err)
 		return apperrors.FailedToCreateDriver
 	}
 
 	m, err := migrate.NewWithDatabaseInstance(getMigrationPath(), dbDriver, driver)
 	if err != nil {
-		logger.Errorf("migrate failure: %v",err)
+		logger.Errorf("migrate failure: %v", err)
 		return apperrors.MigrationFailure
 	}
 

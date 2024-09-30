@@ -9,8 +9,8 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
+	logger "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
-	logger "github.com/sirupsen/logrus"
 )
 
 var CoreValueColumns = []string{"id", "name", "description", "parent_core_value_id"}
@@ -56,7 +56,7 @@ func (cs *coreValueStore) GetCoreValue(ctx context.Context, coreValueID int64) (
 
 	getCoreValueQuery, args, err := queryBuilder.ToSql()
 	if err != nil {
-		logger.Errorf("error in generating squirrel query, err: %s", err.Error())
+		logger.Errorf(ctx, "error in generating squirrel query, err: %s", err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
@@ -68,7 +68,7 @@ func (cs *coreValueStore) GetCoreValue(ctx context.Context, coreValueID int64) (
 		args...,
 	)
 	if err != nil {
-		logger.Errorf("error while getting core value, corevalue_id: %d, err: %s", coreValueID, err.Error())
+		logger.Errorf(ctx, "error while getting core value, corevalue_id: %d, err: %s", coreValueID, err.Error())
 		err = apperrors.InvalidCoreValueData
 		return
 	}

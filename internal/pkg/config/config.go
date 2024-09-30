@@ -103,3 +103,7 @@ func PeerlyBaseUrl() string {
 func IntranetBaseUrl() string {
 	return (ReadEnvString(constants.IntranetBaseUrl))
 }
+
+func DeveloperKey() string {
+	return (ReadEnvString(constants.DeveloperKey))
+}

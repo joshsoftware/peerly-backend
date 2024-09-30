@@ -7,11 +7,12 @@ import (
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/google/uuid"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/config"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
-	logger "github.com/sirupsen/logrus"
+	logger "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
 )
 
 func JwtAuthMiddleware(next http.Handler, role int) http.Handler {
@@ -19,7 +20,7 @@ func JwtAuthMiddleware(next http.Handler, role int) http.Handler {
 		jwtKey := config.JWTKey()
 		authToken := req.Header.Get(constants.AuthorizationHeader)
 		if authToken == "" {
-			logger.Error("Empty auth token")
+			logger.Error(context.Background(), "Empty auth token")
 			err := apperrors.InvalidAuthToken
 			dto.ErrorRepsonse(rw, err)
 			return
@@ -33,14 +34,14 @@ func JwtAuthMiddleware(next http.Handler, role int) http.Handler {
 		})
 
 		if err != nil {
-			logger.WithField("err", err.Error()).Error("Error in parse with claims function")
+			logger.Error(context.Background(), "Error in parse with claims function")
 			err = apperrors.InvalidAuthToken
 			dto.ErrorRepsonse(rw, err)
 			return
 		}
 
 		if !tkn.Valid {
-			logger.Error("Invalid token")
+			logger.Error(context.Background(), "Invalid token")
 			err = apperrors.InvalidAuthToken
 			dto.ErrorRepsonse(rw, err)
 			return
@@ -59,9 +60,20 @@ func JwtAuthMiddleware(next http.Handler, role int) http.Handler {
 		fmt.Println("setting id: ", Id)
 		ctx := context.WithValue(req.Context(), constants.UserId, Id)
 		ctx = context.WithValue(ctx, constants.Role, Role)
+
 		req = req.WithContext(ctx)
 
 		next.ServeHTTP(rw, req)
 
+	})
+}
+
+// RequestIDMiddleware generates a request ID and adds it to the request context.
+func RequestIDMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestID := uuid.NewString()
+		ctx := context.WithValue(r.Context(), constants.RequestID, requestID)
+		r = r.WithContext(ctx)
+		next.ServeHTTP(w, r)
 	})
 }

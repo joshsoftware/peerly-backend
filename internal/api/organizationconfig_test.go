@@ -26,14 +26,14 @@ func TestGetOrganizationConfigHandler(t *testing.T) {
 			name: "Success fetching organization",
 			setup: func(mockSvc *mocks.Service) {
 				mockSvc.On("GetOrganizationConfig", mock.Anything).Return(dto.OrganizationConfig{
-					ID: 1,
-					RewardMultiplier: 1,
+					ID:                          1,
+					RewardMultiplier:            1,
 					RewardQuotaRenewalFrequency: 1,
-					Timezone: "UTC",
-					CreatedAt:1,
-					CreatedBy:1721631405219,
-					UpdatedAt:1,
-					UpdatedBy:1721631405219,
+					Timezone:                    "UTC",
+					CreatedAt:                   1,
+					CreatedBy:                   1721631405219,
+					UpdatedAt:                   1,
+					UpdatedBy:                   1721631405219,
 				}, nil).Once()
 			},
 			expectedStatusCode: http.StatusOK,
@@ -66,7 +66,6 @@ func TestGetOrganizationConfigHandler(t *testing.T) {
 	}
 }
 
-
 func TestCreateOrganizationConfigHandler(t *testing.T) {
 	orgSvc := mocks.NewService(t)
 	handler := createOrganizationConfigHandler(orgSvc)
@@ -80,28 +79,27 @@ func TestCreateOrganizationConfigHandler(t *testing.T) {
 		{
 			name: "Successful organization config creation",
 			requestBody: dto.OrganizationConfig{
-				RewardMultiplier: 10,
+				RewardMultiplier:            10,
 				RewardQuotaRenewalFrequency: 5,
-				Timezone: "UTC",
+				Timezone:                    "UTC",
 			},
 			setup: func(mockSvc *mocks.Service) {
 				mockSvc.On("CreateOrganizationConfig", mock.Anything, mock.Anything).Return(dto.OrganizationConfig{
-					ID: 1,
-					RewardMultiplier: 200,
+					ID:                          1,
+					RewardMultiplier:            200,
 					RewardQuotaRenewalFrequency: 12,
-					Timezone: "ACT",
-					CreatedAt: 1719918501194,
-					CreatedBy: 7,
-					UpdatedAt: 1719920402224,
-					UpdatedBy: 7,
+					Timezone:                    "ACT",
+					CreatedAt:                   1719918501194,
+					CreatedBy:                   7,
+					UpdatedAt:                   1719920402224,
+					UpdatedBy:                   7,
 				}, nil).Once()
 			},
 			expectedStatusCode: http.StatusCreated,
 		},
 		{
-			name: "JSON decoding error",
-			requestBody: dto.OrganizationConfig{
-			},
+			name:        "JSON decoding error",
+			requestBody: dto.OrganizationConfig{},
 			setup: func(mockSvc *mocks.Service) {
 			},
 			expectedStatusCode: http.StatusBadRequest,
@@ -109,9 +107,9 @@ func TestCreateOrganizationConfigHandler(t *testing.T) {
 		{
 			name: "Validation error",
 			requestBody: dto.OrganizationConfig{
-				RewardMultiplier: 0,
+				RewardMultiplier:            0,
 				RewardQuotaRenewalFrequency: 0,
-				Timezone: "ABCD",
+				Timezone:                    "ABCD",
 			},
 			setup: func(mockSvc *mocks.Service) {
 			},
@@ -120,9 +118,9 @@ func TestCreateOrganizationConfigHandler(t *testing.T) {
 		{
 			name: "Error creating organization config",
 			requestBody: dto.OrganizationConfig{
-				RewardMultiplier: 10,
+				RewardMultiplier:            10,
 				RewardQuotaRenewalFrequency: 5,
-				Timezone: "UTC",
+				Timezone:                    "UTC",
 			},
 			setup: func(mockSvc *mocks.Service) {
 				mockSvc.On("CreateOrganizationConfig", mock.Anything, mock.Anything).Return(dto.OrganizationConfig{}, apperrors.InternalServerError).Once()
@@ -154,7 +152,6 @@ func TestCreateOrganizationConfigHandler(t *testing.T) {
 	}
 }
 
-
 func TestUpdateOrganizationConfigHandler(t *testing.T) {
 	orgSvc := mocks.NewService(t)
 	handler := updateOrganizationConfigHandler(orgSvc)
@@ -168,20 +165,20 @@ func TestUpdateOrganizationConfigHandler(t *testing.T) {
 		{
 			name: "Successful organization config update",
 			requestBody: dto.OrganizationConfig{
-				RewardMultiplier: 10,
+				RewardMultiplier:            10,
 				RewardQuotaRenewalFrequency: 5,
-				Timezone: "UTC",
+				Timezone:                    "UTC",
 			},
 			setup: func(mockSvc *mocks.Service) {
 				mockSvc.On("UpdateOrganizationConfig", mock.Anything, mock.Anything).Return(dto.OrganizationConfig{
-					ID: 1,
-					RewardMultiplier: 10,
+					ID:                          1,
+					RewardMultiplier:            10,
 					RewardQuotaRenewalFrequency: 5,
-					Timezone: "UTC",
-					CreatedAt: 1719918501194,
-					CreatedBy: 7,
-					UpdatedAt: 1719920402224,
-					UpdatedBy: 7,
+					Timezone:                    "UTC",
+					CreatedAt:                   1719918501194,
+					CreatedBy:                   7,
+					UpdatedAt:                   1719920402224,
+					UpdatedBy:                   7,
 				}, nil).Once()
 			},
 			expectedStatusCode: http.StatusOK,
@@ -189,9 +186,9 @@ func TestUpdateOrganizationConfigHandler(t *testing.T) {
 		{
 			name: "Validation error",
 			requestBody: dto.OrganizationConfig{
-				RewardMultiplier: 0,
+				RewardMultiplier:            0,
 				RewardQuotaRenewalFrequency: 0,
-				Timezone: "ABCD",
+				Timezone:                    "ABCD",
 			},
 			setup: func(mockSvc *mocks.Service) {
 			},
@@ -200,9 +197,9 @@ func TestUpdateOrganizationConfigHandler(t *testing.T) {
 		{
 			name: "Error updating organization config",
 			requestBody: dto.OrganizationConfig{
-				RewardMultiplier: 10,
+				RewardMultiplier:            10,
 				RewardQuotaRenewalFrequency: 5,
-				Timezone: "UTC",
+				Timezone:                    "UTC",
 			},
 			setup: func(mockSvc *mocks.Service) {
 				mockSvc.On("UpdateOrganizationConfig", mock.Anything, mock.Anything).Return(dto.OrganizationConfig{}, apperrors.InternalServerError).Once()

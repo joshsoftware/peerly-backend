@@ -1,25 +1,105 @@
 package log
 
 import (
+	"context"
+	"fmt"
+	"io"
+	"os"
+	"time"
+
+	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	l "github.com/sirupsen/logrus"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-// Error - prints out an error
-func Error(appError error, msg string, triggeringError error) {
-	l.WithFields(l.Fields{"appError": appError, "message": msg}).Error(triggeringError)
+var Logger *l.Logger
+
+var lumberjackLogger = &lumberjack.Logger{
+	MaxSize:    100, // megabytes
+	MaxBackups: 3,   // number of log files
+	MaxAge:     365, // days
+	Compress:   true,
 }
 
-// Warn - for warnings
-func Warn(appError error, msg string, triggeringError error) {
-	l.WithFields(l.Fields{"appError": appError, "message": msg}).Warn(triggeringError)
+// Error - prints out an error
+func Error(ctx context.Context, args ...interface{}) {
+	log := getLoggerWithRequestContext(ctx)
+	log.Error(args...)
+}
+
+// Errorf - prints out an error with formatted output
+func Errorf(ctx context.Context, format string, args ...interface{}) {
+	log := getLoggerWithRequestContext(ctx)
+	log.Errorf(format, args...)
+}
+
+// Warn - prints out a warning
+func Warn(ctx context.Context, args ...interface{}) {
+	log := getLoggerWithRequestContext(ctx)
+	log.Warn(args...)
 }
 
 // Fatal - will print out the error info and exit the program
-func Fatal(appError error, msg string, triggeringError error) {
-	l.WithFields(l.Fields{"appError": appError, "message": msg}).Fatal(triggeringError)
+func Fatal(ctx context.Context, args ...interface{}) {
+	log := getLoggerWithRequestContext(ctx)
+	log.Fatal(args...)
 }
 
 // Info - prints out basic information
-func Info(msg string) {
-	l.WithFields(l.Fields{"info": msg}).Info(msg)
+func Info(ctx context.Context, args ...interface{}) {
+	log := getLoggerWithRequestContext(ctx)
+	log.Info(args...)
+}
+
+// Infof - prints out basic information
+func Infof(ctx context.Context, format string, args ...interface{}) {
+	log := getLoggerWithRequestContext(ctx)
+	log.Infof(format, args...)
+}
+
+// Debug - prints out debug information
+func Debug(ctx context.Context, args ...interface{}) {
+	log := getLoggerWithRequestContext(ctx)
+	log.Debug(args...)
+}
+
+func SetupLogger() (*l.Logger, error) {
+
+	lumberjackLogger.Filename = fmt.Sprintf("/var/log/peerly/%s_peerly_backend.log", time.Now().Format("2006-01-02_15-04-05"))
+	file, err := os.Create(lumberjackLogger.Filename)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create log file: %w", err)
+	}
+	file.Close()
+
+	// Initialize Logrus logger
+	logger := l.New()
+	logger.SetOutput(io.MultiWriter(os.Stdout, lumberjackLogger))
+	logger.SetFormatter(&l.TextFormatter{
+		FullTimestamp: true,
+	})
+
+	// Set the logging level
+	logger.SetLevel(l.InfoLevel)
+
+	Logger = logger
+	return logger, nil
+}
+
+func getLoggerWithRequestContext(ctx context.Context) *l.Entry {
+	requestID, ok := ctx.Value(constants.RequestID).(string)
+	if !ok {
+		requestID = "N/A"
+	}
+
+	data := ctx.Value(constants.UserId)
+	userID, ok := data.(int64)
+	if !ok {
+		userID = 0
+	}
+
+	return Logger.WithFields(l.Fields{
+		"req_id":  requestID,
+		"user_id": userID,
+	})
 }
