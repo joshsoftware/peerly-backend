@@ -152,13 +152,13 @@ func (rwrdSvc *service) sendRewardNotificationToSender(ctx context.Context, user
 		logger.Errorf(ctx, "err in getting device tokens: %v", err)
 		return
 	}
-	logger.Debug(ctx, " notificationTokens: ", notificationTokens)
 
 	msg := notification.Message{
 		Title: "Reward Given Successfully",
 		Body:  "You have successfully given a reward! ",
 	}
 
+	logger.Debug(ctx, "msg:", msg, " notificationTokens: ", notificationTokens)
 	for _, notificationToken := range notificationTokens {
 		msg.SendNotificationToNotificationToken(notificationToken)
 	}
