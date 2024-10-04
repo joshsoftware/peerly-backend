@@ -378,27 +378,44 @@ func (us *userStore) UpdateRewardQuota(ctx context.Context, tx repository.Transa
 
 func (us *userStore) GetUserById(ctx context.Context, reqData dto.GetUserByIdReq) (user dto.GetUserByIdResp, err error) {
 
-	getUserById := `select users.id, users.first_name, users.last_name, users.email, users.profile_image_url, users.designation, users.reward_quota_balance, users.grade_id, users.employee_id, 
-		(
-		select sum(total_reward_points) 
-		from appreciations
-		where
-		receiver = users.id
-		and
-		appreciations.created_at >= $1
-		) as total_points, 
-	badges.name, user_badges.created_at as badge_created_at 
-	from users
-	left join user_badges 
-	on user_badges.user_id = users.id
-	left join badges
-	on user_badges.badge_id = badges.id
-	where users.id = $2
-	group by users.id, badges.name, user_badges.id
-	order by user_badges.created_at desc`
+	// SQL query to fetch user details and their latest badge using DISTINCT ON
+	getUserById := `
+	SELECT 
+	    users.id, 
+	    users.first_name, 
+	    users.last_name, 
+	    users.email, 
+	    users.profile_image_url, 
+	    users.designation, 
+	    users.reward_quota_balance, 
+	    users.grade_id, 
+	    users.employee_id, 
+	    (
+	        SELECT COALESCE(SUM(total_reward_points), 0) 
+	        FROM appreciations
+	        WHERE appreciations.receiver = users.id
+	        AND appreciations.created_at >= $1
+	    ) AS total_points, 
+	    COALESCE(badges.name, '') AS name, -- If badge is NULL, return empty string
+	    COALESCE(latest_badge.created_at, 0) AS badge_created_at -- If badge date is NULL, return 0
+	FROM users
+	LEFT JOIN (
+	    SELECT DISTINCT ON (user_badges.user_id) 
+	        user_badges.user_id, 
+	        user_badges.badge_id, 
+	        user_badges.created_at
+	    FROM user_badges
+	    WHERE user_badges.created_at >= $1
+	    ORDER BY user_badges.user_id, user_badges.created_at DESC
+	) AS latest_badge ON latest_badge.user_id = users.id
+	LEFT JOIN badges ON latest_badge.badge_id = badges.id
+	WHERE users.id = $2
+	GROUP BY users.id, badges.name , latest_badge.created_at
+	ORDER BY latest_badge.created_at DESC
+	LIMIT 1;`
 
+	// Fetch user details and badges from the database
 	var userList []dto.GetUserByIdDbResp
-
 	err = us.DB.Select(&userList, getUserById, reqData.QuaterTimeStamp, reqData.UserId)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -411,21 +428,32 @@ func (us *userStore) GetUserById(ctx context.Context, reqData dto.GetUserByIdReq
 		return
 	}
 
-	if (userList[0].BadgeCreatedAt.Valid && userList[0].BadgeCreatedAt.Int64 >= reqData.QuaterTimeStamp) || !userList[0].BadgeCreatedAt.Valid {
-		user.UserId = userList[0].UserId
-		user.FirstName = userList[0].FirstName
-		user.LastName = userList[0].LastName
-		user.Email = userList[0].Email
-		user.ProfileImgUrl = userList[0].ProfileImgUrl
-		user.Designation = userList[0].Designation
-		user.RewardQuotaBalance = userList[0].RewardQuotaBalance
-		user.GradeId = userList[0].GradeId
-		user.EmployeeId = userList[0].EmployeeId
-		user.TotalPoints = userList[0].TotalPoints.Int64
-		user.Badge = userList[0].Badge.String
-		user.BadgeCreatedAt = userList[0].BadgeCreatedAt.Int64
+	// Ensure we got at least one result from the database
+	if len(userList) == 0 {
+		logger.Errorf(ctx, "user not found, err: %v", err)
+		err = apperrors.InvalidId
+		return
 	}
-	return
+
+	// Log the retrieved user data for debugging
+	logger.Info(ctx, "userlist: ", userList)
+
+	// Assign values to the response
+	userData := userList[0]
+	user.UserId = userData.UserId
+	user.FirstName = userData.FirstName
+	user.LastName = userData.LastName
+	user.Email = userData.Email
+	user.ProfileImgUrl = userData.ProfileImgUrl
+	user.Designation = userData.Designation
+	user.RewardQuotaBalance = userData.RewardQuotaBalance
+	user.GradeId = userData.GradeId
+	user.EmployeeId = userData.EmployeeId
+	user.TotalPoints = userData.TotalPoints.Int64
+	user.Badge = userData.Badge.String                  // Badge will be an empty string if not found
+	user.BadgeCreatedAt = userData.BadgeCreatedAt.Int64 // Badge date will be 0 if not found
+
+	return user, nil
 }
 
 func (us *userStore) GetTop10Users(ctx context.Context, quarterTimestamp int64) (users []repository.Top10Users, err error) {
