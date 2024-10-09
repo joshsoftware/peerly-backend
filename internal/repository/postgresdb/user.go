@@ -435,7 +435,6 @@ func (us *userStore) GetUserById(ctx context.Context, reqData dto.GetUserByIdReq
 		return
 	}
 
-	// Log the retrieved user data for debugging
 	logger.Debug(ctx, "userlist: ", userList)
 
 	// Assign values to the response
