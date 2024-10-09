@@ -8,7 +8,8 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/app/notification"
 	orgSvc "github.com/joshsoftware/peerly-backend/internal/app/organizationConfig"
 	user "github.com/joshsoftware/peerly-backend/internal/app/users"
-	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
+	log "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
+
 	logger "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
 )
 
@@ -66,7 +67,6 @@ func (cron *MonthlyJob) Schedule() error {
 }
 
 func (cron *MonthlyJob) Task(ctx context.Context) {
-	ctx = context.WithValue(ctx, constants.RequestID, "monthlyUpdate")
 	logger.Info(ctx, "in monthly job task")
 	var err error
 	for i := 0; i < 3; i++ {
@@ -77,7 +77,7 @@ func (cron *MonthlyJob) Task(ctx context.Context) {
 			sendRewardQuotaRefilledNotificationToAll()
 			return
 		}
-		logger.Info(ctx, fmt.Sprintf("cronjob fail error: %v", err.Error()))
+		log.Info(ctx, fmt.Sprintf("cronjob fail error: %v", err.Error()))
 	}
 }
 
@@ -96,6 +96,6 @@ func (cron *MonthlyJob) setMonthlyInterval() error {
 		return err
 	}
 	MONTHLY_CRON_JOB_INTERVAL_MONTHS = orgInfo.RewardQuotaRenewalFrequency
-	logger.Info(context.Background(), fmt.Sprintf("MONTHLY_CRON_JOB_INTERVAL_MONTHS = %d", MONTHLY_CRON_JOB_INTERVAL_MONTHS))
+	log.Info(context.Background(), fmt.Sprintf("MONTHLY_CRON_JOB_INTERVAL_MONTHS = %d", MONTHLY_CRON_JOB_INTERVAL_MONTHS))
 	return nil
 }

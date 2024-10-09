@@ -103,13 +103,11 @@ func (us *service) GetIntranetUserData(ctx context.Context, req dto.GetIntranetU
 	intranetReq.Header.Add(constants.AuthorizationHeader, req.Token)
 	resp, err := client.Do(intranetReq)
 	if err != nil {
-		logger.Errorf(ctx, "error in intranet get user api. status returned: %d, err: %s  ", resp.StatusCode, err.Error())
 		logger.Errorf(ctx, "error response: %v", resp)
 		err = apperrors.InternalServerError
 		return
 	}
 	if resp.StatusCode != http.StatusOK {
-		logger.Errorf(ctx, "error in intranet get user api. status returned: %d ", resp.StatusCode)
 		logger.Errorf(ctx, "error response: %v", resp)
 		err = apperrors.InternalServerError
 		return
@@ -488,7 +486,7 @@ func (us *service) GetUserById(ctx context.Context) (user dto.GetUserByIdResp, e
 func (us *service) GetActiveUserList(ctx context.Context) ([]dto.ActiveUser, error) {
 	activeUserDb, err := us.userRepo.GetActiveUserList(ctx, nil)
 	if err != nil {
-		logger.Errorf(ctx, "usrSvc: GetActiveUserList: err: %v", err)
+		logger.Errorf(ctx, "userService: GetActiveUserList: err: %v", err)
 		return []dto.ActiveUser{}, err
 	}
 	res := make([]dto.ActiveUser, 0)

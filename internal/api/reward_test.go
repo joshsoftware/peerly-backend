@@ -36,8 +36,8 @@ func TestGiveRewardHandlerHandler(t *testing.T) {
 			expectedStatusCode: http.StatusCreated,
 		},
 		{
-			name:  "Error decoding request data",
-			id:    "1",
+			name: "Error decoding request data",
+			id:   "1",
 			mockSetup: func(mockSvc *mocks.Service) {
 			},
 			expectedStatusCode: http.StatusBadRequest,

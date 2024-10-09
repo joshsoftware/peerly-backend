@@ -310,6 +310,7 @@ func sendReportEmail(senderEmail string, senderFirstName string, senderLastName 
 		AppreciationReceiverName: fmt.Sprint(apprReceiverFirstName, " ", apprReceiverLastName),
 		ReportIconImageURL:       fmt.Sprint(config.PeerlyBaseUrl() + constants.CheckIconLogo),
 	}
+
 	logger.Info(ctx, "report sender email: ---------> ", senderEmail)
 	mailReq := email.NewMail([]string{senderEmail}, []string{"dl_peerly.support@joshsoftware.com"}, []string{}, "🙏 Thanks for Your Feedback! We’re On It! 🔧")
 	mailReq.ParseTemplate("./internal/app/email/templates/reportAppreciation.html", templateData)
@@ -391,7 +392,6 @@ func (rs *service) ResolveAppreciation(ctx context.Context, reqData dto.Moderati
 func sendDeleteEmail(reporterEmail string, senderEmail string, receiverEmail string, templateData dto.DeleteAppreciationMail) error {
 
 	ctx := context.Background()
-	ctx = context.WithValue(ctx, constants.RequestID, "deleteEmail")
 	logger.Info(ctx, "reporter email: ---------> ", reporterEmail)
 	mailReq := email.NewMail([]string{reporterEmail}, []string{}, []string{}, "Results of reported appreciation")
 	mailReq.ParseTemplate("./internal/app/email/templates/deleteAppreciation.html", templateData)
@@ -430,7 +430,7 @@ func sendResolveEmail(senderEmail string, templateData dto.ResolveAppreciationMa
 	mailReq.ParseTemplate("./internal/app/email/templates/resolveAppreciation.html", templateData)
 	err := mailReq.Send()
 	if err != nil {
-		logger.Errorf(context.Background(), "err: %v", err)
+		logger.Errorf(ctx, "err: %v", err)
 		return err
 	}
 	return nil

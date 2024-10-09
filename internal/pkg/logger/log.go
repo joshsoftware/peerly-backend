@@ -23,43 +23,43 @@ var lumberjackLogger = &lumberjack.Logger{
 
 // Error - prints out an error
 func Error(ctx context.Context, args ...interface{}) {
-	log := setRequestId(ctx)
+	log := getLoggerWithRequestContext(ctx)
 	log.Error(args...)
 }
 
 // Errorf - prints out an error with formatted output
 func Errorf(ctx context.Context, format string, args ...interface{}) {
-	log := setRequestId(ctx)
+	log := getLoggerWithRequestContext(ctx)
 	log.Errorf(format, args...)
 }
 
 // Warn - prints out a warning
 func Warn(ctx context.Context, args ...interface{}) {
-	log := setRequestId(ctx)
+	log := getLoggerWithRequestContext(ctx)
 	log.Warn(args...)
 }
 
 // Fatal - will print out the error info and exit the program
 func Fatal(ctx context.Context, args ...interface{}) {
-	log := setRequestId(ctx)
+	log := getLoggerWithRequestContext(ctx)
 	log.Fatal(args...)
 }
 
 // Info - prints out basic information
 func Info(ctx context.Context, args ...interface{}) {
-	log := setRequestId(ctx)
+	log := getLoggerWithRequestContext(ctx)
 	log.Info(args...)
 }
 
 // Infof - prints out basic information
 func Infof(ctx context.Context, format string, args ...interface{}) {
-	log := setRequestId(ctx)
+	log := getLoggerWithRequestContext(ctx)
 	log.Infof(format, args...)
 }
 
 // Debug - prints out debug information
 func Debug(ctx context.Context, args ...interface{}) {
-	log := setRequestId(ctx)
+	log := getLoggerWithRequestContext(ctx)
 	log.Debug(args...)
 }
 
@@ -86,7 +86,7 @@ func SetupLogger() (*l.Logger, error) {
 	return logger, nil
 }
 
-func setRequestId(ctx context.Context) *l.Entry {
+func getLoggerWithRequestContext(ctx context.Context) *l.Entry {
 	requestID, ok := ctx.Value(constants.RequestID).(string)
 	if !ok {
 		requestID = "N/A"

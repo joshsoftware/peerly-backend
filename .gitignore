@@ -24,4 +24,8 @@ go.work.sum
 .env
 .vscode
 serviceAccountKey.json
+<<<<<<< HEAD
 logs/*
+=======
+logs/*
+>>>>>>> 1828b7728c5becfba917cec01f0afb82d92d097e
