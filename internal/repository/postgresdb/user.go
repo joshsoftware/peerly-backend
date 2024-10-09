@@ -436,7 +436,7 @@ func (us *userStore) GetUserById(ctx context.Context, reqData dto.GetUserByIdReq
 	}
 
 	// Log the retrieved user data for debugging
-	logger.Info(ctx, "userlist: ", userList)
+	logger.Debug(ctx, "userlist: ", userList)
 
 	// Assign values to the response
 	userData := userList[0]
@@ -444,7 +444,7 @@ func (us *userStore) GetUserById(ctx context.Context, reqData dto.GetUserByIdReq
 	user.FirstName = userData.FirstName
 	user.LastName = userData.LastName
 	user.Email = userData.Email
-	user.ProfileImgUrl = userData.ProfileImgUrl
+	user.ProfileImgUrl = userData.ProfileImgUrl.String
 	user.Designation = userData.Designation
 	user.RewardQuotaBalance = userData.RewardQuotaBalance
 	user.GradeId = userData.GradeId

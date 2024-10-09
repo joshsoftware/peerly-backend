@@ -134,7 +134,7 @@ type GetUserByIdDbResp struct {
 	FirstName          string         `json:"first_name" db:"first_name"`
 	LastName           string         `json:"last_name" db:"last_name"`
 	Email              string         `json:"email" db:"email"`
-	ProfileImgUrl      string         `json:"profile_image_url" db:"profile_image_url"`
+	ProfileImgUrl      sql.NullString `json:"profile_image_url" db:"profile_image_url"`
 	Designation        string         `json:"designation" db:"designation"`
 	RewardQuotaBalance int64          `json:"reward_quota_balance" db:"reward_quota_balance"`
 	GradeId            int64          `json:"grade_id" db:"grade_id"`
