@@ -70,7 +70,7 @@ func (rwrdSvc *service) GiveReward(ctx context.Context, rewardReq dto.Reward) (d
 		logger.Errorf(ctx, "rewardService: GetReportedAppreciation: err: %v", err)
 		return dto.Reward{}, err
 	}
-	if reportedAppr.Status != "resolved" {
+	if err == nil && reportedAppr.Status != "resolved" {
 		return dto.Reward{}, apperrors.NotAllowedForReportedAppreciation
 	}
 
