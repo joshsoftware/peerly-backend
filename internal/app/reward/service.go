@@ -65,7 +65,7 @@ func (rwrdSvc *service) GiveReward(ctx context.Context, rewardReq dto.Reward) (d
 		return dto.Reward{}, apperrors.PreviousQuarterRatingNotAllowed
 	}
 
-	_, err = rwrdSvc.reportedAppreciatonRepo.GetReportedAppreciation(ctx, appr.ID)
+	_, err = rwrdSvc.reportedAppreciatonRepo.GetReportedAppreciationByAppreciationID(ctx, appr.ID)
 	if err != nil && err != apperrors.InvalidId {
 		logger.Errorf(ctx, "rewardService: GetReportedAppreciation: err: %v", err)
 		return dto.Reward{}, err

@@ -116,7 +116,7 @@ func (rs *reportAppreciationStore) ListReportedAppreciations(ctx context.Context
 	return
 }
 
-func (rs *reportAppreciationStore) GetReportedAppreciation(ctx context.Context, appreciationID int64) (reportedAppreciation repository.ListReportedAppreciations, err error) {
+func (rs *reportAppreciationStore) GetReportedAppreciationByAppreciationID(ctx context.Context, appreciationID int64) (reportedAppreciation repository.ListReportedAppreciations, err error) {
 	query := `select resolutions.id, appreciations.id as appreciation_id, core_values.name as core_value_name, core_values.description as core_value_description, appreciations.description as appreciation_description, appreciations.total_reward_points, appreciations.quarter, appreciations.sender, appreciations.receiver, appreciations.created_at, appreciations.is_valid, resolutions.reporting_comment, resolutions.reported_by, resolutions.reported_at, resolutions.moderator_comment, resolutions.moderated_by, resolutions.moderated_at, resolutions.status 
 	from resolutions 
 	join appreciations on resolutions.appreciation_id = appreciations.id 

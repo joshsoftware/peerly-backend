@@ -13,7 +13,7 @@ type ReportAppreciationStorer interface {
 	CheckDuplicateReport(ctx context.Context, reqData dto.ReportAppreciationReq) (isDupliate bool, err error)
 	CheckAppreciation(ctx context.Context, reqData dto.ReportAppreciationReq) (doesExist bool, err error)
 	ListReportedAppreciations(ctx context.Context) (reportedAppreciations []ListReportedAppreciations, err error)
-	GetReportedAppreciation(ctx context.Context, appreciationID int64) (reportedAppreciation ListReportedAppreciations, err error)
+	GetReportedAppreciationByAppreciationID(ctx context.Context, appreciationID int64) (reportedAppreciation ListReportedAppreciations, err error)
 	DeleteAppreciation(ctx context.Context, moderationReq dto.ModerationReq) (err error)
 	CheckResolution(ctx context.Context, id int64) (doesExist bool, appreciation_id int64, err error)
 	ResolveAppreciation(ctx context.Context, moderationReq dto.ModerationReq) (err error)
