@@ -116,6 +116,32 @@ func (rs *reportAppreciationStore) ListReportedAppreciations(ctx context.Context
 	return
 }
 
+func (rs *reportAppreciationStore) GetReportedAppreciationByAppreciationID(ctx context.Context, appreciationID int64) (reportedAppreciation repository.ListReportedAppreciations, err error) {
+	query := `select resolutions.id, appreciations.id as appreciation_id, core_values.name as core_value_name, core_values.description as core_value_description, appreciations.description as appreciation_description, appreciations.total_reward_points, appreciations.quarter, appreciations.sender, appreciations.receiver, appreciations.created_at, appreciations.is_valid, resolutions.reporting_comment, resolutions.reported_by, resolutions.reported_at, resolutions.moderator_comment, resolutions.moderated_by, resolutions.moderated_at, resolutions.status 
+	from resolutions 
+	join appreciations on resolutions.appreciation_id = appreciations.id 
+	join core_values on appreciations.core_value_id = core_values.id 
+	WHERE appreciations.id = $1
+	group by resolutions.id, appreciations.id, core_values.id
+	LIMIT 1`
+	err = rs.DB.GetContext(
+		ctx,
+		&reportedAppreciation,
+		query,
+		appreciationID,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			logger.Errorf(ctx, "no fields returned for reported appriciation, err:%v", err)
+			err = apperrors.InvalidId
+			return
+		}
+		err = fmt.Errorf("error in retriving reported appriciation, err:%w", err)
+		return
+	}
+	return
+}
+
 func (rs *reportAppreciationStore) CheckResolution(ctx context.Context, id int64) (doesExist bool, appreciation_id int64, err error) {
 	query := `select appreciation_id from resolutions where id = $1`
 	err = rs.DB.GetContext(

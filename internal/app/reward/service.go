@@ -13,20 +13,22 @@ import (
 )
 
 type service struct {
-	rewardRepo       repository.RewardStorer
-	appreciationRepo repository.AppreciationStorer
-	userRepo         repository.UserStorer
+	rewardRepo              repository.RewardStorer
+	appreciationRepo        repository.AppreciationStorer
+	reportedAppreciatonRepo repository.ReportAppreciationStorer
+	userRepo                repository.UserStorer
 }
 
 type Service interface {
 	GiveReward(ctx context.Context, rewardReq dto.Reward) (dto.Reward, error)
 }
 
-func NewService(rewardRepo repository.RewardStorer, appreciationRepo repository.AppreciationStorer, userRepo repository.UserStorer) Service {
+func NewService(rewardRepo repository.RewardStorer, appreciationRepo repository.AppreciationStorer, userRepo repository.UserStorer, reportedAppreciatonRepo repository.ReportAppreciationStorer) Service {
 	return &service{
-		rewardRepo:       rewardRepo,
-		appreciationRepo: appreciationRepo,
-		userRepo:         userRepo,
+		rewardRepo:              rewardRepo,
+		appreciationRepo:        appreciationRepo,
+		userRepo:                userRepo,
+		reportedAppreciatonRepo: reportedAppreciatonRepo,
 	}
 }
 
@@ -61,6 +63,15 @@ func (rwrdSvc *service) GiveReward(ctx context.Context, rewardReq dto.Reward) (d
 
 	if appr.CreatedAt < user.GetQuarterStartUnixTime() {
 		return dto.Reward{}, apperrors.PreviousQuarterRatingNotAllowed
+	}
+
+	reportedAppr, err := rwrdSvc.reportedAppreciatonRepo.GetReportedAppreciationByAppreciationID(ctx, appr.ID)
+	if err != nil && err != apperrors.InvalidId {
+		logger.Errorf(ctx, "rewardService: GetReportedAppreciation: err: %v", err)
+		return dto.Reward{}, err
+	}
+	if reportedAppr.Status != "resolved" {
+		return dto.Reward{}, apperrors.NotAllowedForReportedAppreciation
 	}
 
 	userChk, err := rwrdSvc.rewardRepo.UserHasRewardQuota(ctx, nil, rewardReq.SenderId, rewardReq.Point)
