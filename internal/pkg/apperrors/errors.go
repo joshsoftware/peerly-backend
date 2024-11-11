@@ -76,6 +76,7 @@ const (
 	UnauthorizedDeveloper              = CustomError("Unauthorised developer")
 	InvalidLoggerLevel                 = CustomError("Invalid Logger Level")
 	PreviousQuarterRatingNotAllowed    = CustomError("Reward can be given for current quarter appreciations")
+	NotAllowedForReportedAppreciation  = CustomError(`Currently, the appreciation is under review, so we’re unable to proceed with a reward at this time.`)
 )
 
 // ErrKeyNotSet - Returns error object specific to the key value passed in
@@ -98,7 +99,7 @@ func GetHTTPStatusCode(err error) int {
 		return http.StatusUnauthorized
 	case RewardQuotaIsNotSufficient:
 		return http.StatusUnprocessableEntity
-	case OrganizationConfigAlreadyPresent:
+	case OrganizationConfigAlreadyPresent, NotAllowedForReportedAppreciation:
 		return http.StatusForbidden
 	default:
 		return http.StatusInternalServerError
