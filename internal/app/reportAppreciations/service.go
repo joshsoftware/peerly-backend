@@ -23,6 +23,7 @@ type service struct {
 type Service interface {
 	ReportAppreciation(ctx context.Context, reqData dto.ReportAppreciationReq) (resp dto.ReportAppricaitionResp, err error)
 	ListReportedAppreciations(ctx context.Context) (dto.ListReportedAppreciationsResponse, error)
+	GetReportedAppreciationByAppreciationID(ctx context.Context, appreciationID int64) (dto.ReportedAppreciation, error)
 	DeleteAppreciation(ctx context.Context, reqData dto.ModerationReq) (err error)
 	ResolveAppreciation(ctx context.Context, reqData dto.ModerationReq) (err error)
 }
@@ -183,7 +184,7 @@ func (rs *service) GetReportedAppreciationByAppreciationID(ctx context.Context, 
 
 	// var appreciationList []dto.ReportedAppreciation
 
-	appreciation, err := rs.reportAppreciationRepo.GetReportedAppreciation(ctx, appreciationID)
+	appreciation, err := rs.reportAppreciationRepo.GetReportedAppreciationByAppreciationID(ctx, appreciationID)
 	if err != nil {
 		logger.Error(ctx, err.Error())
 		err = apperrors.InternalServerError
