@@ -99,7 +99,7 @@ func GetHTTPStatusCode(err error) int {
 		return http.StatusUnauthorized
 	case RewardQuotaIsNotSufficient:
 		return http.StatusUnprocessableEntity
-	case OrganizationConfigAlreadyPresent:
+	case OrganizationConfigAlreadyPresent, NotAllowedForReportedAppreciation:
 		return http.StatusForbidden
 	default:
 		return http.StatusInternalServerError
