@@ -177,6 +177,66 @@ func (rs *service) ListReportedAppreciations(ctx context.Context) (dto.ListRepor
 	return resp, err
 }
 
+func (rs *service) GetReportedAppreciationByAppreciationID(ctx context.Context, appreciationID int64) (dto.ReportedAppreciation, error) {
+
+	var resp dto.ReportedAppreciation
+
+	// var appreciationList []dto.ReportedAppreciation
+
+	appreciation, err := rs.reportAppreciationRepo.GetReportedAppreciation(ctx, appreciationID)
+	if err != nil {
+		logger.Error(ctx, err.Error())
+		err = apperrors.InternalServerError
+		return resp, err
+	}
+
+	senderDataReq := dto.GetUserByIdReq{
+		UserId:          appreciation.Sender,
+		QuaterTimeStamp: GetQuarterStartUnixTime(),
+	}
+
+	sender, err := rs.userRepo.GetUserById(ctx, senderDataReq)
+	if err != nil {
+		return resp, err
+	}
+
+	receiverDataReq := dto.GetUserByIdReq{
+		UserId:          appreciation.Receiver,
+		QuaterTimeStamp: GetQuarterStartUnixTime(),
+	}
+
+	receiver, err := rs.userRepo.GetUserById(ctx, receiverDataReq)
+	if err != nil {
+		return resp, err
+	}
+
+	reporterDataReq := dto.GetUserByIdReq{
+		UserId:          appreciation.ReportedBy,
+		QuaterTimeStamp: GetQuarterStartUnixTime(),
+	}
+
+	reporter, err := rs.userRepo.GetUserById(ctx, reporterDataReq)
+	if err != nil {
+		return resp, err
+	}
+
+	moderatorDataReq := dto.GetUserByIdReq{
+		UserId:          appreciation.ModeratedBy.Int64,
+		QuaterTimeStamp: GetQuarterStartUnixTime(),
+	}
+
+	var moderator dto.GetUserByIdResp
+	if appreciation.ModeratedBy.Valid {
+		moderator, err = rs.userRepo.GetUserById(ctx, moderatorDataReq)
+		if err != nil {
+			return resp, err
+		}
+	}
+
+	resp = mapDbAppreciationsToSvcAppreciations(appreciation, sender, receiver, reporter, moderator)
+
+	return resp, err
+}
 func (rs *service) DeleteAppreciation(ctx context.Context, reqData dto.ModerationReq) (err error) {
 	moderatorId := ctx.Value(constants.UserId)
 	fmt.Printf("moderatorId: %T", moderatorId)
