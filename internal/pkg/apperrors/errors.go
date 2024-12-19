@@ -68,7 +68,7 @@ const (
 	InvalidRewardMultiplier            = CustomError("Reward multiplier should greater than 1")
 	InvalidRewardQuotaRenewalFrequency = CustomError("Reward renewal frequency should greater than 1")
 	InvalidTimezone                    = CustomError("Enter valid timezone")
-	DescriptionLengthExceed            = CustomError("Maximum character length of 500 exceeded")
+	DescriptionLengthExceed            = CustomError("The minimum character length should be 150 characters")
 	InvalidPageSize                    = CustomError("Invalid page size")
 	InvalidPage                        = CustomError("Invalid page value")
 	NegativeGradePoints                = CustomError("Grade points cannot be negative")
