@@ -8,6 +8,7 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/app/notification"
 	user "github.com/joshsoftware/peerly-backend/internal/app/users"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
+	"github.com/joshsoftware/peerly-backend/internal/pkg/config"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/utils"
@@ -41,6 +42,7 @@ func NewService(appreciationRepo repository.AppreciationStorer, coreValuesRepo r
 
 func (apprSvc *service) CreateAppreciation(ctx context.Context, appreciation dto.Appreciation) (dto.Appreciation, error) {
 
+	logger.Debug(ctx, "svc: CreateAppreciation: appreciation: ", appreciation)
 	//add quarter
 	appreciation.Quarter = utils.GetQuarter()
 	logger.Debug(ctx, "appreciationService CreateAppreciation: appreciation: ", appreciation)
@@ -305,13 +307,13 @@ func (apprSvc *service) sendEmailForBadgeAllocation(userBadgeDetails []repositor
 		var badgeImageUrl string
 		switch userBadgeDetail.BadgeName.String {
 		case "Bronze":
-			badgeImageUrl = "bronzeBadge"
+			badgeImageUrl = fmt.Sprint(config.PeerlyBaseUrl() + constants.BronzeBadgeIconImagePath)
 		case "Silver":
-			badgeImageUrl = "silverBadge"
+			badgeImageUrl = fmt.Sprint(config.PeerlyBaseUrl() + constants.SilverBadgeIconImagePath)
 		case "Gold":
-			badgeImageUrl = "goldBadge"
+			badgeImageUrl = fmt.Sprint(config.PeerlyBaseUrl() + constants.GoldBadgeIconImagePath)
 		case "Platinum":
-			badgeImageUrl = "platinumBadge"
+			badgeImageUrl = fmt.Sprint(config.PeerlyBaseUrl() + constants.PlatinumIconImagePath)
 		}
 
 		// repository.UserBadgeDetails

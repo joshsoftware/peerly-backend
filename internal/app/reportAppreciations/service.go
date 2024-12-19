@@ -356,19 +356,22 @@ func mapDbAppreciationsToSvcAppreciations(dbApp repository.ListReportedAppreciat
 
 func sendReportEmail(senderEmail string, senderFirstName string, senderLastName string, apprSenderFirstName string, apprSenderLastName string, apprReceiverFirstName string, apprReceiverLastName string, reportingComment string) error {
 
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, constants.RequestID, "reportEmail")
 	templateData := struct {
 		SenderName               string
 		ReportingComment         string
 		AppreciationSenderName   string
 		AppreciationReceiverName string
+		ReportIconImageURL       string
 	}{
 		SenderName:               fmt.Sprint(senderFirstName, " ", senderLastName),
 		ReportingComment:         reportingComment,
 		AppreciationSenderName:   fmt.Sprint(apprSenderFirstName, " ", apprSenderLastName),
 		AppreciationReceiverName: fmt.Sprint(apprReceiverFirstName, " ", apprReceiverLastName),
+		ReportIconImageURL:       fmt.Sprint(config.PeerlyBaseUrl() + constants.CheckIconLogo),
 	}
 
-	ctx := context.Background()
 	logger.Info(ctx, "report sender email: ---------> ", senderEmail)
 	mailReq := email.NewMail([]string{senderEmail}, []string{"dl_peerly.support@joshsoftware.com"}, []string{}, "🙏 Thanks for Your Feedback! We’re On It! 🔧")
 	mailReq.ParseTemplate("./internal/app/email/templates/reportAppreciation.html", templateData)

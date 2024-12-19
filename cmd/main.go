@@ -132,7 +132,11 @@ func startApp() (err error) {
 		logger.WithField("err", err.Error()).Error("CronJob Initialize failed")
 		return
 	}
-	defer scheduler.Shutdown()
+	defer func() {
+		if err := scheduler.Shutdown(); err != nil {
+			log.Error(ctx, "Scheduler shutdown failed: %s", err.Error())
+		}
+	}()
 	//initialize router
 	router := api.NewRouter(services)
 

@@ -18,8 +18,8 @@ const MONTHLY_JOB = "MONTHLY_JOB"
 var MONTHLY_CRON_JOB_INTERVAL_MONTHS = 1
 
 var MonthlyJobTiming = JobTime{
-	hours:   23,
-	minutes: 59,
+	hours:   11,
+	minutes: 26,
 	seconds: 0,
 }
 
@@ -60,7 +60,7 @@ func (cron *MonthlyJob) Schedule() error {
 	)
 	cron.scheduler.Start()
 	if err != nil {
-		logger.Warn(context.TODO(), fmt.Sprintf("error occurred while scheduling %s, message %+v", cron.name, err.Error()))
+		logger.Warn(context.Background(), fmt.Sprintf("error occurred while scheduling %s, message %+v", cron.name, err.Error()))
 		return err
 	}
 	return nil
@@ -72,14 +72,13 @@ func (cron *MonthlyJob) Task(ctx context.Context) {
 	for i := 0; i < 3; i++ {
 		logger.Info(ctx, "cron job attempt:", i+1)
 		err = cron.userService.UpdateRewardQuota(ctx)
+		logger.Error(ctx, "err: ", err)
 		if err == nil {
 			sendRewardQuotaRefilledNotificationToAll()
 			return
 		}
 		log.Info(ctx, fmt.Sprintf("cronjob fail error: %v", err.Error()))
 	}
-	// return err
-	return
 }
 
 func sendRewardQuotaRefilledNotificationToAll() {
@@ -87,7 +86,6 @@ func sendRewardQuotaRefilledNotificationToAll() {
 		Title: "Reward Quota is Refilled",
 		Body:  "Your reward quota is reset! You now recognize your colleagues.",
 	}
-
 	logger.Debug(context.Background(), "msg:", msg)
 	msg.SendNotificationToTopic("peerly")
 }

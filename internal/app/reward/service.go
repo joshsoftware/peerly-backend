@@ -163,6 +163,7 @@ func (rwrdSvc *service) sendRewardNotificationToSender(ctx context.Context, user
 
 	logger.Debug(ctx, " rewardService: sendRewardNotificationToSender: user: ", user)
 	notificationTokens, err := rwrdSvc.userRepo.ListDeviceTokensByUserID(ctx, user.UserId)
+	logger.Debug(ctx, " notificationTokens: ", notificationTokens)
 	if err != nil {
 		logger.Errorf(ctx, "err in getting device tokens: %v", err)
 		return

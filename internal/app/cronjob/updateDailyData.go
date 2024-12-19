@@ -7,6 +7,7 @@ import (
 	"github.com/go-co-op/gocron/v2"
 	apprSvc "github.com/joshsoftware/peerly-backend/internal/app/appreciation"
 	orgSvc "github.com/joshsoftware/peerly-backend/internal/app/organizationConfig"
+	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	logger "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
 )
 
@@ -63,8 +64,8 @@ func (cron *DailyJob) Schedule() error {
 	}
 	return nil
 }
-
 func (cron *DailyJob) Task(ctx context.Context) {
+	ctx = context.WithValue(ctx, constants.RequestID, "dailyUpdate")
 	logger.Info(ctx, "in daily job task")
 
 	orgInfo, err := cron.organizationConfigService.GetOrganizationConfig(ctx)

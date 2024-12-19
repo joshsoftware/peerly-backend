@@ -2,6 +2,7 @@ package badges
 
 import (
 	"context"
+	"time"
 
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
@@ -99,4 +100,11 @@ func mapDbToSvc(dbResp repository.Badge, user dto.GetUserByIdResp) (svcResp dto.
 	svcResp.RewardPoints = dbResp.RewardPoints
 	svcResp.UpdatedBy = user.FirstName + " " + user.LastName
 	return
+}
+
+func GetQuarterStartUnixTime() int64 {
+	// Example function to get the Unix timestamp of the start of the quarter
+	now := time.Now()
+	quarterStart := time.Date(now.Year(), (now.Month()-1)/3*3+1, 1, 0, 0, 0, 0, time.UTC)
+	return quarterStart.Unix() * 1000 // convert to milliseconds
 }
