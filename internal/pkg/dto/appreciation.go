@@ -75,8 +75,8 @@ func (appr *Appreciation) ValidateCreateAppreciation() (err error) {
 		return apperrors.DescFieldBlank
 	}
 
-	if len(appr.Description) > 500 {
-		return apperrors.DescriptionLengthExceed
+	if len(appr.Description) < 150 {
+		return apperrors.DescriptionLengthBelowLimit
 	}
 
 	if appr.Receiver <= 0 {
