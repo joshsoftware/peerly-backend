@@ -68,7 +68,7 @@ const (
 	InvalidRewardMultiplier            = CustomError("Reward multiplier should greater than 1")
 	InvalidRewardQuotaRenewalFrequency = CustomError("Reward renewal frequency should greater than 1")
 	InvalidTimezone                    = CustomError("Enter valid timezone")
-	DescriptionLengthExceed            = CustomError("Maximum character length of 500 exceeded")
+	DescriptionLengthBelowLimit        = CustomError("The description should be at least 150 characters long")
 	InvalidPageSize                    = CustomError("Invalid page size")
 	InvalidPage                        = CustomError("Invalid page value")
 	NegativeGradePoints                = CustomError("Grade points cannot be negative")
@@ -91,7 +91,7 @@ func GetHTTPStatusCode(err error) int {
 		return http.StatusInternalServerError
 	case OrganizationConfigNotFound, OrganizationNotFound, InvalidOrgId, GradeNotFound, AppreciationNotFound, PageParamNotFound, InvalidCoreValueData, InvalidIntranetData:
 		return http.StatusNotFound
-	case InvalidLoggerLevel, BadRequest, InvalidId, JSONParsingErrorReq, TextFieldBlank, InvalidParentValue, DescFieldBlank, UniqueCoreValue, SelfAppreciationError, CannotReportOwnAppreciation, RepeatedReport, InvalidCoreValueID, InvalidReceiverID, InvalidRewardMultiplier, InvalidRewardQuotaRenewalFrequency, InvalidTimezone, InvalidRewardPoint, InvalidEmail, InvalidPassword, DescriptionLengthExceed, InvalidPageSize, InvalidPage, NegativeGradePoints, NegativeBadgePoints, PreviousQuarterRatingNotAllowed:
+	case InvalidLoggerLevel, BadRequest, InvalidId, JSONParsingErrorReq, TextFieldBlank, InvalidParentValue, DescFieldBlank, UniqueCoreValue, SelfAppreciationError, CannotReportOwnAppreciation, RepeatedReport, InvalidCoreValueID, InvalidReceiverID, InvalidRewardMultiplier, InvalidRewardQuotaRenewalFrequency, InvalidTimezone, InvalidRewardPoint, InvalidEmail, InvalidPassword, DescriptionLengthBelowLimit, InvalidPageSize, InvalidPage, NegativeGradePoints, NegativeBadgePoints, PreviousQuarterRatingNotAllowed:
 		return http.StatusBadRequest
 	case InvalidContactEmail, InvalidDomainName, UserAlreadyPresent, RewardAlreadyPresent, RepeatedUser:
 		return http.StatusConflict
