@@ -509,7 +509,7 @@ JOIN
 		var detail repository.UserBadgeDetails
 		if err := rows.Scan(&detail.ID, &detail.Email, &detail.FirstName, &detail.LastName, &detail.BadgeID, &detail.BadgeName, &detail.BadgePoints); err != nil {
 			return []repository.UserBadgeDetails{}, err
-		}
+		} 
 		userBadgeDetails = append(userBadgeDetails, detail)
 	}
 
@@ -519,4 +519,158 @@ JOIN
 	}
 
 	return userBadgeDetails, nil
+}
+
+func (appr *appreciationsStore) GetUserAppreciationDetails(
+	ctx context.Context,
+	tx repository.Transaction,
+	filter dto.AppreciationFilter,
+) ([]repository.AppreciationResponse, repository.Pagination, error) {
+
+	queryExecutor := appr.InitiateQueryExecutor(tx)
+
+	data := ctx.Value(constants.UserId)
+	userID, ok := data.(int64)
+	if !ok {
+		logger.Error(ctx, "err in parsing userID from token")
+		return nil, repository.Pagination{}, apperrors.InternalServerError
+	}
+
+	if filter.Page <= 0 {
+		filter.Page = 1
+	}
+	if filter.Limit <= 0 {
+		filter.Limit = 300
+	}
+
+	baseFilters := []squirrel.Sqlizer{
+		squirrel.Eq{"a.is_valid": true},
+	}
+
+	if filter.Quarter > 0 {
+		baseFilters = append(baseFilters, squirrel.Eq{"a.quarter": filter.Quarter})
+	}
+
+	if filter.Year > 0 {
+		createdYear := filter.Year
+		if filter.Quarter == 4 {
+			createdYear += 1
+		}
+
+		baseFilters = append(baseFilters,
+			squirrel.Expr("EXTRACT(YEAR FROM TO_TIMESTAMP(a.created_at / 1000)) = ?", createdYear),
+		)
+	}
+
+	filterInterfaces := make([]interface{}, len(baseFilters))
+	for i, f := range baseFilters {
+		filterInterfaces[i] = f
+	}
+
+	queryBuilder := repository.Sq.Select("COUNT(*)").
+		From("appreciations a").
+		LeftJoin("users u_sender ON a.sender = u_sender.id").
+		LeftJoin("users u_receiver ON a.receiver = u_receiver.id").
+		LeftJoin("core_values cv ON a.core_value_id = cv.id").
+		Where(squirrel.And(baseFilters))
+
+	if filter.Name != "" {
+		lowerNameFilter := fmt.Sprintf("%%%s%%", strings.ToLower(filter.Name))
+		queryBuilder = queryBuilder.Where(
+			"(LOWER(CONCAT(u_sender.first_name, ' ', u_sender.last_name)) LIKE ? OR "+
+				"LOWER(CONCAT(u_receiver.first_name, ' ', u_receiver.last_name)) LIKE ?)",
+			lowerNameFilter, lowerNameFilter,
+		)
+	}
+
+	if filter.Self {
+		queryBuilder = queryBuilder.Where(squirrel.Or{
+			squirrel.Eq{"a.sender": userID},
+			squirrel.Eq{"a.receiver": userID},
+		})
+	}
+
+	countSql, countArgs, err := queryBuilder.ToSql()
+	if err != nil {
+		logger.Error(ctx, "failed to build count query: ", err.Error())
+		return nil, repository.Pagination{}, apperrors.InternalServerError
+	}
+
+	var totalRecords int32
+	err = queryExecutor.QueryRowx(countSql, countArgs...).Scan(&totalRecords)
+	if err != nil {
+		logger.Error(ctx, "failed to execute count query: ", err.Error())
+		return nil, repository.Pagination{}, apperrors.InternalServerError
+	}
+
+	pagination := getPaginationMetaData(filter.Page, filter.Limit, totalRecords)
+	queryBuilder = queryBuilder.RemoveColumns()
+
+	queryBuilder = queryBuilder.Columns(
+		"a.id",
+		"cv.name AS core_value_name",
+		"cv.description AS core_value_description",
+		"a.description",
+		"a.is_valid",
+		"a.total_reward_points",
+		"a.quarter",
+		"u_sender.id AS sender_id",
+		"u_sender.first_name AS sender_first_name",
+		"u_sender.last_name AS sender_last_name",
+		"u_sender.profile_image_url AS sender_image_url",
+		"u_sender.designation AS sender_designation",
+		"u_receiver.id AS receiver_id",
+		"u_receiver.first_name AS receiver_first_name",
+		"u_receiver.last_name AS receiver_last_name",
+		"u_receiver.profile_image_url AS receiver_image_url",
+		"u_receiver.designation AS receiver_designation",
+		"a.created_at",
+		"a.updated_at",
+		"COUNT(r.id) AS total_rewards",
+		"COALESCE(SUM(r2.point), 0) AS given_reward_point",
+		"rs.reporting_comment",
+		"TO_CHAR(TO_TIMESTAMP(rs.reported_at / 1000), 'DD-MM-YY') AS reported_at",
+
+		"u_reporter.first_name AS reported_by_first_name",
+		"u_reporter.last_name AS reported_by_last_name",
+		"rs.moderator_action",
+		"rs.moderator_comment",
+		"rs.moderated_by",
+		"rs.moderated_at",
+		"rs.status",
+	).
+		LeftJoin("resolutions rs ON a.id = rs.appreciation_id").
+		LeftJoin("users u_reporter ON rs.reported_by = u_reporter.id").
+		LeftJoin("rewards r ON a.id = r.appreciation_id").
+		LeftJoin("rewards r2 ON a.id = r2.appreciation_id AND r2.sender = ?", userID).
+		GroupBy(
+			"a.id", "cv.name", "cv.description",
+			"u_sender.id", "u_receiver.id",
+			"rs.reporting_comment", "rs.reported_at",
+			"u_reporter.first_name", "u_reporter.last_name",
+			"rs.moderator_action", "rs.moderator_comment",
+			"rs.moderated_by", "rs.moderated_at", "rs.status",
+		)
+
+	if filter.SortOrder != "" {
+		queryBuilder = queryBuilder.OrderBy(fmt.Sprintf("a.created_at %s", filter.SortOrder))
+	}
+
+	offset := (filter.Page - 1) * filter.Limit
+	queryBuilder = queryBuilder.Limit(uint64(filter.Limit)).Offset(uint64(offset))
+
+	sql, args, err := queryBuilder.ToSql()
+	if err != nil {
+		logger.Error(ctx, "failed to build query: ", err.Error())
+		return nil, repository.Pagination{}, apperrors.InternalServerError
+	}
+
+	res := make([]repository.AppreciationResponse, 0)
+	err = sqlx.Select(queryExecutor, &res, sql, args...)
+	if err != nil {
+		logger.Error(ctx, "failed to execute appreciation query: ", err.Error())
+		return nil, repository.Pagination{}, apperrors.InternalServerError
+	}
+
+	return res, pagination, nil
 }

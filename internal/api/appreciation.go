@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -119,4 +120,47 @@ func deleteAppreciationHandler(appreciationSvc appreciation.Service) http.Handle
 		log.Info(ctx, "Appreciation invalidate successfully")
 		dto.SuccessRepsonse(rw, http.StatusOK, "Appreciation invalidate successfully", nil)
 	})
+}
+
+func getAppreciationsHandler(apprSvc appreciation.Service, reportAppreciationSvc appreciation.Service) http.HandlerFunc {
+	return func(rw http.ResponseWriter, req *http.Request) {
+		ctx := req.Context()
+
+		qtrStr := req.URL.Query().Get("quarter")
+		yearStr := req.URL.Query().Get("year")
+
+		if qtrStr == "" || yearStr == "" {
+			dto.ErrorRepsonse(rw, fmt.Errorf("quarter and year query parameters are required"))
+			return
+		}
+
+		quarter, err := strconv.Atoi(qtrStr)
+		if err != nil {
+			dto.ErrorRepsonse(rw, fmt.Errorf("invalid quarter: %v", err))
+			return
+		}
+
+		year, err := strconv.Atoi(yearStr)
+		if err != nil {
+			dto.ErrorRepsonse(rw, fmt.Errorf("invalid year: %v", err))
+			return
+		}
+	
+		if quarter < 1 || quarter > 4 {
+			dto.ErrorRepsonse(rw, fmt.Errorf("quarter must be between 1 and 4"))
+			return
+		}
+
+
+		tempFileName, err := apprSvc.GetAppreciations(ctx, quarter, year)
+		if err != nil {
+			dto.ErrorRepsonse(rw, err)
+			return
+		}
+
+		rw.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", tempFileName))
+		rw.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+		http.ServeFile(rw, req, tempFileName)
+
+	}
 }

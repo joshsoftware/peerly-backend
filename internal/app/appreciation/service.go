@@ -3,6 +3,7 @@ package appreciation
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/joshsoftware/peerly-backend/internal/app/email"
 	"github.com/joshsoftware/peerly-backend/internal/app/notification"
@@ -12,6 +13,7 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/utils"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
+	"github.com/xuri/excelize/v2"
 
 	logger "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
 )
@@ -29,6 +31,7 @@ type Service interface {
 	ListAppreciations(ctx context.Context, filter dto.AppreciationFilter) (dto.ListAppreciationsResponse, error)
 	DeleteAppreciation(ctx context.Context, apprId int32) error
 	UpdateAppreciation(ctx context.Context, orgTimezone string) (bool, error)
+	GetAppreciations(ctx context.Context, quarter, year int) (string, error)
 }
 
 func NewService(appreciationRepo repository.AppreciationStorer, coreValuesRepo repository.CoreValueStorer, userRepo repository.UserStorer) Service {
@@ -340,4 +343,64 @@ func (apprSvc *service) sendEmailForBadgeAllocation(userBadgeDetails []repositor
 		}
 		logger.Infof(context.Background(), "appreciationService mail request: %v", mailReq)
 	}
+}
+
+func (us *service) GetAppreciations(ctx context.Context, quarter, year int) (tempFileName string, err error) {
+
+	apr, _, err := us.appreciationRepo.GetUserAppreciationDetails(ctx, nil, dto.AppreciationFilter{
+		Quarter: int8(quarter),
+		Year:    int16(year),
+	})
+	if err != nil {
+		logger.Errorf(ctx, "error fetching user appreciation details: %v", err)
+		return "", err
+	}
+	f := excelize.NewFile()
+
+	sheetName := "EmployeeAppreciations"
+	index, err := f.NewSheet(sheetName)
+	if err != nil {
+		logger.Errorf(ctx, "err in generating newsheet, err: %v", err)
+		return
+	}
+
+	headers := []string{"Core value", "Core value description", "Appreciation description", "Sender first name", "Sender last name", "Sender designation", "Receiver first name", "Receiver last name", " Receiver designation", "Total Reward", "Appreciated Date", "Reporting Comment", "Reported by first name", "Reported by last name", "Reported at", "Moderator comment", "Status"}
+	for colIndex, header := range headers {
+		cell := fmt.Sprintf("%c1", 'A'+colIndex)
+		f.SetCellValue(sheetName, cell, header)
+	}
+
+	for rowIndex, app := range apr {
+		row := rowIndex + 2 
+		createdAtFormatted := time.UnixMilli(app.CreatedAt).Format("02-1-2006")
+
+		f.SetCellValue(sheetName, fmt.Sprintf("A%d", row), app.CoreValueName)
+		f.SetCellValue(sheetName, fmt.Sprintf("B%d", row), app.CoreValueDesc)
+		f.SetCellValue(sheetName, fmt.Sprintf("C%d", row), app.Description)
+		f.SetCellValue(sheetName, fmt.Sprintf("D%d", row), app.SenderFirstName)
+		f.SetCellValue(sheetName, fmt.Sprintf("E%d", row), app.SenderLastName)
+		f.SetCellValue(sheetName, fmt.Sprintf("F%d", row), app.SenderDesignation)
+		f.SetCellValue(sheetName, fmt.Sprintf("G%d", row), app.ReceiverFirstName)
+		f.SetCellValue(sheetName, fmt.Sprintf("H%d", row), app.ReceiverLastName)
+		f.SetCellValue(sheetName, fmt.Sprintf("I%d", row), app.ReceiverDesignation)
+		f.SetCellValue(sheetName, fmt.Sprintf("J%d", row), app.TotalRewardPoints)
+		f.SetCellValue(sheetName, fmt.Sprintf("K%d", row), createdAtFormatted)
+		f.SetCellValue(sheetName, fmt.Sprintf("L%d", row), app.ReportingComment.String)
+		f.SetCellValue(sheetName, fmt.Sprintf("M%d", row), app.ReportedByFirstName.String)
+		f.SetCellValue(sheetName, fmt.Sprintf("N%d", row), app.ReportedByLastName.String)
+		f.SetCellValue(sheetName, fmt.Sprintf("O%d", row), app.ReportedAt.String)
+		f.SetCellValue(sheetName, fmt.Sprintf("P%d", row), app.ModeratorComment.String)
+		f.SetCellValue(sheetName, fmt.Sprintf("Q%d", row), app.Status.String)
+	}
+
+	f.SetActiveSheet(index)
+
+	tempFileName = "EmployeeAppreciatons.xlsx"
+	if err = f.SaveAs(tempFileName); err != nil {
+		logger.Errorf(ctx, "Failed to save file: %v", err)
+		return
+	}
+
+	return tempFileName, err
+
 }

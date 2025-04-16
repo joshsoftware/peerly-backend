@@ -17,6 +17,7 @@ type AppreciationStorer interface {
 	IsUserPresent(ctx context.Context, tx Transaction, userID int64) (bool, error)
 	UpdateAppreciationTotalRewardsOfYesterday(ctx context.Context, tx Transaction, orgTimezone string) (bool, error)
 	UpdateUserBadgesBasedOnTotalRewards(ctx context.Context, tx Transaction) ([]UserBadgeDetails, error)
+	GetUserAppreciationDetails(ctx context.Context, tx Transaction, filter dto.AppreciationFilter) ([]AppreciationResponse, Pagination, error)
 }
 
 type Appreciation struct {
@@ -53,6 +54,15 @@ type AppreciationResponse struct {
 	TotalRewards        int32          `db:"total_rewards"`
 	ReportedFlag        bool           `db:"reported_flag"`
 	GivenRewardPoint    int8           `db:"given_reward_point"`
+	ReportingComment    sql.NullString `db:"reporting_comment"`
+	ReportedAt          sql.NullString `db:"reported_at"`
+	ReportedByFirstName sql.NullString `db:"reported_by_first_name"`
+	ReportedByLastName  sql.NullString `db:"reported_by_last_name"`
+	ModeratorAction     sql.NullString `db:"moderator_action"`
+	ModeratorComment    sql.NullString `db:"moderator_comment"`
+	ModeratedBy         sql.NullInt64  `db:"moderated_by"`
+	ModeratedAt         sql.NullInt64  `db:"moderated_at"`
+	Status              sql.NullString `db:"status"`
 	CreatedAt           int64          `db:"created_at"`
 	UpdatedAt           int64          `db:"updated_at"`
 }

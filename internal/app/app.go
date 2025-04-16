@@ -27,6 +27,7 @@ type Dependencies struct {
 	GradeService              grades.Service
 	OrganizationConfigService organizationConfig.Service
 	BadgeService              badges.Service
+	EmployeeAppreciationService reportappreciations.Service
 }
 
 // NewService initializes and returns a Dependencies instance with the given database connection.

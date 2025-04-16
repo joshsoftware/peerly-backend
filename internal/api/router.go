@@ -65,6 +65,8 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 
 	peerlySubrouter.Handle("/admin/reported_appreciation_report", middleware.JwtAuthMiddleware(reportedAppreciationReportHandler(deps.UserService, deps.ReportAppreciationService), constants.Admin)).Methods(http.MethodGet)
 
+	peerlySubrouter.Handle("/admin/employee_appreciation_report", middleware.JwtAuthMiddleware(getAppreciationsHandler(deps.AppreciationService, deps.AppreciationService), constants.Admin)).Methods(http.MethodGet)
+
 	//appreciations
 
 	peerlySubrouter.Handle("/appreciations/{id:[0-9]+}", middleware.JwtAuthMiddleware(getAppreciationByIDHandler(deps.AppreciationService), constants.User)).Methods(http.MethodGet).Headers(versionHeader, v1)
