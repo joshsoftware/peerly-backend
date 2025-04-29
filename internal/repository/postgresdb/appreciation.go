@@ -377,9 +377,17 @@ func (appr *appreciationsStore) UpdateAppreciationTotalRewardsOfYesterday(ctx co
 	// Build the SQL update query with subquery
 	query := `
 	UPDATE appreciations AS app
-	SET total_reward_points = total_reward_points + agg.total_points
+	SET total_reward_points = 200 + agg.total_points
 	FROM (
-    SELECT appreciation_id, SUM(r.point * g.points) AS total_points
+    SELECT appreciation_id, 
+		SUM(
+			CASE 
+					WHEN r.point = 1 THEN 100
+					WHEN r.point = 2 THEN 150
+					WHEN r.point = 3 THEN 200
+					ELSE 0
+			END
+	) AS total_points
     FROM rewards r
     JOIN appreciations a ON r.appreciation_id = a.id
     JOIN users u ON r.sender = u.id
