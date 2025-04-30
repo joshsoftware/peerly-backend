@@ -17,7 +17,7 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/repository"
 )
 
-var AppreciationColumns = []string{"id", "core_value_id", "description", "quarter", "sender", "receiver"}
+var AppreciationColumns = []string{"id", "core_value_id", "description", "total_reward_points", "quarter", "sender", "receiver"}
 
 type appreciationsStore struct {
 	BaseRepository
@@ -44,7 +44,7 @@ func (appr *appreciationsStore) CreateAppreciation(ctx context.Context, tx repos
 
 	insertQuery, args, err := repository.Sq.
 		Insert(appr.AppreciationsTable).Columns(AppreciationColumns[1:]...).
-		Values(appreciation.CoreValueID, appreciation.Description, appreciation.Quarter, appreciation.Sender, appreciation.Receiver).
+		Values(appreciation.CoreValueID, appreciation.Description, constants.DefaultAppreciationPoint, appreciation.Quarter, appreciation.Sender, appreciation.Receiver).
 		Suffix("RETURNING id,core_value_id, description,total_reward_points,quarter,sender,receiver,created_at,updated_at").
 		ToSql()
 	if err != nil {
@@ -377,7 +377,7 @@ func (appr *appreciationsStore) UpdateAppreciationTotalRewardsOfYesterday(ctx co
 	// Build the SQL update query with subquery
 	query := `
 	UPDATE appreciations AS app
-	SET total_reward_points = 200 + agg.total_points
+	SET total_reward_points = total_reward_points + agg.total_points
 	FROM (
     SELECT appreciation_id, 
 		SUM(
