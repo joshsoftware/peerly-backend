@@ -383,8 +383,8 @@ func (appr *appreciationsStore) UpdateAppreciationTotalRewardsOfYesterday(ctx co
 		SUM(
 			CASE 
 					WHEN r.point = 1 THEN 100
-					WHEN r.point = 2 THEN 150
-					WHEN r.point = 3 THEN 200
+					WHEN r.point = 3 THEN 150
+					WHEN r.point = 5 THEN 200
 					ELSE 0
 			END
 	) AS total_points
