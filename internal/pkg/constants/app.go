@@ -16,3 +16,5 @@ var OrgConfigColumns = []string{
 	"created_by",
 	"updated_by",
 }
+
+const DefaultAppreciationPoint = 200
