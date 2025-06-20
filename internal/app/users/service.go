@@ -507,6 +507,31 @@ func GetQuarterStartUnixTime() int64 {
 	return quarterStart.Unix() * 1000 // convert to milliseconds
 }
 
+func GetRewardQuarterStartUnixTime() int64 {
+	now := time.Now()
+	month := now.Month()
+	year := now.Year()
+
+	var quarterStartMonth time.Month
+
+	switch month {
+	case time.December, time.January, time.February:
+		quarterStartMonth = time.December
+		if month != time.December {
+			year = year - 1 
+		}
+	case time.March, time.April, time.May:
+		quarterStartMonth = time.March
+	case time.June, time.July, time.August:
+		quarterStartMonth = time.June
+	case time.September, time.October, time.November:
+		quarterStartMonth = time.September
+	}
+
+	quarterStart := time.Date(year, quarterStartMonth, 1, 0, 0, 0, 0, time.UTC)
+	return quarterStart.Unix() * 1000
+}
+
 func (us *service) GetTop10Users(ctx context.Context) (users []dto.Top10User, err error) {
 
 	quaterTimeStamp := GetQuarterStartUnixTime()

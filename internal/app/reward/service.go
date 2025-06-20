@@ -61,7 +61,7 @@ func (rwrdSvc *service) GiveReward(ctx context.Context, rewardReq dto.Reward) (d
 		return dto.Reward{}, apperrors.SelfRewardError
 	}
 
-	if appr.CreatedAt < user.GetQuarterStartUnixTime() {
+	if appr.CreatedAt < user.GetRewardQuarterStartUnixTime(){
 		return dto.Reward{}, apperrors.PreviousQuarterRatingNotAllowed
 	}
 
