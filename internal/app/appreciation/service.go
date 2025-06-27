@@ -292,7 +292,7 @@ func (apprSvc *service) sendAppreciationNotificationToAll(ctx context.Context, a
 	logger.Debug(ctx, " appreciationService appr: ", appr)
 	msg := notification.Message{
 		Title: "Appreciation",
-		Body:  fmt.Sprintf(" %s %s appreciated %s %s", appr.SenderFirstName, appr.SenderLastName, appr.ReceiverFirstName, appr.ReceiverLastName),
+		Body:  fmt.Sprintf(" %s %s has received an appreciation", appr.ReceiverFirstName, appr.ReceiverLastName),
 	}
 	logger.Infof(ctx, "appreciationService message: %v", msg)
 	msg.SendNotificationToTopic("peerly")

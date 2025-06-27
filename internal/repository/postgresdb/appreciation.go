@@ -17,7 +17,7 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/repository"
 )
 
-var AppreciationColumns = []string{"id", "core_value_id", "description", "quarter", "sender", "receiver"}
+var AppreciationColumns = []string{"id", "core_value_id", "description", "total_reward_points", "quarter", "sender", "receiver"}
 
 type appreciationsStore struct {
 	BaseRepository
@@ -44,7 +44,7 @@ func (appr *appreciationsStore) CreateAppreciation(ctx context.Context, tx repos
 
 	insertQuery, args, err := repository.Sq.
 		Insert(appr.AppreciationsTable).Columns(AppreciationColumns[1:]...).
-		Values(appreciation.CoreValueID, appreciation.Description, appreciation.Quarter, appreciation.Sender, appreciation.Receiver).
+		Values(appreciation.CoreValueID, appreciation.Description, constants.DefaultAppreciationPoint, appreciation.Quarter, appreciation.Sender, appreciation.Receiver).
 		Suffix("RETURNING id,core_value_id, description,total_reward_points,quarter,sender,receiver,created_at,updated_at").
 		ToSql()
 	if err != nil {
@@ -212,11 +212,13 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 		"u_sender.last_name AS sender_last_name",
 		"u_sender.profile_image_url AS sender_image_url",
 		"u_sender.designation AS sender_designation",
+		"u_sender.employee_id AS sender_employee_id",
 		"u_receiver.id AS receiver_id",
 		"u_receiver.first_name AS receiver_first_name",
 		"u_receiver.last_name AS receiver_last_name",
 		"u_receiver.profile_image_url AS receiver_image_url",
 		"u_receiver.designation AS receiver_designation",
+		"u_receiver.employee_id AS receiver_employee_id", 
 		"a.created_at",
 		"a.updated_at",
 		"COUNT(r.id) AS total_rewards",
@@ -379,7 +381,15 @@ func (appr *appreciationsStore) UpdateAppreciationTotalRewardsOfYesterday(ctx co
 	UPDATE appreciations AS app
 	SET total_reward_points = total_reward_points + agg.total_points
 	FROM (
-    SELECT appreciation_id, SUM(r.point * g.points) AS total_points
+    SELECT appreciation_id, 
+		SUM(
+			CASE 
+					WHEN r.point = 1 THEN 100
+					WHEN r.point = 3 THEN 150
+					WHEN r.point = 5 THEN 200
+					ELSE 0
+			END
+	) AS total_points
     FROM rewards r
     JOIN appreciations a ON r.appreciation_id = a.id
     JOIN users u ON r.sender = u.id

@@ -103,7 +103,44 @@ func (rs *reportAppreciationStore) ReportAppreciation(ctx context.Context, repor
 }
 
 func (rs *reportAppreciationStore) ListReportedAppreciations(ctx context.Context) (reportedAppreciations []repository.ListReportedAppreciations, err error) {
-	query := `select resolutions.id, appreciations.id as appreciation_id, core_values.name as core_value_name, core_values.description as core_value_description, appreciations.description as appreciation_description, appreciations.total_reward_points, appreciations.quarter, appreciations.sender, appreciations.receiver, appreciations.created_at, appreciations.is_valid, resolutions.reporting_comment, resolutions.reported_by, resolutions.reported_at, resolutions.moderator_comment, resolutions.moderated_by, resolutions.moderated_at, resolutions.status from resolutions join appreciations on resolutions.appreciation_id = appreciations.id join core_values on appreciations.core_value_id = core_values.id group by resolutions.id, appreciations.id, core_values.id`
+	query := `
+SELECT 
+  resolutions.id,
+  appreciations.id AS appreciation_id,
+  core_values.name AS core_value_name,
+  core_values.description AS core_value_description,
+  appreciations.description AS appreciation_description,
+  appreciations.total_reward_points,
+  appreciations.quarter,
+  appreciations.sender,
+  sender_user.employee_id AS sender_employee_id,
+  appreciations.receiver,
+  receiver_user.employee_id AS receiver_employee_id,
+  appreciations.created_at,
+  appreciations.is_valid,
+  resolutions.reporting_comment,
+  resolutions.reported_by,
+  reporter_user.employee_id AS reported_by_employee_id,
+  resolutions.reported_at,
+  resolutions.moderator_comment,
+  resolutions.moderated_by,
+  resolutions.moderated_at,
+  resolutions.status
+FROM resolutions
+JOIN appreciations ON resolutions.appreciation_id = appreciations.id
+JOIN core_values ON appreciations.core_value_id = core_values.id
+LEFT JOIN users sender_user ON sender_user.id = appreciations.sender
+LEFT JOIN users receiver_user ON receiver_user.id = appreciations.receiver
+LEFT JOIN users reporter_user ON reporter_user.id = resolutions.reported_by
+GROUP BY 
+  resolutions.id,
+  appreciations.id,
+  core_values.id,
+  sender_user.employee_id,
+  receiver_user.employee_id,
+  reporter_user.employee_id
+`
+
 	err = rs.DB.SelectContext(
 		ctx,
 		&reportedAppreciations,

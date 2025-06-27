@@ -330,6 +330,9 @@ func mapDbAppreciationsToSvcAppreciations(dbApp repository.ListReportedAppreciat
 	svcApp.Quarter = dbApp.TotalRewardPoints
 	svcApp.CoreValueName = dbApp.CoreValueName
 	svcApp.CoreValueDesc = dbApp.CoreValueDesc
+	svcApp.SenderEmployeeID= dbApp.SenderEmployeeID
+	svcApp.ReceiverEmployeeID= dbApp.ReceiverEmployeeID
+	svcApp.ReporterEmployeeID= dbApp.ReportedByEmployeeID
 	svcApp.SenderFirstName = sender.FirstName
 	svcApp.SenderLastName = sender.LastName
 	svcApp.SenderImgUrl = sender.ProfileImgUrl

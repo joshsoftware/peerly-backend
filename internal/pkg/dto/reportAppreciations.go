@@ -27,16 +27,19 @@ type ReportedAppreciation struct {
 	Quarter              int64  `json:"quarter"`
 	CoreValueName        string `json:"core_value_name"`
 	CoreValueDesc        string `json:"core_value_description"`
+	SenderEmployeeID    string `json:"sender_employee_id"`
 	SenderFirstName      string `json:"sender_first_name"`
 	SenderLastName       string `json:"sender_last_name"`
 	SenderImgUrl         string `json:"sender_image_url"`
 	SenderDesignation    string `json:"sender_designation"`
+	ReceiverEmployeeID  string  `json:"receiver_employee_id"`
 	ReceiverFirstName    string `json:"receiver_first_name"`
 	ReceiverLastName     string `json:"receiver_last_name"`
 	ReceiverImgUrl       string `json:"receiver_image_url"`
 	ReceiverDesignation  string `json:"receiver_designation"`
 	CreatedAt            int64  `json:"created_at"`
 	IsValid              bool   `json:"is_valid"`
+	ReporterEmployeeID   string  `json:"reporter_employee_id"`
 	ReportingComment     string `json:"reporting_comment"`
 	ReportedByFirstName  string `json:"reported_by_first_name"`
 	ReportedByLastName   string `json:"reported_by_last_name"`
