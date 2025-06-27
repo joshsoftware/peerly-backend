@@ -501,10 +501,25 @@ func (us *service) UpdateRewardQuota(ctx context.Context) error {
 	return err
 }
 func GetQuarterStartUnixTime() int64 {
-	// Example function to get the Unix timestamp of the start of the quarter
 	now := time.Now()
-	quarterStart := time.Date(now.Year(), (now.Month()-1)/3*3+1, 1, 0, 0, 0, 0, time.UTC)
-	return quarterStart.Unix() * 1000 // convert to milliseconds
+	year := now.Year()
+	var startMonth time.Month
+	switch now.Month() {
+	case time.March, time.April, time.May:
+		startMonth = time.March
+	case time.June, time.July, time.August:
+		startMonth = time.June
+	case time.September, time.October, time.November:
+		startMonth = time.September
+	case time.December:
+		startMonth = time.December
+	case time.January, time.February:
+		startMonth = time.December
+		year = year - 1
+	}
+
+	quarterStart := time.Date(year, startMonth, 1, 0, 0, 0, 0, time.UTC)
+	return quarterStart.Unix() * 1000 
 }
 
 func (us *service) GetTop10Users(ctx context.Context) (users []dto.Top10User, err error) {
