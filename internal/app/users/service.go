@@ -594,7 +594,7 @@ func (us *service) AllAppreciationReport(ctx context.Context, appreciations []dt
 	}
 
 	// Set header
-	headers := []string{"Core value", "Core value description", "Appreciation description", "Sender first name", "Sender last name", "Sender designation", "Receiver first name", "Receiver last name", "Receiver designation", "Total rewards", "Total reward points"}
+	headers := []string{"Core value", "Core value description", "Appreciation description", "Sender Employee ID" ,"Sender first name", "Sender last name", "Sender designation", "Receiver Employee ID", "Receiver first name", "Receiver last name", "Receiver designation", "Total rewards", "Total reward points", "Appreciated Date"}
 	for colIndex, header := range headers {
 
 		cell := fmt.Sprintf("%c1", 'A'+colIndex)
@@ -604,17 +604,23 @@ func (us *service) AllAppreciationReport(ctx context.Context, appreciations []dt
 	// Add data to the sheet
 	for rowIndex, app := range appreciations {
 		row := rowIndex + 2 // Starting from row 2
+
+		appreciatedAt := time.UnixMilli(app.CreatedAt).Format("02/01/2006")
+	
 		f.SetCellValue(sheetName, fmt.Sprintf("A%d", row), app.CoreValueName)
 		f.SetCellValue(sheetName, fmt.Sprintf("B%d", row), app.CoreValueDesc)
 		f.SetCellValue(sheetName, fmt.Sprintf("C%d", row), app.Description)
-		f.SetCellValue(sheetName, fmt.Sprintf("D%d", row), app.SenderFirstName)
-		f.SetCellValue(sheetName, fmt.Sprintf("E%d", row), app.SenderLastName)
-		f.SetCellValue(sheetName, fmt.Sprintf("F%d", row), app.SenderDesignation)
-		f.SetCellValue(sheetName, fmt.Sprintf("G%d", row), app.ReceiverFirstName)
-		f.SetCellValue(sheetName, fmt.Sprintf("H%d", row), app.ReceiverLastName)
-		f.SetCellValue(sheetName, fmt.Sprintf("I%d", row), app.ReceiverDesignation)
-		f.SetCellValue(sheetName, fmt.Sprintf("J%d", row), app.TotalRewards)
-		f.SetCellValue(sheetName, fmt.Sprintf("K%d", row), app.TotalRewardPoints)
+		f.SetCellValue(sheetName, fmt.Sprintf("D%d", row), app.SenderEmployeeID)
+		f.SetCellValue(sheetName, fmt.Sprintf("E%d", row), app.SenderFirstName)
+		f.SetCellValue(sheetName, fmt.Sprintf("F%d", row), app.SenderLastName)
+		f.SetCellValue(sheetName, fmt.Sprintf("G%d", row), app.SenderDesignation)
+		f.SetCellValue(sheetName, fmt.Sprintf("H%d", row), app.ReceiverEmployeeID)
+		f.SetCellValue(sheetName, fmt.Sprintf("I%d", row), app.ReceiverFirstName)
+		f.SetCellValue(sheetName, fmt.Sprintf("J%d", row), app.ReceiverLastName)
+		f.SetCellValue(sheetName, fmt.Sprintf("K%d", row), app.ReceiverDesignation)
+		f.SetCellValue(sheetName, fmt.Sprintf("L%d", row), app.TotalRewards)
+		f.SetCellValue(sheetName, fmt.Sprintf("M%d", row), app.TotalRewardPoints)
+		f.SetCellValue(sheetName, fmt.Sprintf("N%d", row), appreciatedAt)
 	}
 
 	// Set the active sheet
@@ -644,7 +650,7 @@ func (us *service) ReportedAppreciationReport(ctx context.Context, appreciations
 	}
 
 	// Set header
-	headers := []string{"Core value", "Core value description", "Appreciation description", "Sender first name", "Sender last name", "Sender designation", "Receiver first name", "Receiver last name", "Receiver designation", "Reporting Comment", "Reported by first name", "Reported by last name", "Reported at", "Moderator comment", "Moderator first name", "Moderator last name", "Status"}
+	headers := []string{"Core value", "Core value description", "Appreciation description", "Sender Employee ID", "Sender first name", "Sender last name", "Sender designation", "Receiver Employee ID" ,"Receiver first name", "Receiver last name", "Receiver designation", "Appreciated Date", "Reporter Emp ID","Reporting Comment", "Reported by first name", "Reported by last name", "Reported Date", "Moderator comment", "Moderator first name", "Moderator last name", "Status"}
 	for colIndex, header := range headers {
 		cell := fmt.Sprintf("%c1", 'A'+colIndex)
 		f.SetCellValue(sheetName, cell, header)
@@ -652,24 +658,32 @@ func (us *service) ReportedAppreciationReport(ctx context.Context, appreciations
 
 	// Add data to the sheet
 	for rowIndex, app := range appreciations {
+
+		appreciatedAt := time.UnixMilli(app.CreatedAt).Format("02/01/2006")
+		reportedAt := time.UnixMilli(app.ReportedAt).Format("02/01/2006")
+
 		row := rowIndex + 2 // Starting from row 2
 		f.SetCellValue(sheetName, fmt.Sprintf("A%d", row), app.CoreValueName)
 		f.SetCellValue(sheetName, fmt.Sprintf("B%d", row), app.CoreValueDesc)
 		f.SetCellValue(sheetName, fmt.Sprintf("C%d", row), app.AppreciationDesc)
-		f.SetCellValue(sheetName, fmt.Sprintf("D%d", row), app.SenderFirstName)
-		f.SetCellValue(sheetName, fmt.Sprintf("E%d", row), app.SenderLastName)
-		f.SetCellValue(sheetName, fmt.Sprintf("F%d", row), app.SenderDesignation)
-		f.SetCellValue(sheetName, fmt.Sprintf("G%d", row), app.ReceiverFirstName)
-		f.SetCellValue(sheetName, fmt.Sprintf("H%d", row), app.ReceiverLastName)
-		f.SetCellValue(sheetName, fmt.Sprintf("I%d", row), app.ReceiverDesignation)
-		f.SetCellValue(sheetName, fmt.Sprintf("J%d", row), app.ReportingComment)
-		f.SetCellValue(sheetName, fmt.Sprintf("K%d", row), app.ReportedByFirstName)
-		f.SetCellValue(sheetName, fmt.Sprintf("L%d", row), app.ReportedByLastName)
-		f.SetCellValue(sheetName, fmt.Sprintf("M%d", row), app.ReportedAt)
-		f.SetCellValue(sheetName, fmt.Sprintf("N%d", row), app.ModeratorComment)
-		f.SetCellValue(sheetName, fmt.Sprintf("O%d", row), app.ModeratedByFirstName)
-		f.SetCellValue(sheetName, fmt.Sprintf("P%d", row), app.ModeratedByLastName)
-		f.SetCellValue(sheetName, fmt.Sprintf("Q%d", row), app.Status)
+		f.SetCellValue(sheetName, fmt.Sprintf("D%d", row), app.SenderEmployeeID)
+		f.SetCellValue(sheetName, fmt.Sprintf("E%d", row), app.SenderFirstName)
+		f.SetCellValue(sheetName, fmt.Sprintf("F%d", row), app.SenderLastName)
+		f.SetCellValue(sheetName, fmt.Sprintf("G%d", row), app.SenderDesignation)
+		f.SetCellValue(sheetName, fmt.Sprintf("H%d", row), app.ReceiverEmployeeID)
+		f.SetCellValue(sheetName, fmt.Sprintf("I%d", row), app.ReceiverFirstName)
+		f.SetCellValue(sheetName, fmt.Sprintf("J%d", row), app.ReceiverLastName)
+		f.SetCellValue(sheetName, fmt.Sprintf("K%d", row), app.ReceiverDesignation)
+		f.SetCellValue(sheetName, fmt.Sprintf("L%d", row), appreciatedAt) 
+		f.SetCellValue(sheetName, fmt.Sprintf("M%d", row), app.ReporterEmployeeID)
+		f.SetCellValue(sheetName, fmt.Sprintf("N%d", row), app.ReportingComment)
+		f.SetCellValue(sheetName, fmt.Sprintf("O%d", row), app.ReportedByFirstName)
+		f.SetCellValue(sheetName, fmt.Sprintf("P%d", row), app.ReportedByLastName)
+		f.SetCellValue(sheetName, fmt.Sprintf("Q%d", row), reportedAt)
+		f.SetCellValue(sheetName, fmt.Sprintf("R%d", row), app.ModeratorComment)
+		f.SetCellValue(sheetName, fmt.Sprintf("S%d", row), app.ModeratedByFirstName)
+		f.SetCellValue(sheetName, fmt.Sprintf("T%d", row), app.ModeratedByLastName)
+		f.SetCellValue(sheetName, fmt.Sprintf("U%d", row), app.Status)
 	}
 
 	// Set the active sheet

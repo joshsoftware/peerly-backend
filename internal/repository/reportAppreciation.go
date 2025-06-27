@@ -43,6 +43,9 @@ type ListReportedAppreciations struct {
 	CoreValueDesc     string         `db:"core_value_description"`
 	Sender            int64          `db:"sender"`
 	Receiver          int64          `db:"receiver"`
+	SenderEmployeeID  string         `db:"sender_employee_id"`
+	ReceiverEmployeeID string        `db:"receiver_employee_id"`
+	ReportedByEmployeeID string      `db:"reported_by_employee_id"`
 	CreatedAt         int64          `db:"created_at"`
 	IsValid           bool           `db:"is_valid"`
 	ReportingComment  string         `db:"reporting_comment"`
