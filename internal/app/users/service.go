@@ -595,6 +595,27 @@ func (us *service) NotificationByAdmin(ctx context.Context, notificationReq dto.
 	return
 }
 
+func GetQuarterName(t time.Time) string {
+	month := t.Month()
+	year := t.Year()
+
+	switch month {
+	case time.March, time.April, time.May:
+		return fmt.Sprintf("Q1(%d)", year)
+	case time.June, time.July, time.August:
+		return fmt.Sprintf("Q2(%d)", year)
+	case time.September, time.October, time.November:
+		return fmt.Sprintf("Q3(%d)", year)
+	case time.December:
+		return fmt.Sprintf("Q4(%d)", year)
+	case time.January, time.February:
+		return fmt.Sprintf("Q4(%d)", year-1)
+	default:
+		return "Unknown"
+	}
+}
+
+
 func (us *service) AllAppreciationReport(ctx context.Context, appreciations []dto.AppreciationResponse) (tempFileName string, err error) {
 
 	// Create a new Excel file
@@ -609,7 +630,7 @@ func (us *service) AllAppreciationReport(ctx context.Context, appreciations []dt
 	}
 
 	// Set header
-	headers := []string{"Core value", "Core value description", "Appreciation description", "Sender Employee ID" ,"Sender first name", "Sender last name", "Sender designation", "Receiver Employee ID", "Receiver first name", "Receiver last name", "Receiver designation", "Total rewards", "Total reward points", "Appreciated Date"}
+	headers := []string{"Core value", "Core value description", "Appreciation description", "Sender Employee ID" ,"Sender first name", "Sender last name", "Sender designation", "Receiver Employee ID", "Receiver first name", "Receiver last name", "Receiver designation", "Total rewards", "Total reward points", "Appreciated Date", "Quarter"}
 	for colIndex, header := range headers {
 
 		cell := fmt.Sprintf("%c1", 'A'+colIndex)
@@ -620,7 +641,9 @@ func (us *service) AllAppreciationReport(ctx context.Context, appreciations []dt
 	for rowIndex, app := range appreciations {
 		row := rowIndex + 2 // Starting from row 2
 
+    createdTime := time.UnixMilli(app.CreatedAt)
 		appreciatedAt := time.UnixMilli(app.CreatedAt).Format("02/01/2006")
+		quarter := GetQuarterName(createdTime)
 	
 		f.SetCellValue(sheetName, fmt.Sprintf("A%d", row), app.CoreValueName)
 		f.SetCellValue(sheetName, fmt.Sprintf("B%d", row), app.CoreValueDesc)
@@ -636,6 +659,8 @@ func (us *service) AllAppreciationReport(ctx context.Context, appreciations []dt
 		f.SetCellValue(sheetName, fmt.Sprintf("L%d", row), app.TotalRewards)
 		f.SetCellValue(sheetName, fmt.Sprintf("M%d", row), app.TotalRewardPoints)
 		f.SetCellValue(sheetName, fmt.Sprintf("N%d", row), appreciatedAt)
+		f.SetCellValue(sheetName, fmt.Sprintf("O%d", row), quarter)
+
 	}
 
 	// Set the active sheet
@@ -665,7 +690,7 @@ func (us *service) ReportedAppreciationReport(ctx context.Context, appreciations
 	}
 
 	// Set header
-	headers := []string{"Core value", "Core value description", "Appreciation description", "Sender Employee ID", "Sender first name", "Sender last name", "Sender designation", "Receiver Employee ID" ,"Receiver first name", "Receiver last name", "Receiver designation", "Appreciated Date", "Reporter Emp ID","Reporting Comment", "Reported by first name", "Reported by last name", "Reported Date", "Moderator comment", "Moderator first name", "Moderator last name", "Status"}
+	headers := []string{"Core value", "Core value description", "Appreciation description", "Sender Employee ID", "Sender first name", "Sender last name", "Sender designation", "Receiver Employee ID" ,"Receiver first name", "Receiver last name", "Receiver designation", "Appreciated Date",  "Reporter Emp ID","Reporting Comment", "Reported by first name", "Reported by last name", "Reported Date", "Moderator comment", "Moderator first name", "Moderator last name", "Status","Quarter"}
 	for colIndex, header := range headers {
 		cell := fmt.Sprintf("%c1", 'A'+colIndex)
 		f.SetCellValue(sheetName, cell, header)
@@ -676,6 +701,9 @@ func (us *service) ReportedAppreciationReport(ctx context.Context, appreciations
 
 		appreciatedAt := time.UnixMilli(app.CreatedAt).Format("02/01/2006")
 		reportedAt := time.UnixMilli(app.ReportedAt).Format("02/01/2006")
+
+		createdTime := time.UnixMilli(app.CreatedAt)
+    quarter := GetQuarterName(createdTime)
 
 		row := rowIndex + 2 // Starting from row 2
 		f.SetCellValue(sheetName, fmt.Sprintf("A%d", row), app.CoreValueName)
@@ -699,6 +727,7 @@ func (us *service) ReportedAppreciationReport(ctx context.Context, appreciations
 		f.SetCellValue(sheetName, fmt.Sprintf("S%d", row), app.ModeratedByFirstName)
 		f.SetCellValue(sheetName, fmt.Sprintf("T%d", row), app.ModeratedByLastName)
 		f.SetCellValue(sheetName, fmt.Sprintf("U%d", row), app.Status)
+		f.SetCellValue(sheetName, fmt.Sprintf("V%d", row), quarter)
 	}
 
 	// Set the active sheet
