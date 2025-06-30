@@ -2,7 +2,7 @@ package reward
 
 import (
 	"context"
-
+  "time"
 	"github.com/joshsoftware/peerly-backend/internal/app/notification"
 	user "github.com/joshsoftware/peerly-backend/internal/app/users"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
@@ -31,6 +31,67 @@ func NewService(rewardRepo repository.RewardStorer, appreciationRepo repository.
 		reportedAppreciatonRepo: reportedAppreciatonRepo,
 	}
 }
+
+func IsAppreciationEligibleForReward(appreciationTime time.Time, now time.Time) bool {
+	type Quarter struct {
+		StartMonth time.Month
+		Months     [3]time.Month
+	}
+
+	quarters := []Quarter{
+		{time.March, [3]time.Month{time.March, time.April, time.May}},             
+		{time.June, [3]time.Month{time.June, time.July, time.August}},             
+		{time.September, [3]time.Month{time.September, time.October, time.November}}, 
+		{time.December, [3]time.Month{time.December, time.January, time.February}},   
+	}
+
+	getQuarterIndex := func(month time.Month) int {
+		for i, q := range quarters {
+			for _, m := range q.Months {
+				if m == month {
+					return i
+				}
+			}
+		}
+		return -1
+	}
+
+	currQIndex := getQuarterIndex(now.Month())
+	prevQIndex := (currQIndex + len(quarters) - 1) % len(quarters)
+
+	currQ := quarters[currQIndex]
+	prevQ := quarters[prevQIndex]
+
+	for _, m := range currQ.Months {
+		if appreciationTime.Month() == m {
+			if m == time.January || m == time.February {
+				if appreciationTime.Year() == now.Year() || appreciationTime.Year() == now.Year()-1 {
+					return true
+				}
+			} else {
+				if appreciationTime.Year() == now.Year() {
+					return true
+				}
+			}
+		}
+	}
+
+	lastMonthPrevQ := prevQ.Months[2] 
+	firstMonthCurrQ := currQ.Months[0] 
+
+	isLastMonthAppreciation := appreciationTime.Month() == lastMonthPrevQ
+	isFirstMonthNow := now.Month() == firstMonthCurrQ
+
+	isYearMatch := (appreciationTime.Year() == now.Year()-1 && now.Month() == time.January) ||
+		(appreciationTime.Year() == now.Year())
+
+	if isLastMonthAppreciation && isFirstMonthNow && isYearMatch {
+		return true
+	}
+
+	return false
+}
+
 
 func (rwrdSvc *service) GiveReward(ctx context.Context, rewardReq dto.Reward) (dto.Reward, error) {
 
@@ -61,7 +122,9 @@ func (rwrdSvc *service) GiveReward(ctx context.Context, rewardReq dto.Reward) (d
 		return dto.Reward{}, apperrors.SelfRewardError
 	}
 
-	if appr.CreatedAt < user.GetQuarterStartUnixTime() {
+	appreciationTime := time.UnixMilli(appr.CreatedAt)
+
+	if !IsAppreciationEligibleForReward(appreciationTime, time.Now()) {
 		return dto.Reward{}, apperrors.PreviousQuarterRatingNotAllowed
 	}
 
