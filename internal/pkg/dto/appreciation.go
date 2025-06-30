@@ -78,6 +78,7 @@ func (appr *Appreciation) ValidateCreateAppreciation() (err error) {
 	}
 
 	if len(appr.Description) < 150 {
+
 		return apperrors.DescriptionLengthBelowLimit
 	}
 
