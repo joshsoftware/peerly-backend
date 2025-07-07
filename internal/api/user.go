@@ -228,10 +228,24 @@ func listUsersHandler(userSvc user.Service) http.HandlerFunc {
 
 func getActiveUserListHandler(userSvc user.Service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
-
 		ctx := req.Context()
+
+		quarterStr := req.URL.Query().Get("quarter")
+		yearStr := req.URL.Query().Get("year")
+
+		quarter, err := strconv.Atoi(quarterStr)
+		if err != nil || quarter < 1 || quarter > 4 {
+			http.Error(rw, "Invalid quarter", http.StatusBadRequest)
+			return
+		}
+		year, err := strconv.Atoi(yearStr)
+		if err != nil || year < 2024 {
+			http.Error(rw, "Invalid year", http.StatusBadRequest)
+			return
+		}
+
 		log.Info(ctx, "getActiveUserListHandler: req: ", req)
-		resp, err := userSvc.GetActiveUserList(req.Context())
+		resp, err := userSvc.GetActiveUserList(ctx, quarter, year)
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)
 			return
@@ -241,6 +255,7 @@ func getActiveUserListHandler(userSvc user.Service) http.HandlerFunc {
 		dto.SuccessRepsonse(rw, http.StatusOK, "Active Users list", resp)
 	}
 }
+
 func getUserByIdHandler(userSvc user.Service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
 
