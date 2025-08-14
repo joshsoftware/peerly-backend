@@ -78,10 +78,12 @@ func (appr *appreciationsStore) GetAppreciationById(ctx context.Context, tx repo
 		return repository.AppreciationResponse{}, apperrors.InternalServer
 	}
 
+
 	// Build the SQL query
 	query, args, err := repository.Sq.Select(
 		"a.id",
 		"cv.name AS core_value_name",
+		"cv.description AS core_value_description",
 		"a.description",
 		"a.is_valid",
 		"a.total_reward_points",
@@ -91,6 +93,7 @@ func (appr *appreciationsStore) GetAppreciationById(ctx context.Context, tx repo
 		"u_sender.last_name AS sender_last_name",
 		"u_sender.profile_image_url AS sender_image_url",
 		"u_sender.designation AS sender_designation",
+		"g_sender.name AS sender_grade_name",
 		"u_receiver.id AS receiver_id",
 		"u_receiver.first_name AS receiver_first_name",
 		"u_receiver.last_name AS receiver_last_name",
@@ -107,6 +110,7 @@ func (appr *appreciationsStore) GetAppreciationById(ctx context.Context, tx repo
 			), 0) AS given_reward_point`, userID),
 	).From(appr.AppreciationsTable+" a").
 		LeftJoin(appr.UsersTable+" u_sender ON a.sender = u_sender.id").
+		LeftJoin("grades g_sender ON u_sender.grade_id = g_sender.id").
 		LeftJoin(appr.UsersTable+" u_receiver ON a.receiver = u_receiver.id").
 		LeftJoin(appr.CoreValuesTable+" cv ON a.core_value_id = cv.id").
 		LeftJoin(appr.RewardsTable+" r ON a.id = r.appreciation_id").
@@ -114,7 +118,7 @@ func (appr *appreciationsStore) GetAppreciationById(ctx context.Context, tx repo
 			squirrel.Eq{"a.id": apprId},
 			squirrel.Eq{"a.is_valid": true},
 		}).
-		GroupBy("a.id", "cv.name", "u_sender.id", "u_receiver.id").
+		GroupBy("a.id", "cv.name", "cv.description", "u_sender.id", "g_sender.name", "u_receiver.id").
 		ToSql()
 
 	if err != nil {
@@ -213,12 +217,13 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 		"u_sender.profile_image_url AS sender_image_url",
 		"u_sender.designation AS sender_designation",
 		"u_sender.employee_id AS sender_employee_id",
+		"g_sender.name AS sender_grade_name",
 		"u_receiver.id AS receiver_id",
 		"u_receiver.first_name AS receiver_first_name",
 		"u_receiver.last_name AS receiver_last_name",
 		"u_receiver.profile_image_url AS receiver_image_url",
 		"u_receiver.designation AS receiver_designation",
-		"u_receiver.employee_id AS receiver_employee_id", 
+		"u_receiver.employee_id AS receiver_employee_id",
 		"a.created_at",
 		"a.updated_at",
 		"COUNT(r.id) AS total_rewards",
@@ -229,8 +234,9 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 				WHERE r2.appreciation_id = a.id AND r2.sender = %d
 			), 0) AS given_reward_point`, userID),
 	).
+		LeftJoin("grades g_sender ON u_sender.grade_id = g_sender.id").
 		LeftJoin("rewards r ON a.id = r.appreciation_id").
-		GroupBy("a.id", "cv.name", "cv.description", "u_sender.id", "u_receiver.id")
+		GroupBy("a.id", "cv.name", "cv.description", "u_sender.id", "g_sender.name", "u_receiver.id")
 
 	if filter.SortOrder != "" {
 		queryBuilder = queryBuilder.OrderBy(fmt.Sprintf("a.created_at %s", filter.SortOrder))
