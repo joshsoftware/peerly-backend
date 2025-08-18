@@ -1,6 +1,8 @@
 package appreciation
 
 import (
+	"strconv"
+	"strings"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
 )
@@ -33,13 +35,13 @@ func mapRepoGetAppreciationInfoToDTOGetAppreciationInfo(info repository.Apprecia
 		TotalRewardPoints:   info.TotalRewardPoints,
 		Quarter:             info.Quarter,
 		SenderID:            info.SenderID,
-		SenderEmployeeID:    info.SenderEmployeeID,  
+		SenderEmployeeID:    info.SenderEmployeeID,
 		SenderFirstName:     info.SenderFirstName,
 		SenderLastName:      info.SenderLastName,
 		SenderImageURL:      senderImageURL,
 		SenderDesignation:   info.SenderDesignation,
 		ReceiverID:          info.ReceiverID,
-		ReceiverEmployeeID:  info.ReceiverEmployeeID,  
+		ReceiverEmployeeID:  info.ReceiverEmployeeID,
 		ReceiverFirstName:   info.ReceiverFirstName,
 		ReceiverLastName:    info.ReceiverLastName,
 		ReceiverImageURL:    receiverImageURL,
@@ -49,6 +51,13 @@ func mapRepoGetAppreciationInfoToDTOGetAppreciationInfo(info repository.Apprecia
 		ReportedFlag:        info.ReportedFlag,
 		CreatedAt:           info.CreatedAt,
 		UpdatedAt:           info.UpdatedAt,
+	}
+
+	grade := strings.ToUpper(info.SenderGradeName)
+	if strings.HasPrefix(grade, "J") {
+		if n, err := strconv.Atoi(strings.TrimPrefix(grade, "J")); err == nil && n >= 3 && n <= 6 {
+			dtoApprResp.ByManagement = true
+		}
 	}
 
 	return dtoApprResp
