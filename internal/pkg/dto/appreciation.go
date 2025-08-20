@@ -40,7 +40,7 @@ type AppreciationResponse struct {
 	SenderImageURL      string `json:"sender_image_url"`
 	SenderDesignation   string `json:"sender_designation"`
 	ReceiverID          int64  `json:"receiver_id"`
-	ReceiverEmployeeID  string  `json:"receiver_employee_id"`
+	ReceiverEmployeeID  string `json:"receiver_employee_id"`
 	ReceiverFirstName   string `json:"receiver_first_name"`
 	ReceiverLastName    string `json:"receiver_last_name"`
 	ReceiverImageURL    string `json:"receiver_image_url"`
@@ -48,6 +48,7 @@ type AppreciationResponse struct {
 	TotalRewards        int32  `json:"total_rewards"`
 	GivenRewardPoint    int8   `json:"given_reward_point"`
 	ReportedFlag        bool   `json:"reported_flag"`
+	ByManagement        bool   `json:"by_management"`
 	CreatedAt           int64  `json:"created_at"`
 	UpdatedAt           int64  `json:"updated_at"`
 }
