@@ -37,7 +37,7 @@ type Service interface {
 	ListUsers(ctx context.Context, reqData dto.ListUsersReq) (resp dto.ListUsersResp, err error)
 	GetUserById(ctx context.Context) (user dto.GetUserByIdResp, err error)
 	UpdateRewardQuota(ctx context.Context) (err error)
-	GetActiveUserList(ctx context.Context) ([]dto.ActiveUser, error)
+	GetActiveUserList(ctx context.Context, quarter int, year int) ([]dto.ActiveUser, error)
 	GetTop10Users(ctx context.Context) (users []dto.Top10User, err error)
 	AdminLogin(ctx context.Context, loginReq dto.AdminLoginReq) (resp dto.LoginUserResp, err error)
 	NotificationByAdmin(ctx context.Context, notificationReq dto.AdminNotificationReq) (err error)
@@ -483,8 +483,9 @@ func (us *service) GetUserById(ctx context.Context) (user dto.GetUserByIdResp, e
 	return
 }
 
-func (us *service) GetActiveUserList(ctx context.Context) ([]dto.ActiveUser, error) {
-	activeUserDb, err := us.userRepo.GetActiveUserList(ctx, nil)
+func (us *service) GetActiveUserList(ctx context.Context, quarter int, year int) ([]dto.ActiveUser, error) {
+	quarterStart, quarterEnd := getQuarterRangeUnixTime(quarter, year)
+	activeUserDb, err := us.userRepo.GetActiveUserList(ctx, nil, quarterStart, quarterEnd)
 	if err != nil {
 		logger.Errorf(ctx, "userService: GetActiveUserList: err: %v", err)
 		return []dto.ActiveUser{}, err
@@ -496,6 +497,34 @@ func (us *service) GetActiveUserList(ctx context.Context) ([]dto.ActiveUser, err
 	}
 	return res, nil
 }
+
+func getQuarterRangeUnixTime(quarter int, year int) (start int64, end int64) {
+	var startMonth, endMonth time.Month
+	startYear := year
+	endYear := year
+	switch quarter {
+	case 1:
+		startMonth = time.March
+		endMonth = time.June
+	case 2:
+		startMonth = time.June
+		endMonth = time.September
+	case 3:
+		startMonth = time.September
+		endMonth = time.December
+	case 4:
+		startMonth = time.December
+		endMonth = time.March
+		endYear = year + 1 // Q4 ends next year's March
+	default:
+		startMonth = time.January
+		endMonth = time.January
+	}
+	startTime := time.Date(startYear, startMonth, 1, 0, 0, 0, 0, time.UTC)
+	endTime := time.Date(endYear, endMonth, 1, 0, 0, 0, 0, time.UTC)
+	return startTime.UnixMilli(), endTime.UnixMilli()
+}
+
 func (us *service) UpdateRewardQuota(ctx context.Context) error {
 	err := us.userRepo.UpdateRewardQuota(ctx, nil)
 	return err
