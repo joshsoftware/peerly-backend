@@ -1,8 +1,6 @@
 package appreciation
 
 import (
-	"strconv"
-	"strings"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
 )
@@ -53,11 +51,8 @@ func mapRepoGetAppreciationInfoToDTOGetAppreciationInfo(info repository.Apprecia
 		UpdatedAt:           info.UpdatedAt,
 	}
 
-	grade := strings.ToUpper(info.SenderGradeName)
-	if strings.HasPrefix(grade, "J") {
-		if n, err := strconv.Atoi(strings.TrimPrefix(grade, "J")); err == nil && n >= 3 && n <= 6 {
-			dtoApprResp.ByManagement = true
-		}
+	if info.SenderGradeID != 0 && info.SenderGradeID <= 6 {
+		dtoApprResp.ByManagement = true
 	}
 
 	return dtoApprResp

@@ -46,7 +46,7 @@ type AppreciationResponse struct {
 	SenderImageURL      sql.NullString `db:"sender_image_url"`
 	SenderDesignation   string         `db:"sender_designation"`
 	SenderEmployeeID    string         `db:"sender_employee_id"`
-	SenderGradeName     string         `db:"sender_grade_name"`
+	SenderGradeID       int64          `db:"sender_grade_id"` // New field for grade ID
 	ReceiverID          int64          `db:"receiver_id"`
 	ReceiverFirstName   string         `db:"receiver_first_name"`
 	ReceiverLastName    string         `db:"receiver_last_name"`
