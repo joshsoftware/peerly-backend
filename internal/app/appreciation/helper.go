@@ -51,7 +51,7 @@ func mapRepoGetAppreciationInfoToDTOGetAppreciationInfo(info repository.Apprecia
 		UpdatedAt:           info.UpdatedAt,
 	}
 
-	if info.SenderGradeID != 0 && info.SenderGradeID <= 6 {
+	if info.SenderGradeID != 0 && info.SenderGradeID <= 4 {
 		dtoApprResp.ByManagement = true
 	}
 
