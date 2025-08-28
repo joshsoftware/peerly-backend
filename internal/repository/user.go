@@ -19,7 +19,7 @@ type UserStorer interface {
 	ListUsers(ctx context.Context, reqData dto.ListUsersReq) (resp []User, count int64, err error)
 
 	UpdateRewardQuota(ctx context.Context, tx Transaction) (err error)
-	GetActiveUserList(ctx context.Context, tx Transaction) (activeUsers []ActiveUser, err error)
+	GetActiveUserList(ctx context.Context, tx Transaction, quarterStart int64, quarterEnd int64) (activeUsers []ActiveUser, err error)
 	GetUserById(ctx context.Context, reqData dto.GetUserByIdReq) (user dto.GetUserByIdResp, err error)
 	GetTop10Users(ctx context.Context, quarterTimestamp int64) (users []Top10Users, err error)
 	GetGradeById(ctx context.Context, id int64) (grade Grade, err error)
