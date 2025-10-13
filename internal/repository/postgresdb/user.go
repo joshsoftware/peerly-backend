@@ -230,7 +230,7 @@ func (us *userStore) ListUsers(ctx context.Context, reqData dto.ListUsersReq) (r
 		return
 	}
 
-	queryBuilder := repository.Sq.Select(userColumns...).From(us.UsersTable).OrderBy("first_name")
+	queryBuilder := repository.Sq.Select(userColumns...).From(us.UsersTable).Where("grade_id NOT IN (?, ?)", 1, 2).OrderBy("first_name")
 	conditions := []squirrel.Sqlizer{}
 	for _, name := range reqData.Name {
 		conditions = append(conditions, squirrel.Like{"lower(first_name)": "%" + name + "%"})
