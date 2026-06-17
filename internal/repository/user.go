@@ -20,6 +20,7 @@ type UserStorer interface {
 
 	UpdateRewardQuota(ctx context.Context, tx Transaction) (err error)
 	GetActiveUserList(ctx context.Context, tx Transaction, quarterStart int64, quarterEnd int64) (activeUsers []ActiveUser, err error)
+	GetDynamicEngagersReport(ctx context.Context, tx Transaction, quarterStart int64, quarterEnd int64) (engagers []DynamicEngager, err error)
 	GetUserById(ctx context.Context, reqData dto.GetUserByIdReq) (user dto.GetUserByIdResp, err error)
 	GetTop10Users(ctx context.Context, quarterTimestamp int64) (users []Top10Users, err error)
 	GetGradeById(ctx context.Context, id int64) (grade Grade, err error)
@@ -80,3 +81,14 @@ type UserBadgeDetails struct {
 	BadgeName   sql.NullString `db:"badge_name"`
 	BadgePoints int32          `db:"badge_points"`
 }
+
+type DynamicEngager struct {
+	UserID       int64  `db:"user_id"`
+	FirstName    string `db:"first_name"`
+	LastName     string `db:"last_name"`
+	Sent         int64  `db:"sent"`
+	Received     int64  `db:"received"`
+	RewardPoints int64  `db:"reward_points"`
+	TotalPoints  int64  `db:"total_points"`
+}
+

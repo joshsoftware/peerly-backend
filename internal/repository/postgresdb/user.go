@@ -379,6 +379,84 @@ func (us *userStore) GetActiveUserList(ctx context.Context, tx repository.Transa
 	return activeUsers, nil
 }
 
+func (us *userStore) GetDynamicEngagersReport(ctx context.Context, tx repository.Transaction, quarterStart int64, quarterEnd int64) (engagers []repository.DynamicEngager, err error) {
+	queryExecutor := us.InitiateQueryExecutor(tx)
+	query := `WITH sent_appreciations AS (
+		SELECT sender AS user_id, COUNT(*) AS sent
+		FROM appreciations
+		WHERE is_valid = true AND created_at >= $1 AND created_at < $2
+		GROUP BY sender
+	),
+	received_appreciations AS (
+		SELECT receiver AS user_id, COUNT(*) AS received
+		FROM appreciations
+		WHERE is_valid = true AND created_at >= $1 AND created_at < $2
+		GROUP BY receiver
+	),
+	given_rewards AS (
+		SELECT sender AS user_id, SUM(point) AS reward_points
+		FROM rewards
+		WHERE created_at >= $1 AND created_at < $2
+		GROUP BY sender
+	)
+	SELECT 
+		u.id AS user_id,
+		u.first_name,
+		u.last_name,
+		COALESCE(s.sent, 0) AS sent,
+		COALESCE(r.received, 0) AS received,
+		COALESCE(g.reward_points, 0) AS reward_points,
+		(3 * COALESCE(s.sent, 0) + 2 * COALESCE(r.received, 0) + COALESCE(g.reward_points, 0)) AS total_points
+	FROM 
+		users u
+	LEFT JOIN 
+		sent_appreciations s ON u.id = s.user_id
+	LEFT JOIN 
+		received_appreciations r ON u.id = r.user_id
+	LEFT JOIN 
+		given_rewards g ON u.id = g.user_id
+	WHERE 
+		COALESCE(s.sent, 0) > 0 OR
+		COALESCE(r.received, 0) > 0 OR
+		COALESCE(g.reward_points, 0) > 0
+	ORDER BY 
+		total_points DESC,
+		first_name ASC,
+		last_name ASC;`
+
+	rows, err := queryExecutor.Query(query, quarterStart, quarterEnd)
+	if err != nil {
+		logger.Error(ctx, "err: userStore GetDynamicEngagersReport query: ", err.Error())
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var user repository.DynamicEngager
+		if err := rows.Scan(
+			&user.UserID,
+			&user.FirstName,
+			&user.LastName,
+			&user.Sent,
+			&user.Received,
+			&user.RewardPoints,
+			&user.TotalPoints,
+		); err != nil {
+			logger.Error(ctx, "err: userStore GetDynamicEngagersReport scan: ", err.Error())
+			return nil, err
+		}
+		engagers = append(engagers, user)
+	}
+
+	if err = rows.Err(); err != nil {
+		logger.Error(ctx, "err: userStore GetDynamicEngagersReport rows: ", err.Error())
+		return nil, err
+	}
+
+	return engagers, nil
+}
+
+
 func (us *userStore) UpdateRewardQuota(ctx context.Context, tx repository.Transaction) (err error) {
 
 	queryExecutor := us.InitiateQueryExecutor(tx)

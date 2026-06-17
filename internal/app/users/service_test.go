@@ -9,12 +9,19 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
+	log "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/testConfig"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
 	"github.com/joshsoftware/peerly-backend/internal/repository/mocks"
+	l "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
+
+func init() {
+	log.Logger = l.New()
+}
+
 
 func TestLoginUser(t *testing.T) {
 	testConfig.Load()
@@ -482,7 +489,7 @@ func TestGetActiveUserList(t *testing.T) {
 			name:    "success",
 			context: context.Background(),
 			setup: func(userMock *mocks.UserStorer) {
-				userMock.On("GetActiveUserList", mock.Anything, mock.Anything).Return([]repository.ActiveUser{
+				userMock.On("GetActiveUserList", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]repository.ActiveUser{
 					{
 						ID:                 55,
 						FirstName:          "Deepak",
@@ -521,7 +528,7 @@ func TestGetActiveUserList(t *testing.T) {
 			name:    "failure",
 			context: context.Background(),
 			setup: func(userMock *mocks.UserStorer) {
-				userMock.On("GetActiveUserList", mock.Anything, mock.Anything).Return([]repository.ActiveUser{}, apperrors.InternalServer).Once()
+				userMock.On("GetActiveUserList", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]repository.ActiveUser{}, apperrors.InternalServer).Once()
 			},
 			expectedResp:  []dto.ActiveUser{},
 			expectedError: apperrors.InternalServer,
@@ -533,7 +540,7 @@ func TestGetActiveUserList(t *testing.T) {
 			test.setup(userRepo)
 
 			// test service
-			resp, err := service.GetActiveUserList(test.context)
+			resp, err := service.GetActiveUserList(test.context, 1, 2026)
 
 			if err != nil {
 				assert.Equal(t, test.expectedError, err)
