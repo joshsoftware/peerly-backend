@@ -71,13 +71,13 @@ func (_m *UserStorer) CreateNewUser(ctx context.Context, user dto.User) (reposit
 	return r0, r1
 }
 
-// GetActiveUserList provides a mock function with given fields: ctx, tx
-func (_m *UserStorer) GetActiveUserList(ctx context.Context, tx repository.Transaction) ([]repository.ActiveUser, error) {
-	ret := _m.Called(ctx, tx)
+// GetActiveUserList provides a mock function with given fields: ctx, tx, quarterStart, quarterEnd
+func (_m *UserStorer) GetActiveUserList(ctx context.Context, tx repository.Transaction, quarterStart int64, quarterEnd int64) ([]repository.ActiveUser, error) {
+	ret := _m.Called(ctx, tx, quarterStart, quarterEnd)
 
 	var r0 []repository.ActiveUser
-	if rf, ok := ret.Get(0).(func(context.Context, repository.Transaction) []repository.ActiveUser); ok {
-		r0 = rf(ctx, tx)
+	if rf, ok := ret.Get(0).(func(context.Context, repository.Transaction, int64, int64) []repository.ActiveUser); ok {
+		r0 = rf(ctx, tx, quarterStart, quarterEnd)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]repository.ActiveUser)
@@ -85,14 +85,38 @@ func (_m *UserStorer) GetActiveUserList(ctx context.Context, tx repository.Trans
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, repository.Transaction) error); ok {
-		r1 = rf(ctx, tx)
+	if rf, ok := ret.Get(1).(func(context.Context, repository.Transaction, int64, int64) error); ok {
+		r1 = rf(ctx, tx, quarterStart, quarterEnd)
 	} else {
 		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
+
+// GetDynamicEngagersReport provides a mock function with given fields: ctx, tx, quarterStart, quarterEnd
+func (_m *UserStorer) GetDynamicEngagersReport(ctx context.Context, tx repository.Transaction, quarterStart int64, quarterEnd int64) ([]repository.DynamicEngager, error) {
+	ret := _m.Called(ctx, tx, quarterStart, quarterEnd)
+
+	var r0 []repository.DynamicEngager
+	if rf, ok := ret.Get(0).(func(context.Context, repository.Transaction, int64, int64) []repository.DynamicEngager); ok {
+		r0 = rf(ctx, tx, quarterStart, quarterEnd)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]repository.DynamicEngager)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, repository.Transaction, int64, int64) error); ok {
+		r1 = rf(ctx, tx, quarterStart, quarterEnd)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 
 // GetAdmin provides a mock function with given fields: ctx, email
 func (_m *UserStorer) GetAdmin(ctx context.Context, email string) (repository.User, error) {
