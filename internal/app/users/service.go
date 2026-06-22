@@ -37,12 +37,13 @@ type Service interface {
 	ListUsers(ctx context.Context, reqData dto.ListUsersReq) (resp dto.ListUsersResp, err error)
 	GetUserById(ctx context.Context) (user dto.GetUserByIdResp, err error)
 	UpdateRewardQuota(ctx context.Context) (err error)
-	GetActiveUserList(ctx context.Context) ([]dto.ActiveUser, error)
+	GetActiveUserList(ctx context.Context, quarter int, year int) ([]dto.ActiveUser, error)
 	GetTop10Users(ctx context.Context) (users []dto.Top10User, err error)
 	AdminLogin(ctx context.Context, loginReq dto.AdminLoginReq) (resp dto.LoginUserResp, err error)
 	NotificationByAdmin(ctx context.Context, notificationReq dto.AdminNotificationReq) (err error)
 	AllAppreciationReport(ctx context.Context, appreciations []dto.AppreciationResponse) (tempFileName string, err error)
 	ReportedAppreciationReport(ctx context.Context, appreciations []dto.ReportedAppreciation) (tempFileName string, err error)
+	DynamicEngagersReport(ctx context.Context, quarter int, year int) (tempFileName string, err error)
 }
 
 func NewService(userRepo repository.UserStorer) Service {
@@ -483,8 +484,9 @@ func (us *service) GetUserById(ctx context.Context) (user dto.GetUserByIdResp, e
 	return
 }
 
-func (us *service) GetActiveUserList(ctx context.Context) ([]dto.ActiveUser, error) {
-	activeUserDb, err := us.userRepo.GetActiveUserList(ctx, nil)
+func (us *service) GetActiveUserList(ctx context.Context, quarter int, year int) ([]dto.ActiveUser, error) {
+	quarterStart, quarterEnd := getQuarterRangeUnixTime(quarter, year)
+	activeUserDb, err := us.userRepo.GetActiveUserList(ctx, nil, quarterStart, quarterEnd)
 	if err != nil {
 		logger.Errorf(ctx, "userService: GetActiveUserList: err: %v", err)
 		return []dto.ActiveUser{}, err
@@ -496,6 +498,34 @@ func (us *service) GetActiveUserList(ctx context.Context) ([]dto.ActiveUser, err
 	}
 	return res, nil
 }
+
+func getQuarterRangeUnixTime(quarter int, year int) (start int64, end int64) {
+	var startMonth, endMonth time.Month
+	startYear := year
+	endYear := year
+	switch quarter {
+	case 1:
+		startMonth = time.March
+		endMonth = time.June
+	case 2:
+		startMonth = time.June
+		endMonth = time.September
+	case 3:
+		startMonth = time.September
+		endMonth = time.December
+	case 4:
+		startMonth = time.December
+		endMonth = time.March
+		endYear = year + 1 // Q4 ends next year's March
+	default:
+		startMonth = time.January
+		endMonth = time.January
+	}
+	startTime := time.Date(startYear, startMonth, 1, 0, 0, 0, 0, time.UTC)
+	endTime := time.Date(endYear, endMonth, 1, 0, 0, 0, 0, time.UTC)
+	return startTime.UnixMilli(), endTime.UnixMilli()
+}
+
 func (us *service) UpdateRewardQuota(ctx context.Context) error {
 	err := us.userRepo.UpdateRewardQuota(ctx, nil)
 	return err
@@ -504,22 +534,34 @@ func GetQuarterStartUnixTime() int64 {
 	now := time.Now()
 	year := now.Year()
 	var startMonth time.Month
+	var startYear int
 	switch now.Month() {
 	case time.March, time.April, time.May:
+		// Q1 (Mar-May)
 		startMonth = time.March
+		startYear = year
 	case time.June, time.July, time.August:
+		// Q2 (Jun-Aug)
 		startMonth = time.June
+		startYear = year
 	case time.September, time.October, time.November:
+		// Q3 (Sep-Nov)
 		startMonth = time.September
+		startYear = year
 	case time.December:
+		// Q4 starts Dec of current year
 		startMonth = time.December
+		startYear = year
 	case time.January, time.February:
+		// Q4 continues into next year (Dec of previous year)
 		startMonth = time.December
-		year = year - 1
+		startYear = year - 1
+	default:
+		startMonth = time.January
+		startYear = year
 	}
-
-	quarterStart := time.Date(year, startMonth, 1, 0, 0, 0, 0, time.UTC)
-	return quarterStart.Unix() * 1000 
+	quarterStart := time.Date(startYear, startMonth, 1, 0, 0, 0, 0, time.UTC)
+	return quarterStart.Unix() * 1000
 }
 
 func (us *service) GetTop10Users(ctx context.Context) (users []dto.Top10User, err error) {
@@ -615,7 +657,6 @@ func GetQuarterName(t time.Time) string {
 	}
 }
 
-
 func (us *service) AllAppreciationReport(ctx context.Context, appreciations []dto.AppreciationResponse) (tempFileName string, err error) {
 
 	// Create a new Excel file
@@ -630,7 +671,7 @@ func (us *service) AllAppreciationReport(ctx context.Context, appreciations []dt
 	}
 
 	// Set header
-	headers := []string{"Core value", "Core value description", "Appreciation description", "Sender Employee ID" ,"Sender first name", "Sender last name", "Sender designation", "Receiver Employee ID", "Receiver first name", "Receiver last name", "Receiver designation", "Total rewards", "Total reward points", "Appreciated Date", "Quarter"}
+	headers := []string{"Core value", "Core value description", "Appreciation description", "Sender Employee ID", "Sender first name", "Sender last name", "Sender designation", "Receiver Employee ID", "Receiver first name", "Receiver last name", "Receiver designation", "Total rewards", "Total reward points", "Appreciated Date", "Quarter"}
 	for colIndex, header := range headers {
 
 		cell := fmt.Sprintf("%c1", 'A'+colIndex)
@@ -641,10 +682,10 @@ func (us *service) AllAppreciationReport(ctx context.Context, appreciations []dt
 	for rowIndex, app := range appreciations {
 		row := rowIndex + 2 // Starting from row 2
 
-    createdTime := time.UnixMilli(app.CreatedAt)
+		createdTime := time.UnixMilli(app.CreatedAt)
 		appreciatedAt := time.UnixMilli(app.CreatedAt).Format("02/01/2006")
 		quarter := GetQuarterName(createdTime)
-	
+
 		f.SetCellValue(sheetName, fmt.Sprintf("A%d", row), app.CoreValueName)
 		f.SetCellValue(sheetName, fmt.Sprintf("B%d", row), app.CoreValueDesc)
 		f.SetCellValue(sheetName, fmt.Sprintf("C%d", row), app.Description)
@@ -690,7 +731,7 @@ func (us *service) ReportedAppreciationReport(ctx context.Context, appreciations
 	}
 
 	// Set header
-	headers := []string{"Core value", "Core value description", "Appreciation description", "Sender Employee ID", "Sender first name", "Sender last name", "Sender designation", "Receiver Employee ID" ,"Receiver first name", "Receiver last name", "Receiver designation", "Appreciated Date",  "Reporter Emp ID","Reporting Comment", "Reported by first name", "Reported by last name", "Reported Date", "Moderator comment", "Moderator first name", "Moderator last name", "Status","Quarter"}
+	headers := []string{"Core value", "Core value description", "Appreciation description", "Sender Employee ID", "Sender first name", "Sender last name", "Sender designation", "Receiver Employee ID", "Receiver first name", "Receiver last name", "Receiver designation", "Appreciated Date", "Reporter Emp ID", "Reporting Comment", "Reported by first name", "Reported by last name", "Reported Date", "Moderator comment", "Moderator first name", "Moderator last name", "Status", "Quarter"}
 	for colIndex, header := range headers {
 		cell := fmt.Sprintf("%c1", 'A'+colIndex)
 		f.SetCellValue(sheetName, cell, header)
@@ -703,7 +744,7 @@ func (us *service) ReportedAppreciationReport(ctx context.Context, appreciations
 		reportedAt := time.UnixMilli(app.ReportedAt).Format("02/01/2006")
 
 		createdTime := time.UnixMilli(app.CreatedAt)
-    quarter := GetQuarterName(createdTime)
+		quarter := GetQuarterName(createdTime)
 
 		row := rowIndex + 2 // Starting from row 2
 		f.SetCellValue(sheetName, fmt.Sprintf("A%d", row), app.CoreValueName)
@@ -717,7 +758,7 @@ func (us *service) ReportedAppreciationReport(ctx context.Context, appreciations
 		f.SetCellValue(sheetName, fmt.Sprintf("I%d", row), app.ReceiverFirstName)
 		f.SetCellValue(sheetName, fmt.Sprintf("J%d", row), app.ReceiverLastName)
 		f.SetCellValue(sheetName, fmt.Sprintf("K%d", row), app.ReceiverDesignation)
-		f.SetCellValue(sheetName, fmt.Sprintf("L%d", row), appreciatedAt) 
+		f.SetCellValue(sheetName, fmt.Sprintf("L%d", row), appreciatedAt)
 		f.SetCellValue(sheetName, fmt.Sprintf("M%d", row), app.ReporterEmployeeID)
 		f.SetCellValue(sheetName, fmt.Sprintf("N%d", row), app.ReportingComment)
 		f.SetCellValue(sheetName, fmt.Sprintf("O%d", row), app.ReportedByFirstName)
@@ -741,4 +782,79 @@ func (us *service) ReportedAppreciationReport(ctx context.Context, appreciations
 	}
 
 	return
+}
+
+func getStandardQuarterRange(quarter int, year int) (start int64, end int64) {
+	var startMonth, endMonth time.Month
+	startYear := year
+	endYear := year
+	switch quarter {
+	case 1:
+		// Q1: March 01 - May 31
+		startMonth = time.March
+		endMonth = time.June
+	case 2:
+		// Q2: June 01 - August 31
+		startMonth = time.June
+		endMonth = time.September
+	case 3:
+		// Q3: September 01 - November 30
+		startMonth = time.September
+		endMonth = time.December
+	case 4:
+		// Q4: December 01 - February 28/29 (next year)
+		startMonth = time.December
+		endMonth = time.March
+		endYear = year + 1
+	default:
+		startMonth = time.January
+		endMonth = time.January
+	}
+	startTime := time.Date(startYear, startMonth, 1, 0, 0, 0, 0, time.UTC)
+	endTime := time.Date(endYear, endMonth, 1, 0, 0, 0, 0, time.UTC)
+	return startTime.UnixMilli(), endTime.UnixMilli()
+}
+
+func (us *service) DynamicEngagersReport(ctx context.Context, quarter int, year int) (tempFileName string, err error) {
+	start, end := getStandardQuarterRange(quarter, year)
+	engagers, err := us.userRepo.GetDynamicEngagersReport(ctx, nil, start, end)
+	if err != nil {
+		logger.Errorf(ctx, "userService: DynamicEngagersReport: GetDynamicEngagersReport err: %v", err)
+		return "", err
+	}
+
+	f := excelize.NewFile()
+	sheetName := "DynamicEngagers"
+	index, err := f.NewSheet(sheetName)
+	if err != nil {
+		logger.Errorf(ctx, "userService: DynamicEngagersReport: err in generating newsheet, err: %v", err)
+		return "", err
+	}
+
+	headers := []string{"User ID", "First Name", "Last Name", "Sent", "Received", "Reward Points", "Total Points"}
+	for colIndex, header := range headers {
+		cell := fmt.Sprintf("%c1", 'A'+colIndex)
+		f.SetCellValue(sheetName, cell, header)
+	}
+
+	for rowIndex, eng := range engagers {
+		row := rowIndex + 2 // Starting from row 2
+		f.SetCellValue(sheetName, fmt.Sprintf("A%d", row), eng.UserID)
+		f.SetCellValue(sheetName, fmt.Sprintf("B%d", row), eng.FirstName)
+		f.SetCellValue(sheetName, fmt.Sprintf("C%d", row), eng.LastName)
+		f.SetCellValue(sheetName, fmt.Sprintf("D%d", row), eng.Sent)
+		f.SetCellValue(sheetName, fmt.Sprintf("E%d", row), eng.Received)
+		f.SetCellValue(sheetName, fmt.Sprintf("F%d", row), eng.RewardPoints)
+		f.SetCellValue(sheetName, fmt.Sprintf("G%d", row), eng.TotalPoints)
+	}
+
+	f.SetActiveSheet(index)
+
+	tempFileName = fmt.Sprintf("dynamic_engagers_report_Q%d_%d-%d.xlsx", quarter, year, year+1)
+	if err = f.SaveAs(tempFileName); err != nil {
+		logger.Errorf(ctx, "userService: DynamicEngagersReport: Failed to save file: %v", err)
+		return "", err
+	}
+
+	return tempFileName, nil
 }

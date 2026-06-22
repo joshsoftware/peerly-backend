@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
@@ -262,72 +263,92 @@ func (us *userStore) ListUsers(ctx context.Context, reqData dto.ListUsersReq) (r
 	return
 }
 
-func (us *userStore) GetActiveUserList(ctx context.Context, tx repository.Transaction) (activeUsers []repository.ActiveUser, err error) {
-	queryExecutor := us.InitiateQueryExecutor(tx)
-	afterTime := GetQuarterStartUnixTime()
-	query := `WITH user_points AS (
-    SELECT 
-        u.id AS user_id,
-        COALESCE(received.total_received_appreciations, 0) AS total_received_appreciations,
-        COALESCE(sent.total_sent_appreciations, 0) AS total_sent_appreciations,
-        COALESCE(given.total_given_rewards, 0) AS total_given_rewards,
-        (3 * COALESCE(sent.total_sent_appreciations, 0) + 2 * COALESCE(received.total_received_appreciations, 0) + COALESCE(given.total_given_rewards, 0)) AS active_user_points
-    FROM 
-        users u
-    LEFT JOIN 
-        (SELECT receiver AS user_id, COUNT(*) AS total_received_appreciations 
-         FROM appreciations 
-		 WHERE
-        Appreciations.is_valid = true AND appreciations.created_at >=$1
-         GROUP BY receiver
-		 ) AS received ON u.id = received.user_id
-    LEFT JOIN 
-        (SELECT sender AS user_id, COUNT(*) AS total_sent_appreciations 
-         FROM appreciations
-		 WHERE
-        Appreciations.is_valid = true AND appreciations.created_at >=$2
-         GROUP BY sender) AS sent ON u.id = sent.user_id
-    LEFT JOIN 
-        (SELECT sender AS user_id, COUNT(*) AS total_given_rewards 
-         FROM rewards
-		 WHERE
-		 rewards.created_at >=$3
-         GROUP BY sender) AS given ON u.id = given.user_id
-    WHERE
-        COALESCE(received.total_received_appreciations, 0) > 0 OR
-        COALESCE(sent.total_sent_appreciations, 0) > 0 OR
-        COALESCE(given.total_given_rewards, 0) > 0
-    ORDER BY
-        active_user_points DESC,
-        total_sent_appreciations DESC,
-        total_given_rewards DESC,
-        total_received_appreciations DESC
-)
-SELECT 
-    up.user_id,
-    u.first_name ,
-	u.last_name ,
-    u.profile_image_url,
-    b.name AS badge,
-    COALESCE(ap.appreciation_points, 0) AS appreciation_points
-FROM 
-    user_points up
-JOIN 
-    users u ON up.user_id = u.id
-LEFT JOIN 
-    (SELECT receiver, SUM(total_reward_points) AS appreciation_points 
-     FROM appreciations 
-     GROUP BY receiver) AS ap ON u.id = ap.receiver
-LEFT JOIN 
-    (SELECT ub.user_id, b.name
-     FROM user_badges ub 
-     JOIN badges b ON ub.badge_id = b.id
-     WHERE ub.id = (SELECT MAX(id) FROM user_badges WHERE user_id = ub.user_id)) AS b ON u.id = b.user_id
-LIMIT 10;
-`
-	logger.Info(ctx, "afterTime: ", afterTime)
+func getQuarterRangeUnixTime(quarter int, year int) (start int64, end int64) {
+	var startMonth, endMonth time.Month
+	switch quarter {
+	case 1:
+		startMonth = time.March
+		endMonth = time.June
+	case 2:
+		startMonth = time.June
+		endMonth = time.September
+	case 3:
+		startMonth = time.September
+		endMonth = time.December
+	case 4:
+		startMonth = time.December
+		endMonth = time.March
+		year += 1 // Q4 ends next year's March
+	default:
+		startMonth = time.January
+		endMonth = time.January
+	}
+	startTime := time.Date(year, startMonth, 1, 0, 0, 0, 0, time.UTC)
+	endTime := time.Date(year, endMonth, 1, 0, 0, 0, 0, time.UTC)
+	return startTime.Unix(), endTime.Unix()
+}
 
-	rows, err := queryExecutor.Query(query, afterTime, afterTime, afterTime)
+func (us *userStore) GetActiveUserList(ctx context.Context, tx repository.Transaction, quarterStart int64, quarterEnd int64) (activeUsers []repository.ActiveUser, err error) {
+	queryExecutor := us.InitiateQueryExecutor(tx)
+	query := `WITH user_points AS (
+		SELECT 
+			u.id AS user_id,
+			COALESCE(received.total_received_appreciations, 0) AS total_received_appreciations,
+			COALESCE(sent.total_sent_appreciations, 0) AS total_sent_appreciations,
+			COALESCE(given.total_given_rewards, 0) AS total_given_rewards,
+			(3 * COALESCE(sent.total_sent_appreciations, 0) + 2 * COALESCE(received.total_received_appreciations, 0) + COALESCE(given.total_given_rewards, 0)) AS active_user_points
+		FROM 
+			users u
+		LEFT JOIN 
+			(SELECT receiver AS user_id, COUNT(*) AS total_received_appreciations 
+			 FROM appreciations 
+			 WHERE appreciations.is_valid = true AND appreciations.created_at >= $1 AND appreciations.created_at < $2
+			 GROUP BY receiver
+			) AS received ON u.id = received.user_id
+		LEFT JOIN 
+			(SELECT sender AS user_id, COUNT(*) AS total_sent_appreciations 
+			 FROM appreciations
+			 WHERE appreciations.is_valid = true AND appreciations.created_at >= $1 AND appreciations.created_at < $2
+			 GROUP BY sender) AS sent ON u.id = sent.user_id
+		LEFT JOIN 
+			(SELECT sender AS user_id, COUNT(*) AS total_given_rewards 
+			 FROM rewards
+			 WHERE rewards.created_at >= $1 AND rewards.created_at < $2
+			 GROUP BY sender) AS given ON u.id = given.user_id
+		WHERE
+			COALESCE(received.total_received_appreciations, 0) > 0 OR
+			COALESCE(sent.total_sent_appreciations, 0) > 0 OR
+			COALESCE(given.total_given_rewards, 0) > 0
+		ORDER BY
+			active_user_points DESC,
+			total_sent_appreciations DESC,
+			total_given_rewards DESC,
+			total_received_appreciations DESC
+	)
+	SELECT 
+		up.user_id,
+		u.first_name ,
+		u.last_name ,
+		u.profile_image_url,
+		b.name AS badge,
+		COALESCE(ap.appreciation_points, 0) AS appreciation_points
+	FROM 
+		user_points up
+	JOIN 
+		users u ON up.user_id = u.id
+	LEFT JOIN 
+		(SELECT receiver, SUM(total_reward_points) AS appreciation_points 
+		 FROM appreciations 
+		 GROUP BY receiver) AS ap ON u.id = ap.receiver
+	LEFT JOIN 
+		(SELECT ub.user_id, b.name
+		 FROM user_badges ub 
+		 JOIN badges b ON ub.badge_id = b.id
+		 WHERE ub.id = (SELECT MAX(id) FROM user_badges WHERE user_id = ub.user_id)) AS b ON u.id = b.user_id
+	LIMIT 10;`
+	logger.Info(ctx, "quarterStart: ", quarterStart, ", quarterEnd: ", quarterEnd)
+
+	rows, err := queryExecutor.Query(query, quarterStart, quarterEnd)
 	if err != nil {
 		logger.Error(ctx, "err: userStore ", err.Error())
 		return []repository.ActiveUser{}, err
@@ -357,6 +378,84 @@ LIMIT 10;
 
 	return activeUsers, nil
 }
+
+func (us *userStore) GetDynamicEngagersReport(ctx context.Context, tx repository.Transaction, quarterStart int64, quarterEnd int64) (engagers []repository.DynamicEngager, err error) {
+	queryExecutor := us.InitiateQueryExecutor(tx)
+	query := `WITH sent_appreciations AS (
+		SELECT sender AS user_id, COUNT(*) AS sent
+		FROM appreciations
+		WHERE is_valid = true AND created_at >= $1 AND created_at < $2
+		GROUP BY sender
+	),
+	received_appreciations AS (
+		SELECT receiver AS user_id, COUNT(*) AS received
+		FROM appreciations
+		WHERE is_valid = true AND created_at >= $1 AND created_at < $2
+		GROUP BY receiver
+	),
+	given_rewards AS (
+		SELECT sender AS user_id, SUM(point) AS reward_points
+		FROM rewards
+		WHERE created_at >= $1 AND created_at < $2
+		GROUP BY sender
+	)
+	SELECT 
+		u.id AS user_id,
+		u.first_name,
+		u.last_name,
+		COALESCE(s.sent, 0) AS sent,
+		COALESCE(r.received, 0) AS received,
+		COALESCE(g.reward_points, 0) AS reward_points,
+		(3 * COALESCE(s.sent, 0) + 2 * COALESCE(r.received, 0) + COALESCE(g.reward_points, 0)) AS total_points
+	FROM 
+		users u
+	LEFT JOIN 
+		sent_appreciations s ON u.id = s.user_id
+	LEFT JOIN 
+		received_appreciations r ON u.id = r.user_id
+	LEFT JOIN 
+		given_rewards g ON u.id = g.user_id
+	WHERE 
+		COALESCE(s.sent, 0) > 0 OR
+		COALESCE(r.received, 0) > 0 OR
+		COALESCE(g.reward_points, 0) > 0
+	ORDER BY 
+		total_points DESC,
+		first_name ASC,
+		last_name ASC;`
+
+	rows, err := queryExecutor.Query(query, quarterStart, quarterEnd)
+	if err != nil {
+		logger.Error(ctx, "err: userStore GetDynamicEngagersReport query: ", err.Error())
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var user repository.DynamicEngager
+		if err := rows.Scan(
+			&user.UserID,
+			&user.FirstName,
+			&user.LastName,
+			&user.Sent,
+			&user.Received,
+			&user.RewardPoints,
+			&user.TotalPoints,
+		); err != nil {
+			logger.Error(ctx, "err: userStore GetDynamicEngagersReport scan: ", err.Error())
+			return nil, err
+		}
+		engagers = append(engagers, user)
+	}
+
+	if err = rows.Err(); err != nil {
+		logger.Error(ctx, "err: userStore GetDynamicEngagersReport rows: ", err.Error())
+		return nil, err
+	}
+
+	return engagers, nil
+}
+
 
 func (us *userStore) UpdateRewardQuota(ctx context.Context, tx repository.Transaction) (err error) {
 
