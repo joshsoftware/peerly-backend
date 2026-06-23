@@ -310,7 +310,6 @@ func (rs *service) DeleteAppreciation(ctx context.Context, reqData dto.Moderatio
 
 	fmt.Println("Reporter mail: ", reporter.Email)
 	err = sendDeleteEmail(reporter.Email, sender.Email, receiver.Email, templateData)
-	// err = sendDeleteEmail("sharayumarwadi11@gmail.com", templateData)
 
 	return
 }
