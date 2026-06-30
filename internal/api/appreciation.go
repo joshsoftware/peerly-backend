@@ -84,6 +84,20 @@ func listAppreciationsHandler(appreciationSvc appreciation.Service) http.Handler
 		filter.Limit = limit
 		filter.Page = page
 		filter.Self = utils.GetSelfParam(req)
+
+		quarterStr := req.URL.Query().Get("quarter")
+		yearStr := req.URL.Query().Get("year")
+		if quarterStr != "" {
+			if q, err := strconv.Atoi(quarterStr); err == nil {
+				filter.Quarter = q
+			}
+		}
+		if yearStr != "" {
+			if y, err := strconv.Atoi(yearStr); err == nil {
+				filter.Year = y
+			}
+		}
+
 		log.Debug(ctx, "listAppreciationsHandler: request: ", req)
 		appreciations, err := appreciationSvc.ListAppreciations(ctx, filter)
 		if err != nil {

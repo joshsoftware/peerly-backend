@@ -24,6 +24,8 @@ type AppreciationFilter struct {
 	SortOrder string `json:"sort_order"`
 	Page      int16  `json:"page"`
 	Limit     int16  `json:"page_size"`
+	Quarter   int    `json:"quarter"`
+	Year      int    `json:"year"`
 }
 
 type AppreciationResponse struct {

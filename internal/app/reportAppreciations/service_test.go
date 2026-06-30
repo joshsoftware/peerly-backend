@@ -153,7 +153,7 @@ func TestListReportedAppreciations(t *testing.T) {
 		{
 			name: "Success for report appreciation",
 			setup: func(reportAppreciationMock *mocks.ReportAppreciationStorer) {
-				reportAppreciationMock.On("ListReportedAppreciations", mock.Anything).Return([]repository.ListReportedAppreciations{}, nil).Once()
+				reportAppreciationMock.On("ListReportedAppreciations", mock.Anything, mock.Anything, mock.Anything).Return([]repository.ListReportedAppreciations{}, nil).Once()
 			},
 			isErrorExpected: false,
 		},
@@ -164,7 +164,7 @@ func TestListReportedAppreciations(t *testing.T) {
 			test.setup(reportAppreciationRepo)
 
 			// test service
-			_, err := service.ListReportedAppreciations(test.ctx)
+			_, err := service.ListReportedAppreciations(test.ctx, 0, 0)
 
 			if (err != nil) != test.isErrorExpected {
 				t.Errorf("Test Failed, expected error to be %v, but got err %v", test.isErrorExpected, err != nil)
