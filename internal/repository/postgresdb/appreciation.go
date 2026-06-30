@@ -14,6 +14,7 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 	logger "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
+	"github.com/joshsoftware/peerly-backend/internal/pkg/utils"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
 )
 
@@ -174,6 +175,14 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 		queryBuilder = queryBuilder.Where(squirrel.Or{
 			squirrel.Eq{"a.sender": userID},
 			squirrel.Eq{"a.receiver": userID},
+		})
+	}
+
+	if filter.Quarter > 0 && filter.Year > 0 {
+		start, end := utils.GetStandardQuarterRange(filter.Quarter, filter.Year)
+		queryBuilder = queryBuilder.Where(squirrel.And{
+			squirrel.GtOrEq{"a.created_at": start},
+			squirrel.Lt{"a.created_at": end},
 		})
 	}
 

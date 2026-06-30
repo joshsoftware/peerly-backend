@@ -311,11 +311,31 @@ func adminNotificationHandler(userSvc user.Service) http.HandlerFunc {
 
 func appreciationReportHandler(userSvc user.Service, appreciationSvc appreciation.Service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
+		quarterStr := req.URL.Query().Get("quarter")
+		yearStr := req.URL.Query().Get("year")
+		var quarter, year int
+		var err error
+		if quarterStr != "" {
+			quarter, err = strconv.Atoi(quarterStr)
+			if err != nil {
+				http.Error(rw, "Invalid quarter", http.StatusBadRequest)
+				return
+			}
+		}
+		if yearStr != "" {
+			year, err = strconv.Atoi(yearStr)
+			if err != nil {
+				http.Error(rw, "Invalid year", http.StatusBadRequest)
+				return
+			}
+		}
 
 		filter := dto.AppreciationFilter{
-			Self:  false,
-			Limit: constants.DefaultPageSize,
-			Page:  1,
+			Self:    false,
+			Limit:   constants.DefaultPageSize,
+			Page:    1,
+			Quarter: quarter,
+			Year:    year,
 		}
 
 		appreciationResp, err := appreciationSvc.ListAppreciations(req.Context(), filter)
@@ -338,8 +358,26 @@ func appreciationReportHandler(userSvc user.Service, appreciationSvc appreciatio
 
 func reportedAppreciationReportHandler(userSvc user.Service, reportAppreciationSvc reportappreciations.Service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
+		quarterStr := req.URL.Query().Get("quarter")
+		yearStr := req.URL.Query().Get("year")
+		var quarter, year int
+		var err error
+		if quarterStr != "" {
+			quarter, err = strconv.Atoi(quarterStr)
+			if err != nil {
+				http.Error(rw, "Invalid quarter", http.StatusBadRequest)
+				return
+			}
+		}
+		if yearStr != "" {
+			year, err = strconv.Atoi(yearStr)
+			if err != nil {
+				http.Error(rw, "Invalid year", http.StatusBadRequest)
+				return
+			}
+		}
 
-		reportedAppreciationResp, err := reportAppreciationSvc.ListReportedAppreciations(req.Context())
+		reportedAppreciationResp, err := reportAppreciationSvc.ListReportedAppreciations(req.Context(), quarter, year)
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)
 			return

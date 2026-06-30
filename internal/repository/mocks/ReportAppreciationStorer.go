@@ -138,13 +138,13 @@ func (_m *ReportAppreciationStorer) GetSenderAndReceiver(ctx context.Context, re
 	return r0, r1
 }
 
-// ListReportedAppreciations provides a mock function with given fields: ctx
-func (_m *ReportAppreciationStorer) ListReportedAppreciations(ctx context.Context) ([]repository.ListReportedAppreciations, error) {
-	ret := _m.Called(ctx)
+// ListReportedAppreciations provides a mock function with given fields: ctx, quarter, year
+func (_m *ReportAppreciationStorer) ListReportedAppreciations(ctx context.Context, quarter int, year int) ([]repository.ListReportedAppreciations, error) {
+	ret := _m.Called(ctx, quarter, year)
 
 	var r0 []repository.ListReportedAppreciations
-	if rf, ok := ret.Get(0).(func(context.Context) []repository.ListReportedAppreciations); ok {
-		r0 = rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, int, int) []repository.ListReportedAppreciations); ok {
+		r0 = rf(ctx, quarter, year)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]repository.ListReportedAppreciations)
@@ -152,8 +152,8 @@ func (_m *ReportAppreciationStorer) ListReportedAppreciations(ctx context.Contex
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = rf(ctx)
+	if rf, ok := ret.Get(1).(func(context.Context, int, int) error); ok {
+		r1 = rf(ctx, quarter, year)
 	} else {
 		r1 = ret.Error(1)
 	}
