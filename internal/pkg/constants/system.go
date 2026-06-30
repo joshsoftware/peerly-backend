@@ -62,4 +62,15 @@ const (
 
 const DefaultOrgID = 1
 
+// EmailTemplate Icon url
+const (
+	BronzeBadgeIconImagePath        = "/peerly/assets/bronzeBadge.png"
+	SilverBadgeIconImagePath        = "/peerly/assets/silverBadge.png"
+	GoldBadgeIconImagePath          = "/peerly/assets/goldBadge.png"
+	PlatinumIconImagePath           = "/peerly/assets/platinumBadge.png"
+	CheckIconImagePath              = "/peerly/assets/checkIcon.png"
+	ClosedEnvelopeIconImagePath     = "/peerly/assets/closedEnvelopeIcon.png"
+	OpenEnvelopeIconImagePath       = "/peerly/assets/openEnvelopeIcon.png"
+	RewardQuotaRenewalIconImagePath = "/peerly/assets/rewardQuotaRenewal.png"
+)
 const CheckIconLogo = "/peerly/assets/checkIcon.png"
