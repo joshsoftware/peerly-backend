@@ -107,3 +107,35 @@ func GetQuarterStartUnixTime() int64 {
 	quarterStart := time.Date(now.Year(), (now.Month()-1)/3*3+1, 1, 0, 0, 0, 0, time.UTC)
 	return quarterStart.Unix() * 1000 // convert to milliseconds
 }
+
+func GetStandardQuarterRange(quarter int, year int) (start int64, end int64) {
+	var startMonth, endMonth time.Month
+	startYear := year
+	endYear := year
+	switch quarter {
+	case 1:
+		// Q1: March 01 - May 31
+		startMonth = time.March
+		endMonth = time.June
+	case 2:
+		// Q2: June 01 - August 31
+		startMonth = time.June
+		endMonth = time.September
+	case 3:
+		// Q3: September 01 - November 30
+		startMonth = time.September
+		endMonth = time.December
+	case 4:
+		// Q4: December 01 - February 28/29 (next year)
+		startMonth = time.December
+		endMonth = time.March
+		endYear = year + 1
+	default:
+		startMonth = time.January
+		endMonth = time.January
+	}
+	startTime := time.Date(startYear, startMonth, 1, 0, 0, 0, 0, time.UTC)
+	endTime := time.Date(endYear, endMonth, 1, 0, 0, 0, 0, time.UTC)
+	return startTime.UnixMilli(), endTime.UnixMilli()
+}
+

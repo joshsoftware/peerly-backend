@@ -50,7 +50,26 @@ func reportAppreciationHandler(reportAppreciationSvc reportappreciations.Service
 
 func listReportedAppreciations(reportAppreciationSvc reportappreciations.Service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		resp, err := reportAppreciationSvc.ListReportedAppreciations(req.Context())
+		quarterStr := req.URL.Query().Get("quarter")
+		yearStr := req.URL.Query().Get("year")
+		var quarter, year int
+		var err error
+		if quarterStr != "" {
+			quarter, err = strconv.Atoi(quarterStr)
+			if err != nil {
+				http.Error(rw, "Invalid quarter", http.StatusBadRequest)
+				return
+			}
+		}
+		if yearStr != "" {
+			year, err = strconv.Atoi(yearStr)
+			if err != nil {
+				http.Error(rw, "Invalid year", http.StatusBadRequest)
+				return
+			}
+		}
+
+		resp, err := reportAppreciationSvc.ListReportedAppreciations(req.Context(), quarter, year)
 		if err != nil {
 			dto.ErrorRepsonse(rw, err)
 			return

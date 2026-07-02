@@ -4,11 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 	logger "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
+	"github.com/joshsoftware/peerly-backend/internal/pkg/utils"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
 )
 
@@ -96,13 +98,13 @@ func (rs *reportAppreciationStore) ReportAppreciation(ctx context.Context, repor
 		reportReq.ReportedBy,
 	)
 	if err != nil {
-		logger.Error(ctx, "error in creating report, err:%v", err)
+		logger.Errorf(ctx, "error in creating report, err:%v", err)
 		return
 	}
 	return
 }
 
-func (rs *reportAppreciationStore) ListReportedAppreciations(ctx context.Context) (reportedAppreciations []repository.ListReportedAppreciations, err error) {
+func (rs *reportAppreciationStore) ListReportedAppreciations(ctx context.Context, quarter int, year int) (reportedAppreciations []repository.ListReportedAppreciations, err error) {
 	query := `
 SELECT 
   resolutions.id,
@@ -131,20 +133,36 @@ JOIN appreciations ON resolutions.appreciation_id = appreciations.id
 JOIN core_values ON appreciations.core_value_id = core_values.id
 LEFT JOIN users sender_user ON sender_user.id = appreciations.sender
 LEFT JOIN users receiver_user ON receiver_user.id = appreciations.receiver
-LEFT JOIN users reporter_user ON reporter_user.id = resolutions.reported_by
-GROUP BY 
+LEFT JOIN users reporter_user ON reporter_user.id = resolutions.reported_by`
+
+	var args []interface{}
+	if year > 0 {
+		var start, end int64
+		if quarter > 0 {
+			start, end = utils.GetStandardQuarterRange(quarter, year)
+		} else {
+			startTime := time.Date(year, time.March, 1, 0, 0, 0, 0, time.UTC)
+			endTime := time.Date(year+1, time.March, 1, 0, 0, 0, 0, time.UTC)
+			start = startTime.UnixMilli()
+			end = endTime.UnixMilli()
+		}
+		query += ` WHERE appreciations.created_at >= $1 AND appreciations.created_at < $2`
+		args = append(args, start, end)
+	}
+
+	query += ` GROUP BY 
   resolutions.id,
   appreciations.id,
   core_values.id,
   sender_user.employee_id,
   receiver_user.employee_id,
-  reporter_user.employee_id
-`
+  reporter_user.employee_id`
 
 	err = rs.DB.SelectContext(
 		ctx,
 		&reportedAppreciations,
 		query,
+		args...,
 	)
 	if err != nil {
 		err = fmt.Errorf("error in retriving reported appriciations, err:%w", err)
