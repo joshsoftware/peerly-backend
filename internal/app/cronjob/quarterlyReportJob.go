@@ -13,6 +13,7 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 	logger "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
+	"github.com/joshsoftware/peerly-backend/internal/app/email"
 )
 
 const QUARTERLY_REPORT_JOB = "QUARTERLY_REPORT_JOB"
@@ -140,7 +141,37 @@ func (cron *QuarterlyReportJob) exportQuarterlyReport(ctx context.Context) error
 	}
 
 	logger.CronInfof(ctx, "Successfully exported %d appreciations to tab '%s'", len(quarterAppreciations), tabName)
+	
+	sheetLink := fmt.Sprintf("https://docs.google.com/spreadsheets/d/%s/edit", cron.spreadsheetID)
+	cron.sendSuccessEmail(ctx, sheetLink)
+
 	return nil
+}
+
+type EmailData struct {
+	SheetLink string
+}
+
+func (cron *QuarterlyReportJob) sendSuccessEmail(ctx context.Context, sheetLink string) {
+	subject := "Peerly Automated Report For Looker"
+	mailReq := email.NewMail([]string{constants.DL["hr_team"]}, []string{}, []string{}, subject)
+	
+	data := EmailData{
+		SheetLink: sheetLink,
+	}
+
+	err := mailReq.ParseTemplate("internal/app/email/templates/quarterlyReport.html", data)
+	if err != nil {
+		logger.CronErrorf(ctx, "Failed to parse email template: %v", err)
+		return
+	}
+
+	err = mailReq.Send()
+	if err != nil {
+		logger.CronErrorf(ctx, "Failed to send quarterly report email: %v", err)
+	} else {
+		logger.CronInfo(ctx, "Successfully sent quarterly report email to HR team")
+	}
 }
 
 func getPreviousQuarterAndYear() (quarter int, year int) {

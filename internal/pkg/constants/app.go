@@ -18,3 +18,8 @@ var OrgConfigColumns = []string{
 }
 
 const DefaultAppreciationPoint = 200
+
+var DL = map[string]string{
+	"hr_team": "irfan.mohammad@joshsoftware.com",
+	"hr":      "hr@joshsoftware.com",
+}
