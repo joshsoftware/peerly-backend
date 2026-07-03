@@ -7,13 +7,13 @@ import (
 
 	"github.com/go-co-op/gocron/v2"
 	apprSvc "github.com/joshsoftware/peerly-backend/internal/app/appreciation"
+	"github.com/joshsoftware/peerly-backend/internal/app/email"
 	"github.com/joshsoftware/peerly-backend/internal/app/googlesheets"
 	reportSvc "github.com/joshsoftware/peerly-backend/internal/app/reportAppreciations"
 	user "github.com/joshsoftware/peerly-backend/internal/app/users"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 	logger "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
-	"github.com/joshsoftware/peerly-backend/internal/app/email"
 )
 
 const QUARTERLY_REPORT_JOB = "QUARTERLY_REPORT_JOB"
@@ -118,7 +118,7 @@ func (cron *QuarterlyReportJob) exportQuarterlyReport(ctx context.Context) error
 
 	// Fetch reported appreciations and build a lookup map by appreciation_id
 	reportedMap := make(map[int64]dto.ReportedAppreciation)
-	reportedResp, err := cron.reportAppreciationService.ListReportedAppreciations(ctx)
+	reportedResp, err := cron.reportAppreciationService.ListReportedAppreciations(ctx, quarter, year)
 	if err != nil {
 		logger.CronErrorf(ctx, "failed to list reported appreciations (continuing without report data): %v", err)
 	} else {
@@ -141,7 +141,7 @@ func (cron *QuarterlyReportJob) exportQuarterlyReport(ctx context.Context) error
 	}
 
 	logger.CronInfof(ctx, "Successfully exported %d appreciations to tab '%s'", len(quarterAppreciations), tabName)
-	
+
 	sheetLink := fmt.Sprintf("https://docs.google.com/spreadsheets/d/%s/edit", cron.spreadsheetID)
 	cron.sendSuccessEmail(ctx, sheetLink)
 
@@ -155,7 +155,7 @@ type EmailData struct {
 func (cron *QuarterlyReportJob) sendSuccessEmail(ctx context.Context, sheetLink string) {
 	subject := "Peerly Automated Report For Looker"
 	mailReq := email.NewMail([]string{constants.DL["hr_team"]}, []string{}, []string{}, subject)
-	
+
 	data := EmailData{
 		SheetLink: sheetLink,
 	}
