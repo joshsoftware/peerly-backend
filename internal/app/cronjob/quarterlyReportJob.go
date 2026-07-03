@@ -17,8 +17,8 @@ import (
 
 const QUARTERLY_REPORT_JOB = "QUARTERLY_REPORT_JOB"
 
-// 8:25 AM IST = 2:55 AM UTC → run on 1st day of Jan, Apr, Jul, Oct
-const QUARTERLY_CRON_EXPRESSION = "55 2 1 1,4,7,10 *"
+// 8:25 AM IST → run on 1st day of Jan, Apr, Jul, Oct
+const QUARTERLY_CRON_EXPRESSION = "25 8 1 1,4,7,10 *"
 
 var quarterMonthNames = map[int]string{
 	1: "Mar-May",
@@ -63,33 +63,33 @@ func (cron *QuarterlyReportJob) Schedule() error {
 	)
 	cron.scheduler.Start()
 	if err != nil {
-		logger.Warn(context.TODO(), fmt.Sprintf("error occurred while scheduling %s, message %+v", cron.name, err.Error()))
+		logger.CronWarn(context.TODO(), fmt.Sprintf("error occurred while scheduling %s, message %+v", cron.name, err.Error()))
 		return err
 	}
-	logger.Info(context.TODO(), fmt.Sprintf("Quarterly report job scheduled (cron: %s)", QUARTERLY_CRON_EXPRESSION))
+	logger.CronInfo(context.TODO(), fmt.Sprintf("Quarterly report job scheduled (cron: %s)", QUARTERLY_CRON_EXPRESSION))
 	return nil
 }
 
 func (cron *QuarterlyReportJob) Task(ctx context.Context) {
-	logger.Info(ctx, "in quarterly report job task")
+	logger.CronInfo(ctx, "in quarterly report job task")
 
 	var err error
 	for i := 0; i < 3; i++ {
-		logger.Infof(ctx, "quarterly report job attempt: %d", i+1)
+		logger.CronInfof(ctx, "quarterly report job attempt: %d", i+1)
 		err = cron.exportQuarterlyReport(ctx)
 		if err == nil {
-			logger.Info(ctx, "quarterly report exported successfully to Google Sheet")
+			logger.CronInfo(ctx, "quarterly report exported successfully to Google Sheet")
 			return
 		}
-		logger.Errorf(ctx, "quarterly report job attempt %d failed: %v", i+1, err)
+		logger.CronErrorf(ctx, "quarterly report job attempt %d failed: %v", i+1, err)
 	}
-	logger.Errorf(ctx, "quarterly report job failed after 3 attempts: %v", err)
+	logger.CronErrorf(ctx, "quarterly report job failed after 3 attempts: %v", err)
 }
 
 func (cron *QuarterlyReportJob) exportQuarterlyReport(ctx context.Context) error {
 
 	quarter, year := getPreviousQuarterAndYear()
-	logger.Infof(ctx, "Exporting quarterly report for Q%d(%d) to Google Sheet", quarter, year)
+	logger.CronInfof(ctx, "Exporting quarterly report for Q%d(%d) to Google Sheet", quarter, year)
 
 	quarterStart, quarterEnd := user.GetQuarterRangeUnixTime(quarter, year)
 
@@ -113,13 +113,13 @@ func (cron *QuarterlyReportJob) exportQuarterlyReport(ctx context.Context) error
 			quarterAppreciations = append(quarterAppreciations, appr)
 		}
 	}
-	logger.Infof(ctx, "Found %d appreciations for Q%d(%d)", len(quarterAppreciations), quarter, year)
+	logger.CronInfof(ctx, "Found %d appreciations for Q%d(%d)", len(quarterAppreciations), quarter, year)
 
 	// Fetch reported appreciations and build a lookup map by appreciation_id
 	reportedMap := make(map[int64]dto.ReportedAppreciation)
 	reportedResp, err := cron.reportAppreciationService.ListReportedAppreciations(ctx)
 	if err != nil {
-		logger.Errorf(ctx, "failed to list reported appreciations (continuing without report data): %v", err)
+		logger.CronErrorf(ctx, "failed to list reported appreciations (continuing without report data): %v", err)
 	} else {
 		for _, reported := range reportedResp.Appreciations {
 			reportedMap[reported.Appreciation_id] = reported
@@ -139,7 +139,7 @@ func (cron *QuarterlyReportJob) exportQuarterlyReport(ctx context.Context) error
 		return fmt.Errorf("failed to append rows: %w", err)
 	}
 
-	logger.Infof(ctx, "Successfully exported %d appreciations to tab '%s'", len(quarterAppreciations), tabName)
+	logger.CronInfof(ctx, "Successfully exported %d appreciations to tab '%s'", len(quarterAppreciations), tabName)
 	return nil
 }
 

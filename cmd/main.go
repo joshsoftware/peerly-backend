@@ -102,6 +102,11 @@ func startApp() (err error) {
 		logger.Error("logger setup failed ", err.Error())
 		return err
 	}
+	_, err = log.SetupCronLogger()
+	if err != nil {
+		logger.Error("cron logger setup failed ", err.Error())
+		return err
+	}
 	log.Info(ctx, "Starting Peerly Application...")
 	defer log.Info(ctx, "Shutting Down Peerly Application...")
 	//initialize database
