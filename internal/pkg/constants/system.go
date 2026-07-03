@@ -18,7 +18,9 @@ const (
 	IntranetBaseUrl        = "INTRANET_BASE_URL"
 	POST                   = "POST"
 	GET                    = "GET"
-	DeveloperKey           = "DEVELOPER_KEY"
+	DeveloperKey               = "DEVELOPER_KEY"
+	GoogleServiceAccountPath   = "GOOGLE_SERVICE_ACCOUNT_PATH"
+	GoogleSheetID              = "GOOGLE_SHEET_ID"
 )
 
 const (

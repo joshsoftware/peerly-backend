@@ -485,7 +485,7 @@ func (us *service) GetUserById(ctx context.Context) (user dto.GetUserByIdResp, e
 }
 
 func (us *service) GetActiveUserList(ctx context.Context, quarter int, year int) ([]dto.ActiveUser, error) {
-	quarterStart, quarterEnd := getQuarterRangeUnixTime(quarter, year)
+	quarterStart, quarterEnd := GetQuarterRangeUnixTime(quarter, year)
 	activeUserDb, err := us.userRepo.GetActiveUserList(ctx, nil, quarterStart, quarterEnd)
 	if err != nil {
 		logger.Errorf(ctx, "userService: GetActiveUserList: err: %v", err)
@@ -499,7 +499,7 @@ func (us *service) GetActiveUserList(ctx context.Context, quarter int, year int)
 	return res, nil
 }
 
-func getQuarterRangeUnixTime(quarter int, year int) (start int64, end int64) {
+func GetQuarterRangeUnixTime(quarter int, year int) (start int64, end int64) {
 	var startMonth, endMonth time.Month
 	startYear := year
 	endYear := year
