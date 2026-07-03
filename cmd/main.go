@@ -16,7 +16,9 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/api"
 	"github.com/joshsoftware/peerly-backend/internal/app"
 	"github.com/joshsoftware/peerly-backend/internal/app/cronjob"
+	"github.com/joshsoftware/peerly-backend/internal/app/googlesheets"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/config"
+	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	log "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
 	script "github.com/joshsoftware/peerly-backend/scripts"
@@ -123,11 +125,28 @@ func startApp() (err error) {
 	// Initializing Cron Job
 	scheduler, err := gocron.NewScheduler()
 	if err != nil {
-		log.Error(ctx, "scheduler creation failed with error: %s", err.Error())
+		log.Errorf(ctx, "scheduler creation failed with error: %s", err.Error())
 		return err
 	}
 
-	err = cronjob.InitializeJobs(services.AppreciationService, services.UserService, services.OrganizationConfigService, scheduler)
+	// Initialize Google Sheets Service for Quarterly Reports
+	var sheetSvc *googlesheets.Service
+	sheetID := config.ReadEnvString(constants.GoogleSheetID)
+	credsPath := config.ReadEnvString(constants.GoogleServiceAccountPath)
+
+	if sheetID != "" && credsPath != "" {
+		sheetSvc, err = googlesheets.NewService(credsPath)
+		if err != nil {
+			logger.Warnf("Failed to initialize Google Sheets service (quarterly reports will not run): %v", err)
+			sheetSvc = nil // ensure nil if failed
+		} else {
+			logger.Info("Google Sheets service initialized successfully")
+		}
+	} else {
+		logger.Warn("Google Sheets credentials/ID not configured. Quarterly reports will not run.")
+	}
+
+	err = cronjob.InitializeJobs(services.AppreciationService, services.UserService, services.OrganizationConfigService, services.ReportAppreciationService, sheetSvc, sheetID, scheduler)
 	if err != nil {
 		logger.WithField("err", err.Error()).Error("CronJob Initialize failed")
 		return
