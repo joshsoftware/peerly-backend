@@ -128,7 +128,7 @@ func SetupCronLogger() (*l.Logger, error) {
 		}
 	}
 
-	file, err := os.Create(cronLumberjackLogger.Filename)
+	file, err := os.OpenFile(cronLumberjackLogger.Filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create cron log file: %w", err)
 	}
