@@ -86,6 +86,13 @@ func main() {
 				return script.LoadUserScript()
 			},
 		},
+		{
+			Name:  "run_quarterly_report",
+			Usage: "manually trigger the quarterly report job",
+			Action: func(c *cli.Context) error {
+				return runQuarterlyReportJob()
+			},
+		},
 	}
 
 	if err := cliApp.Run(os.Args); err != nil {
@@ -173,4 +180,45 @@ func startApp() (err error) {
 	addr := fmt.Sprintf(":%s", strconv.Itoa(port))
 	server.Run(addr)
 	return
+}
+
+func runQuarterlyReportJob() error {
+	ctx := context.WithValue(context.Background(), constants.UserId, int64(0))
+
+	_, err := log.SetupLogger()
+	if err != nil {
+		logger.Error("logger setup failed ", err.Error())
+		return err
+	}
+	_, err = log.SetupCronLogger()
+	if err != nil {
+		logger.Error("cron logger setup failed ", err.Error())
+		return err
+	}
+
+	log.Info(ctx, "Starting manual quarterly report job...")
+
+	dbInstance, err := repository.InitializeDatabase()
+	if err != nil {
+		log.Error(ctx, "Database init failed")
+		return err
+	}
+	services := app.NewService(dbInstance)
+
+	sheetID := config.ReadEnvString(constants.GoogleSheetID)
+	credsPath := config.ReadEnvString(constants.GoogleServiceAccountPath)
+
+	if sheetID == "" || credsPath == "" {
+		return errors.New("Google Sheets credentials/ID not configured")
+	}
+
+	sheetSvc, err := googlesheets.NewService(credsPath)
+	if err != nil {
+		return fmt.Errorf("Failed to initialize Google Sheets service: %w", err)
+	}
+
+	scheduler, _ := gocron.NewScheduler()
+	quarterlyJob := cronjob.NewQuarterlyReportJob(services.AppreciationService, services.ReportAppreciationService, sheetSvc, sheetID, scheduler).(*cronjob.QuarterlyReportJob)
+
+	return quarterlyJob.ExportQuarterlyReport(ctx)
 }

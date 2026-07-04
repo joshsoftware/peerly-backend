@@ -77,7 +77,7 @@ func (cron *QuarterlyReportJob) Task(ctx context.Context) {
 	var err error
 	for i := 0; i < 3; i++ {
 		logger.CronInfof(ctx, "quarterly report job attempt: %d", i+1)
-		err = cron.exportQuarterlyReport(ctx)
+		err = cron.ExportQuarterlyReport(ctx)
 		if err == nil {
 			logger.CronInfo(ctx, "quarterly report exported successfully to Google Sheet")
 			return
@@ -87,7 +87,7 @@ func (cron *QuarterlyReportJob) Task(ctx context.Context) {
 	logger.CronErrorf(ctx, "quarterly report job failed after 3 attempts: %v", err)
 }
 
-func (cron *QuarterlyReportJob) exportQuarterlyReport(ctx context.Context) error {
+func (cron *QuarterlyReportJob) ExportQuarterlyReport(ctx context.Context) error {
 
 	quarter, year := getPreviousQuarterAndYear()
 	logger.CronInfof(ctx, "Exporting quarterly report for Q%d(%d) to Google Sheet", quarter, year)
