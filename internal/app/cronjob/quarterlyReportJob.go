@@ -3,6 +3,7 @@ package cronjob
 import (
 	"context"
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/go-co-op/gocron/v2"
@@ -126,6 +127,11 @@ func (cron *QuarterlyReportJob) ExportQuarterlyReport(ctx context.Context) error
 			reportedMap[reported.Appreciation_id] = reported
 		}
 	}
+
+	// Sort the Appreciations slice by CreatedAt in ascending order
+	sort.SliceStable(quarterAppreciations, func(i, j int) bool {
+		return quarterAppreciations[i].CreatedAt < quarterAppreciations[j].CreatedAt
+	})
 
 	tabName := fmt.Sprintf("Q%d(%d) %s", quarter, year, quarterMonthNames[quarter])
 	rows := buildSheetRows(quarterAppreciations, reportedMap)
