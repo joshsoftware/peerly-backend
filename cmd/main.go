@@ -143,8 +143,8 @@ func startApp() (err error) {
 
 	// Initialize Google Sheets Service for Quarterly Reports
 	var sheetSvc *googlesheets.Service
-	sheetID := config.ReadEnvString(constants.GoogleSheetID)
-	credsPath := config.ReadEnvString(constants.GoogleServiceAccountPath)
+	sheetID := config.ReadEnvStringOptional(constants.GoogleSheetID)
+	credsPath := config.ReadEnvStringOptional(constants.GoogleServiceAccountPath)
 
 	if sheetID != "" && credsPath != "" {
 		sheetSvc, err = googlesheets.NewService(credsPath)
@@ -205,8 +205,8 @@ func runQuarterlyReportJob() error {
 	}
 	services := app.NewService(dbInstance)
 
-	sheetID := config.ReadEnvString(constants.GoogleSheetID)
-	credsPath := config.ReadEnvString(constants.GoogleServiceAccountPath)
+	sheetID := config.ReadEnvStringOptional(constants.GoogleSheetID)
+	credsPath := config.ReadEnvStringOptional(constants.GoogleServiceAccountPath)
 
 	if sheetID == "" || credsPath == "" {
 		return errors.New("Google Sheets credentials/ID not configured")

@@ -76,6 +76,11 @@ func ReadEnvString(key string) string {
 	return viper.GetString(key)
 }
 
+// ReadEnvStringOptional - reads an environment variable as a string, returns empty string if not set
+func ReadEnvStringOptional(key string) string {
+	return viper.GetString(key)
+}
+
 // ReadEnvBool - reads environment variable as a boolean
 func ReadEnvBool(key string) bool {
 	checkIfSet(key)
