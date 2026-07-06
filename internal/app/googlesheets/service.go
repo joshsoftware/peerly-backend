@@ -85,3 +85,96 @@ func (s *Service) AppendRows(spreadsheetID, tabName string, rows [][]interface{}
 	logger.Infof(context.Background(), "Google Sheets: appended %d rows to tab '%s'", len(rows), tabName)
 	return nil
 }
+
+// getSheetID finds the Sheet ID for a given tab name.
+func (s *Service) getSheetID(spreadsheetID, tabName string) (int64, error) {
+	spreadsheet, err := s.sheetsService.Spreadsheets.Get(spreadsheetID).Do()
+	if err != nil {
+		return 0, err
+	}
+	for _, sheet := range spreadsheet.Sheets {
+		if sheet.Properties.Title == tabName {
+			return sheet.Properties.SheetId, nil
+		}
+	}
+	return 0, fmt.Errorf("tab '%s' not found", tabName)
+}
+
+// HeaderFormatParams holds configuration for alternating header colors.
+type HeaderFormatParams struct {
+	SpreadsheetID string
+	TabName       string
+	HeaderLength  int
+	Color1        *sheets.Color
+	Color2        *sheets.Color
+	Interval1     int
+	Interval2     int
+}
+
+// FormatHeaderRow applies alternating background colors to the first row (header) of the tab.
+func (s *Service) FormatHeaderRow(params HeaderFormatParams) error {
+	sheetID, err := s.getSheetID(params.SpreadsheetID, params.TabName)
+	if err != nil {
+		return err
+	}
+
+	var requests []*sheets.Request
+
+	col := 0
+	useColor1 := true
+
+	for col < params.HeaderLength {
+		var interval int
+		var color *sheets.Color
+
+		if useColor1 {
+			interval = params.Interval1
+			color = params.Color1
+		} else {
+			interval = params.Interval2
+			color = params.Color2
+		}
+
+		endCol := col + interval
+		if endCol > params.HeaderLength {
+			endCol = params.HeaderLength
+		}
+
+		requests = append(requests, &sheets.Request{
+			RepeatCell: &sheets.RepeatCellRequest{
+				Range: &sheets.GridRange{
+					SheetId:          sheetID,
+					StartRowIndex:    0,
+					EndRowIndex:      1, // Only the first row
+					StartColumnIndex: int64(col),
+					EndColumnIndex:   int64(endCol),
+				},
+				Cell: &sheets.CellData{
+					UserEnteredFormat: &sheets.CellFormat{
+						BackgroundColor: color,
+					},
+				},
+				Fields: "userEnteredFormat(backgroundColor)",
+			},
+		})
+
+		col = endCol
+		useColor1 = !useColor1
+	}
+
+	if len(requests) == 0 {
+		return nil
+	}
+
+	req := &sheets.BatchUpdateSpreadsheetRequest{
+		Requests: requests,
+	}
+
+	_, err = s.sheetsService.Spreadsheets.BatchUpdate(params.SpreadsheetID, req).Do()
+	if err != nil {
+		return fmt.Errorf("failed to format header for tab '%s': %w", params.TabName, err)
+	}
+
+	logger.Info(context.Background(), "Google Sheets: formatted header row for tab: ", params.TabName)
+	return nil
+}

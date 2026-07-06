@@ -15,6 +15,7 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 	logger "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
+	"google.golang.org/api/sheets/v4"
 )
 
 const QUARTERLY_REPORT_JOB = "QUARTERLY_REPORT_JOB"
@@ -144,6 +145,35 @@ func (cron *QuarterlyReportJob) ExportQuarterlyReport(ctx context.Context) error
 	err = cron.sheetService.AppendRows(cron.spreadsheetID, tabName, rows)
 	if err != nil {
 		return fmt.Errorf("failed to append rows: %w", err)
+	}
+
+	headerLength := 0
+	if len(rows) > 0 {
+		headerLength = len(rows[0])
+	}
+
+	formatParams := googlesheets.HeaderFormatParams{
+		SpreadsheetID: cron.spreadsheetID,
+		TabName:       tabName,
+		HeaderLength:  headerLength,
+		Color1: &sheets.Color{
+			Red:   1.0,
+			Green: 0.95,
+			Blue:  0.8,
+		},
+		Color2: &sheets.Color{
+			Red:   0.85,
+			Green: 0.92,
+			Blue:  0.83,
+		},
+		Interval1: 5,
+		Interval2: 3,
+	}
+
+	// Apply header formatting
+	err = cron.sheetService.FormatHeaderRow(formatParams)
+	if err != nil {
+		logger.CronErrorf(ctx, "failed to format header row: %v", err)
 	}
 
 	logger.CronInfof(ctx, "Successfully exported %d appreciations to tab '%s'", len(quarterAppreciations), tabName)
