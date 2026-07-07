@@ -27,7 +27,7 @@ todo:
 	grep -Rin --include="*go" "TODO" * 
 
 loadUsers:
-	go run cmd/main.go 
+	go run cmd/main.go loadUsers 
 	
 run_quarterly_report:
 	go run cmd/main.go run_quarterly_report
