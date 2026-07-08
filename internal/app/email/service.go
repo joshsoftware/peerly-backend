@@ -80,6 +80,12 @@ func (ms *Mail) Send() error {
 		return err
 	}
 
+	if response.StatusCode >= 400 {
+		err := fmt.Errorf("sendgrid returned error status %d: %s", response.StatusCode, response.Body)
+		logger.Error(context.Background(), "unable to send mail", "error", err)
+		return err
+	}
+
 	logger.Info(context.Background(), "Email response: ")
 	logger.Infof(context.Background(), "Response status code: %v", response.StatusCode)
 	logger.Infof(context.Background(), "Response body: %v", response.Body)

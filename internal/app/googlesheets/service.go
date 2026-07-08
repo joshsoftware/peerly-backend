@@ -31,6 +31,21 @@ func NewService(credentialsPath string) (*Service, error) {
 	return &Service{sheetsService: srv}, nil
 }
 
+// TabExists checks if a sheet tab exists in the spreadsheet.
+func (s *Service) TabExists(spreadsheetID, tabName string) (bool, error) {
+	spreadsheet, err := s.sheetsService.Spreadsheets.Get(spreadsheetID).Do()
+	if err != nil {
+		return false, fmt.Errorf("failed to get spreadsheet details: %w", err)
+	}
+
+	for _, sheet := range spreadsheet.Sheets {
+		if sheet.Properties.Title == tabName {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 // CreateTab creates a new sheet tab in the spreadsheet. If the tab already exists, it silently succeeds.
 func (s *Service) CreateTab(spreadsheetID, tabName string) error {
 	spreadsheet, err := s.sheetsService.Spreadsheets.Get(spreadsheetID).Do()
