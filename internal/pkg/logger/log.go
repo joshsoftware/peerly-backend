@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
@@ -103,3 +104,94 @@ func getLoggerWithRequestContext(ctx context.Context) *l.Entry {
 		"user_id": userID,
 	})
 }
+
+// Cron Logger Implementation
+var CronLogger *l.Logger
+
+var cronLumberjackLogger = &lumberjack.Logger{
+	MaxSize:    100, // megabytes
+	MaxBackups: 3,   // number of log files
+	MaxAge:     365, // days
+	Compress:   true,
+}
+
+func SetupCronLogger() (*l.Logger, error) {
+	logDir := "/var/log/peerly"
+	logFilename := "cron.log"
+	cronLumberjackLogger.Filename = filepath.Join(logDir, logFilename)
+
+	if err := os.MkdirAll(filepath.Dir(cronLumberjackLogger.Filename), 0755); err != nil {
+		logDir = "./logs"
+		cronLumberjackLogger.Filename = filepath.Join(logDir, logFilename)
+		if err := os.MkdirAll(filepath.Dir(cronLumberjackLogger.Filename), 0755); err != nil {
+			return nil, fmt.Errorf("failed to create cron log directory: %w", err)
+		}
+	}
+
+	file, err := os.OpenFile(cronLumberjackLogger.Filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create cron log file: %w", err)
+	}
+	file.Close()
+
+	// Initialize Logrus logger
+	logger := l.New()
+	logger.SetOutput(io.MultiWriter(os.Stdout, cronLumberjackLogger))
+	logger.SetFormatter(&l.TextFormatter{
+		FullTimestamp: true,
+	})
+
+	logger.SetLevel(l.InfoLevel)
+
+	CronLogger = logger
+	return logger, nil
+}
+
+func getCronLoggerWithRequestContext(ctx context.Context) *l.Entry {
+	requestID, ok := ctx.Value(constants.RequestID).(string)
+	if !ok {
+		requestID = "N/A"
+	}
+
+	data := ctx.Value(constants.UserId)
+	userID, ok := data.(int64)
+	if !ok {
+		userID = 0
+	}
+
+	return CronLogger.WithFields(l.Fields{
+		"req_id":  requestID,
+		"user_id": userID,
+	})
+}
+
+func CronError(ctx context.Context, args ...interface{}) {
+	log := getCronLoggerWithRequestContext(ctx)
+	log.Error(args...)
+}
+
+func CronErrorf(ctx context.Context, format string, args ...interface{}) {
+	log := getCronLoggerWithRequestContext(ctx)
+	log.Errorf(format, args...)
+}
+
+func CronWarn(ctx context.Context, args ...interface{}) {
+	log := getCronLoggerWithRequestContext(ctx)
+	log.Warn(args...)
+}
+
+func CronInfo(ctx context.Context, args ...interface{}) {
+	log := getCronLoggerWithRequestContext(ctx)
+	log.Info(args...)
+}
+
+func CronInfof(ctx context.Context, format string, args ...interface{}) {
+	log := getCronLoggerWithRequestContext(ctx)
+	log.Infof(format, args...)
+}
+
+func CronDebug(ctx context.Context, args ...interface{}) {
+	log := getCronLoggerWithRequestContext(ctx)
+	log.Debug(args...)
+}
+

@@ -16,7 +16,9 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/api"
 	"github.com/joshsoftware/peerly-backend/internal/app"
 	"github.com/joshsoftware/peerly-backend/internal/app/cronjob"
+	"github.com/joshsoftware/peerly-backend/internal/app/googlesheets"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/config"
+	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	log "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
 	"github.com/joshsoftware/peerly-backend/internal/repository"
 	script "github.com/joshsoftware/peerly-backend/scripts"
@@ -84,6 +86,13 @@ func main() {
 				return script.LoadUserScript()
 			},
 		},
+		{
+			Name:  "run_quarterly_report",
+			Usage: "manually trigger the quarterly report job",
+			Action: func(c *cli.Context) error {
+				return runQuarterlyReportJob()
+			},
+		},
 	}
 
 	if err := cliApp.Run(os.Args); err != nil {
@@ -98,6 +107,11 @@ func startApp() (err error) {
 	lg, err := log.SetupLogger()
 	if err != nil {
 		logger.Error("logger setup failed ", err.Error())
+		return err
+	}
+	_, err = log.SetupCronLogger()
+	if err != nil {
+		logger.Error("cron logger setup failed ", err.Error())
 		return err
 	}
 	log.Info(ctx, "Starting Peerly Application...")
@@ -123,11 +137,28 @@ func startApp() (err error) {
 	// Initializing Cron Job
 	scheduler, err := gocron.NewScheduler()
 	if err != nil {
-		log.Error(ctx, "scheduler creation failed with error: %s", err.Error())
+		log.Errorf(ctx, "scheduler creation failed with error: %s", err.Error())
 		return err
 	}
 
-	err = cronjob.InitializeJobs(services.AppreciationService, services.UserService, services.OrganizationConfigService, scheduler)
+	// Initialize Google Sheets Service for Quarterly Reports
+	var sheetSvc *googlesheets.Service
+	sheetID := config.ReadEnvStringOptional(constants.GoogleSheetID)
+	credsPath := config.ReadEnvStringOptional(constants.GoogleServiceAccountPath)
+
+	if sheetID != "" && credsPath != "" {
+		sheetSvc, err = googlesheets.NewService(credsPath)
+		if err != nil {
+			logger.Warnf("Failed to initialize Google Sheets service (quarterly reports will not run): %v", err)
+			sheetSvc = nil // ensure nil if failed
+		} else {
+			logger.Info("Google Sheets service initialized successfully")
+		}
+	} else {
+		logger.Warn("Google Sheets credentials/ID not configured. Quarterly reports will not run.")
+	}
+
+	err = cronjob.InitializeJobs(services.AppreciationService, services.UserService, services.OrganizationConfigService, services.ReportAppreciationService, sheetSvc, sheetID, scheduler)
 	if err != nil {
 		logger.WithField("err", err.Error()).Error("CronJob Initialize failed")
 		return
@@ -149,4 +180,45 @@ func startApp() (err error) {
 	addr := fmt.Sprintf(":%s", strconv.Itoa(port))
 	server.Run(addr)
 	return
+}
+
+func runQuarterlyReportJob() error {
+	ctx := context.WithValue(context.Background(), constants.UserId, int64(0))
+
+	_, err := log.SetupLogger()
+	if err != nil {
+		logger.Error("logger setup failed ", err.Error())
+		return err
+	}
+	_, err = log.SetupCronLogger()
+	if err != nil {
+		logger.Error("cron logger setup failed ", err.Error())
+		return err
+	}
+
+	log.Info(ctx, "Starting manual quarterly report job...")
+
+	dbInstance, err := repository.InitializeDatabase()
+	if err != nil {
+		log.Error(ctx, "Database init failed")
+		return err
+	}
+	services := app.NewService(dbInstance)
+
+	sheetID := config.ReadEnvStringOptional(constants.GoogleSheetID)
+	credsPath := config.ReadEnvStringOptional(constants.GoogleServiceAccountPath)
+
+	if sheetID == "" || credsPath == "" {
+		return errors.New("Google Sheets credentials/ID not configured")
+	}
+
+	sheetSvc, err := googlesheets.NewService(credsPath)
+	if err != nil {
+		return fmt.Errorf("Failed to initialize Google Sheets service: %w", err)
+	}
+
+	scheduler, _ := gocron.NewScheduler()
+	quarterlyJob := cronjob.NewQuarterlyReportJob(services.AppreciationService, services.ReportAppreciationService, sheetSvc, sheetID, scheduler).(*cronjob.QuarterlyReportJob)
+
+	return quarterlyJob.ExportQuarterlyReport(ctx)
 }

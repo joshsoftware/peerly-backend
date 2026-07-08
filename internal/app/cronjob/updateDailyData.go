@@ -59,25 +59,25 @@ func (cron *DailyJob) Schedule() error {
 	cron.scheduler.Start()
 
 	if err != nil {
-		logger.Warn(context.TODO(), fmt.Sprintf("error occurred while scheduling %s, message %+v", cron.name, err.Error()))
+		logger.CronWarn(context.TODO(), fmt.Sprintf("error occurred while scheduling %s, message %+v", cron.name, err.Error()))
 	}
 	return nil
 }
 
 func (cron *DailyJob) Task(ctx context.Context) {
-	logger.Info(ctx, "in daily job task")
+	logger.CronInfo(ctx, "in daily job task")
 
 	orgInfo, err := cron.organizationConfigService.GetOrganizationConfig(ctx)
 	if err != nil {
-		logger.Info(ctx, fmt.Sprintf("daily cron job err: %v ", err))
+		logger.CronInfo(ctx, fmt.Sprintf("daily cron job err: %v ", err))
 		return
 	}
 	for i := 0; i < 3; i++ {
-		logger.Info(ctx, "cron job attempt:", i+1)
+		logger.CronInfo(ctx, "cron job attempt:", i+1)
 		isSuccess, err := cron.appreciationService.UpdateAppreciation(ctx, orgInfo.Timezone)
 		if err == nil && isSuccess {
 			break
 		}
-		logger.Info(ctx, fmt.Sprintf("daily cron job err: %v ", err))
+		logger.CronInfo(ctx, fmt.Sprintf("daily cron job err: %v ", err))
 	}
 }
