@@ -259,7 +259,7 @@ func buildSheetRows(appreciations []dto.AppreciationResponse, reportedMap map[in
 	headers := []interface{}{
 		"Core value", "Time Stamp", "Sender Employee ID", "Sender Full Name",
 		"Sender designation", "Receiver Employee ID", "Receiver Full Name",
-		"Receiver designation", "Receiver designation", "Total rewards", "Total reward points",
+		"Receiver designation", "Appreciation description", "Total rewards", "Total reward points",
 		"Appreciated Date", "Quarter", "Year", "Reporter Emp ID",
 		"Reporting Comment", "Reporter Full Name", "Reported Date",
 		"Moderator comment", "Moderator Full Name", "Moderated Date",
