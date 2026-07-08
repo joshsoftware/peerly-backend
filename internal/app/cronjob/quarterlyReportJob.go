@@ -134,46 +134,66 @@ func (cron *QuarterlyReportJob) ExportQuarterlyReport(ctx context.Context) error
 		return quarterAppreciations[i].CreatedAt < quarterAppreciations[j].CreatedAt
 	})
 
-	tabName := fmt.Sprintf("Q%d(%d) %s", quarter, year, quarterMonthNames[quarter])
-	rows := buildSheetRows(quarterAppreciations, reportedMap)
+	tabName := getFinancialYearTabName(year)
+	allRows := buildSheetRows(quarterAppreciations, reportedMap)
 
-	err = cron.sheetService.CreateTab(cron.spreadsheetID, tabName)
+	tabExists, err := cron.sheetService.TabExists(cron.spreadsheetID, tabName)
 	if err != nil {
-		return fmt.Errorf("failed to create tab: %w", err)
+		logger.CronErrorf(ctx, "failed to check if tab exists: %v", err)
 	}
 
-	err = cron.sheetService.AppendRows(cron.spreadsheetID, tabName, rows)
-	if err != nil {
-		return fmt.Errorf("failed to append rows: %w", err)
-	}
+	if !tabExists {
+		err = cron.sheetService.CreateTab(cron.spreadsheetID, tabName)
+		if err != nil {
+			return fmt.Errorf("failed to create tab: %w", err)
+		}
 
-	headerLength := 0
-	if len(rows) > 0 {
-		headerLength = len(rows[0])
-	}
+		err = cron.sheetService.AppendRows(cron.spreadsheetID, tabName, allRows)
+		if err != nil {
+			return fmt.Errorf("failed to append rows: %w", err)
+		}
 
-	formatParams := googlesheets.HeaderFormatParams{
-		SpreadsheetID: cron.spreadsheetID,
-		TabName:       tabName,
-		HeaderLength:  headerLength,
-		Color1: &sheets.Color{
-			Red:   1.0,
-			Green: 0.95,
-			Blue:  0.8,
-		},
-		Color2: &sheets.Color{
-			Red:   0.85,
-			Green: 0.92,
-			Blue:  0.83,
-		},
-		Interval1: 5,
-		Interval2: 3,
-	}
+		headerLength := 0
+		if len(allRows) > 0 {
+			headerLength = len(allRows[0])
+		}
 
-	// Apply header formatting
-	err = cron.sheetService.FormatHeaderRow(formatParams)
-	if err != nil {
-		logger.CronErrorf(ctx, "failed to format header row: %v", err)
+		formatParams := googlesheets.HeaderFormatParams{
+			SpreadsheetID: cron.spreadsheetID,
+			TabName:       tabName,
+			HeaderLength:  headerLength,
+			Color1: &sheets.Color{
+				Red:   1.0,
+				Green: 0.95,
+				Blue:  0.8,
+			},
+			Color2: &sheets.Color{
+				Red:   0.85,
+				Green: 0.92,
+				Blue:  0.83,
+			},
+			Interval1: 5,
+			Interval2: 3,
+		}
+
+		// Apply header formatting
+		err = cron.sheetService.FormatHeaderRow(formatParams)
+		if err != nil {
+			logger.CronErrorf(ctx, "failed to format header row: %v", err)
+		}
+	} else {
+		var dataRows [][]interface{}
+		if len(allRows) > 1 {
+			dataRows = allRows[1:]
+		}
+		if len(dataRows) > 0 {
+			err = cron.sheetService.AppendRows(cron.spreadsheetID, tabName, dataRows)
+			if err != nil {
+				return fmt.Errorf("failed to append data rows: %w", err)
+			}
+		} else {
+			logger.CronInfof(ctx, "No data rows to append for tab '%s'", tabName)
+		}
 	}
 
 	logger.CronInfof(ctx, "Successfully exported %d appreciations to tab '%s'", len(quarterAppreciations), tabName)
@@ -227,6 +247,11 @@ func getPreviousQuarterAndYear() (quarter int, year int) {
 		return 4, y - 1 // Q4 (Dec-Feb) of previous year
 	}
 	return 1, y
+}
+
+func getFinancialYearTabName(year int) string {
+	nextYear := (year + 1) % 100
+	return fmt.Sprintf("FY %d-%02d", year, nextYear)
 }
 
 // buildSheetRows constructs the header + data rows matching the 21-column sheet format.
