@@ -77,6 +77,7 @@ const (
 	InvalidLoggerLevel                 = CustomError("Invalid Logger Level")
 	PreviousQuarterRatingNotAllowed    = CustomError("Reward can be given for current quarter appreciations")
 	NotAllowedForReportedAppreciation  = CustomError(`Currently, the appreciation is under review, so we’re unable to proceed with a reward at this time.`)
+	UserNotApproved                    = CustomError("User status is not approved on Intranet")
 )
 
 // ErrKeyNotSet - Returns error object specific to the key value passed in
@@ -99,7 +100,7 @@ func GetHTTPStatusCode(err error) int {
 		return http.StatusUnauthorized
 	case RewardQuotaIsNotSufficient:
 		return http.StatusUnprocessableEntity
-	case OrganizationConfigAlreadyPresent, NotAllowedForReportedAppreciation:
+	case OrganizationConfigAlreadyPresent, NotAllowedForReportedAppreciation, UserNotApproved:
 		return http.StatusForbidden
 	default:
 		return http.StatusInternalServerError

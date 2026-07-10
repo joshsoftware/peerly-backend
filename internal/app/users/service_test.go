@@ -39,8 +39,9 @@ func TestLoginUser(t *testing.T) {
 			name:    "Success for login for existing user",
 			context: context.Background(),
 			u: dto.IntranetUserData{
-				Id:    1,
-				Email: "sharyu@josh.com",
+				Id:     1,
+				Email:  "sharyu@josh.com",
+				Status: "approved",
 				PublicProfile: dto.PublicProfile{
 					ProfileImgUrl: "image url",
 					FirstName:     "sharyu",
@@ -71,11 +72,12 @@ func TestLoginUser(t *testing.T) {
 					GradeId:             1,
 					CreatedAt:           0,
 				}, apperrors.InternalServerError).Once()
-				userMock.On("GetGradeByName", mock.Anything, mock.Anything, mock.Anything).Return(repository.Grade{
+				userMock.On("GetGradeByName", mock.Anything, mock.Anything).Return(repository.Grade{
 					Id:     1,
 					Name:   "J12",
 					Points: 100,
 				}, nil).Once()
+				userMock.On("AddDeviceToken", mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
 
 			},
 			isErrorExpected: false,
@@ -84,8 +86,9 @@ func TestLoginUser(t *testing.T) {
 			name:    "Success for register user",
 			context: context.Background(),
 			u: dto.IntranetUserData{
-				Id:    1,
-				Email: "sharyu@josh.com",
+				Id:     1,
+				Email:  "sharyu@josh.com",
+				Status: "approved",
 				PublicProfile: dto.PublicProfile{
 					ProfileImgUrl: "image url",
 					FirstName:     "sharyu",
@@ -134,11 +137,12 @@ func TestLoginUser(t *testing.T) {
 						Time:  time.Now(),
 					},
 				}, nil).Once()
-				userMock.On("GetGradeByName", mock.Anything, mock.Anything, mock.Anything).Return(repository.Grade{
+				userMock.On("GetGradeByName", mock.Anything, mock.Anything).Return(repository.Grade{
 					Id:     1,
 					Name:   "J12",
 					Points: 100,
 				}, nil).Once()
+				userMock.On("AddDeviceToken", mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
 
 			},
 			isErrorExpected: false,
@@ -147,8 +151,9 @@ func TestLoginUser(t *testing.T) {
 			name:    "Sync data success",
 			context: context.Background(),
 			u: dto.IntranetUserData{
-				Id:    1,
-				Email: "sharyu@josh.com",
+				Id:     1,
+				Email:  "sharyu@josh.com",
+				Status: "approved",
 				PublicProfile: dto.PublicProfile{
 					ProfileImgUrl: "image url",
 					FirstName:     "sharyu",
@@ -201,6 +206,7 @@ func TestLoginUser(t *testing.T) {
 					GradeId:             1,
 					CreatedAt:           0,
 				}, nil).Once()
+				userMock.On("AddDeviceToken", mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
 			},
 			isErrorExpected: false,
 		},
@@ -208,8 +214,9 @@ func TestLoginUser(t *testing.T) {
 			name:    "GetGradeByName Faliure",
 			context: context.Background(),
 			u: dto.IntranetUserData{
-				Id:    1,
-				Email: "sharyu@josh.com",
+				Id:     1,
+				Email:  "sharyu@josh.com",
+				Status: "approved",
 				PublicProfile: dto.PublicProfile{
 					ProfileImgUrl: "image url",
 					FirstName:     "sharyu",
@@ -233,8 +240,9 @@ func TestLoginUser(t *testing.T) {
 			name:    "GetRoleByName Faliure",
 			context: context.Background(),
 			u: dto.IntranetUserData{
-				Id:    1,
-				Email: "sharyu@josh.com",
+				Id:     1,
+				Email:  "sharyu@josh.com",
+				Status: "approved",
 				PublicProfile: dto.PublicProfile{
 					ProfileImgUrl: "image url",
 					FirstName:     "sharyu",
@@ -255,7 +263,7 @@ func TestLoginUser(t *testing.T) {
 					Name:   "J12",
 					Points: 100,
 				}, nil).Once()
-				userMock.On("GetRewardMultiplier", mock.Anything, mock.Anything).Return(int64(1), nil).Once()
+				userMock.On("GetRewardMultiplier", mock.Anything).Return(int64(1), nil).Once()
 				userMock.On("GetRoleByName", mock.Anything, mock.Anything).Return(int64(1), apperrors.InternalServerError).Once()
 			},
 			isErrorExpected: true,
@@ -264,8 +272,9 @@ func TestLoginUser(t *testing.T) {
 			name:    "Create user faliure",
 			context: context.Background(),
 			u: dto.IntranetUserData{
-				Id:    1,
-				Email: "sharyu@josh.com",
+				Id:     1,
+				Email:  "sharyu@josh.com",
+				Status: "approved",
 				PublicProfile: dto.PublicProfile{
 					ProfileImgUrl: "image url",
 					FirstName:     "sharyu",
@@ -286,7 +295,7 @@ func TestLoginUser(t *testing.T) {
 					Name:   "J12",
 					Points: 100,
 				}, nil).Once()
-				userMock.On("GetRewardMultiplier", mock.Anything, mock.Anything).Return(int64(1), nil).Once()
+				userMock.On("GetRewardMultiplier", mock.Anything).Return(int64(1), nil).Once()
 				userMock.On("GetRoleByName", mock.Anything, mock.Anything).Return(int64(1), nil).Once()
 				userMock.On("CreateNewUser", mock.Anything, mock.Anything).Return(repository.User{}, apperrors.InternalServerError).Once()
 			},
@@ -296,8 +305,9 @@ func TestLoginUser(t *testing.T) {
 			name:    "Sync data faliure",
 			context: context.Background(),
 			u: dto.IntranetUserData{
-				Id:    1,
-				Email: "sharyu@josh.com",
+				Id:     1,
+				Email:  "sharyu@josh.com",
+				Status: "approved",
 				PublicProfile: dto.PublicProfile{
 					ProfileImgUrl: "image url",
 					FirstName:     "sharyu",
@@ -335,6 +345,29 @@ func TestLoginUser(t *testing.T) {
 				}, nil).Once()
 				userMock.On("SyncData", mock.Anything, mock.Anything).Return(apperrors.InternalServerError).Once()
 			},
+			isErrorExpected: true,
+		},
+		{
+			name:    "Failure for unapproved user status",
+			context: context.Background(),
+			u: dto.IntranetUserData{
+				Id:     1,
+				Email:  "sharyu@josh.com",
+				Status: "pending",
+				PublicProfile: dto.PublicProfile{
+					ProfileImgUrl: "image url",
+					FirstName:     "sharyu",
+					LastName:      "marwadi",
+				},
+				EmpolyeeDetail: dto.EmployeeDetail{
+					EmployeeId: "26",
+					Designation: dto.Designation{
+						Name: "Intern",
+					},
+					Grade: "J12",
+				},
+			},
+			setup:           func(userMock *mocks.UserStorer) {},
 			isErrorExpected: true,
 		},
 	}
@@ -574,7 +607,7 @@ func TestGetUserById(t *testing.T) {
 					Name:   "J1",
 					Points: 100,
 				}, nil).Once()
-				userMock.On("GetRewardMultiplier", mock.Anything).Return(10, nil).Once()
+				userMock.On("GetRewardMultiplier", mock.Anything).Return(int64(10), nil).Once()
 
 			},
 			isErrorExpected: false,

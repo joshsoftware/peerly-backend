@@ -141,6 +141,12 @@ func (us *service) LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.L
 	var resp dto.LoginUserResp
 	resp.NewUserCreated = false
 
+	if u.Status != "approved" {
+		err := apperrors.UserNotApproved
+		logger.Errorf(ctx, "login failed, user status not approved on intranet. status: %s", u.Status)
+		return resp, err
+	}
+
 	user, err := us.RegisterUser(ctx, u)
 	if err != nil && err != apperrors.RepeatedUser {
 		return resp, err
@@ -406,7 +412,7 @@ func (us *service) syncData(ctx context.Context, intranetUserData dto.IntranetUs
 		return
 	}
 
-	if intranetUserData.PublicProfile.FirstName != peerlyUserData.FirstName || intranetUserData.PublicProfile.LastName != peerlyUserData.LastName || intranetUserData.PublicProfile.ProfileImgUrl != peerlyUserData.ProfileImgUrl || intranetUserData.EmpolyeeDetail.Designation.Name != peerlyUserData.Designation || grade.Id != peerlyUserData.GradeId {
+	if intranetUserData.PublicProfile.FirstName != peerlyUserData.FirstName || intranetUserData.PublicProfile.LastName != peerlyUserData.LastName || intranetUserData.PublicProfile.ProfileImgUrl != peerlyUserData.ProfileImgUrl || intranetUserData.EmpolyeeDetail.Designation.Name != peerlyUserData.Designation || grade.Id != peerlyUserData.GradeId || intranetUserData.EmpolyeeDetail.EmployeeId != peerlyUserData.EmployeeId {
 		syncNeeded = true
 		dataToBeUpdated.FirstName = intranetUserData.PublicProfile.FirstName
 		dataToBeUpdated.LastName = intranetUserData.PublicProfile.LastName
@@ -414,6 +420,7 @@ func (us *service) syncData(ctx context.Context, intranetUserData dto.IntranetUs
 		dataToBeUpdated.Designation = intranetUserData.EmpolyeeDetail.Designation.Name
 		dataToBeUpdated.GradeId = grade.Id
 		dataToBeUpdated.Email = intranetUserData.Email
+		dataToBeUpdated.EmployeeId = intranetUserData.EmpolyeeDetail.EmployeeId
 	}
 	return
 }
