@@ -174,6 +174,7 @@ func (us *userStore) SyncData(ctx context.Context, updateData dto.User) (err err
 		Set("profile_image_url", updateData.ProfileImgUrl).
 		Set("designation", updateData.Designation).
 		Set("grade_id", updateData.GradeId).
+		Set("employee_id", updateData.EmployeeId).
 		Where(squirrel.Eq{"email": updateData.Email})
 
 	updateUserQuery, args, err := queryBuilder.ToSql()

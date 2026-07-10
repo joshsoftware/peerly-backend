@@ -25,6 +25,7 @@ type EmployeeDetail struct {
 type IntranetUserData struct {
 	Id                int64          `json:"id"`
 	Email             string         `json:"email"`
+	Status            string         `json:"status"`
 	PublicProfile     PublicProfile  `json:"public_profile"`
 	EmpolyeeDetail    EmployeeDetail `json:"employee_detail"`
 	NotificationToken string         `json:"notification_token,omitempty"`
