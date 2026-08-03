@@ -21,6 +21,7 @@ const (
 	DeveloperKey               = "DEVELOPER_KEY"
 	GoogleServiceAccountPath   = "GOOGLE_SERVICE_ACCOUNT_PATH"
 	GoogleSheetID              = "GOOGLE_SHEET_ID"
+	FCMTopic                   = "FCM_TOPIC"
 )
 
 const (

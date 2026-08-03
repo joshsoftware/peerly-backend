@@ -9,6 +9,7 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/app/notification"
 	user "github.com/joshsoftware/peerly-backend/internal/app/users"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
+	"github.com/joshsoftware/peerly-backend/internal/pkg/config"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/constants"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/dto"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/utils"
@@ -305,7 +306,7 @@ func (apprSvc *service) sendAppreciationNotificationToAll(ctx context.Context, a
 		},
 	}
 	logger.Infof(ctx, "appreciationService message: %v", msg)
-	msg.SendNotificationToTopic("peerly")
+	msg.SendNotificationToTopic(config.FCMTopic())
 }
 
 func (apprSvc *service) sendEmailForBadgeAllocation(userBadgeDetails []repository.UserBadgeDetails) {
