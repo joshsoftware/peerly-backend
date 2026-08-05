@@ -23,6 +23,8 @@ const QUARTERLY_REPORT_JOB = "QUARTERLY_REPORT_JOB"
 // 8:25 AM IST → run on 1st day of Jan, Apr, Jul, Oct
 const QUARTERLY_CRON_EXPRESSION = "25 8 1 1,4,7,10 *"
 
+const ALL_APPRECIATIONS_TAB_NAME = "All Appreciations"
+
 var quarterMonthNames = map[int]string{
 	1: "Mar-May",
 	2: "Jun-Aug",
@@ -134,7 +136,8 @@ func (cron *QuarterlyReportJob) ExportQuarterlyReport(ctx context.Context) error
 		return quarterAppreciations[i].CreatedAt < quarterAppreciations[j].CreatedAt
 	})
 
-	tabName := getFinancialYearTabName(year)
+	// tabName := getFinancialYearTabName(year)
+	tabName := ALL_APPRECIATIONS_TAB_NAME
 	allRows := buildSheetRows(quarterAppreciations, reportedMap)
 
 	tabExists, err := cron.sheetService.TabExists(cron.spreadsheetID, tabName)
@@ -249,10 +252,10 @@ func getPreviousQuarterAndYear() (quarter int, year int) {
 	return 1, y
 }
 
-func getFinancialYearTabName(year int) string {
-	nextYear := (year + 1) % 100
-	return fmt.Sprintf("FY %d-%02d", year, nextYear)
-}
+// func getFinancialYearTabName(year int) string {
+// 	nextYear := (year + 1) % 100
+// 	return fmt.Sprintf("FY %d-%02d", year, nextYear)
+// }
 
 // buildSheetRows constructs the header + data rows matching the 21-column sheet format.
 func buildSheetRows(appreciations []dto.AppreciationResponse, reportedMap map[int64]dto.ReportedAppreciation) [][]interface{} {
@@ -308,7 +311,7 @@ func buildSheetRows(appreciations []dto.AppreciationResponse, reportedMap map[in
 			appr.ReceiverEmployeeID,                              // Receiver Employee ID
 			appr.ReceiverFirstName + " " + appr.ReceiverLastName, // Receiver Full Name
 			appr.ReceiverDesignation,                             // Receiver designation
-			appr.Description,									  // Appreciation description
+			appr.Description,                                     // Appreciation description
 			appr.TotalRewards,                                    // Total rewards
 			appr.TotalRewardPoints,                               // Total reward points
 			appreciatedDate,                                      // Appreciated Date
