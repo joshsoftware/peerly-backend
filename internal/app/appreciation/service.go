@@ -3,6 +3,7 @@ package appreciation
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/joshsoftware/peerly-backend/internal/app/email"
 	"github.com/joshsoftware/peerly-backend/internal/app/notification"
@@ -276,6 +277,10 @@ func (apprSvc *service) sendAppreciationNotificationToReceiver(ctx context.Conte
 	msg := notification.Message{
 		Title: "Appreciation incoming!",
 		Body:  fmt.Sprintf("You've been appreciated by %s %s! Well done and keep up the JOSH!", appr.SenderFirstName, appr.SenderLastName),
+		Data: map[string]string{
+			"type":            "appreciation",
+			"appreciation_id": strconv.FormatInt(appr.ID, 10),
+		},
 	}
 
 	logger.Infof(ctx, "appreciationService message: %v", msg)
@@ -291,6 +296,10 @@ func (apprSvc *service) sendAppreciationNotificationToAll(ctx context.Context, a
 	msg := notification.Message{
 		Title: "Appreciation",
 		Body:  fmt.Sprintf(" %s %s has received an appreciation", appr.ReceiverFirstName, appr.ReceiverLastName),
+		Data: map[string]string{
+			"type":            "appreciation",
+			"appreciation_id": strconv.FormatInt(appr.ID, 10),
+		},
 	}
 	logger.Infof(ctx, "appreciationService message: %v", msg)
 	msg.SendNotificationToTopic("peerly")

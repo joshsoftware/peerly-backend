@@ -17,9 +17,10 @@ type NotificationService interface {
 }
 
 type Message struct {
-	Title    string `json:"title,omitempty"`
-	Body     string `json:"body,omitempty"`
-	ImageURL string `json:"image,omitempty"`
+	Title    string            `json:"title,omitempty"`
+	Body     string            `json:"body,omitempty"`
+	ImageURL string            `json:"image,omitempty"`
+	Data     map[string]string `json:"data,omitempty"`
 }
 
 func (notificationSvc *Message) SendNotificationToNotificationToken(notificationToken string) (err error) {
@@ -51,6 +52,7 @@ func (notificationSvc *Message) SendNotificationToNotificationToken(notification
 			Title: notificationSvc.Title,
 			Body:  notificationSvc.Body,
 		},
+		Data:  notificationSvc.Data,
 		Token: notificationToken,
 	}
 
@@ -96,6 +98,7 @@ func (notificationSvc *Message) SendNotificationToTopic(topic string) (err error
 			Title: notificationSvc.Title,
 			Body:  notificationSvc.Body,
 		},
+		Data:  notificationSvc.Data,
 		Topic: topic,
 	}
 
