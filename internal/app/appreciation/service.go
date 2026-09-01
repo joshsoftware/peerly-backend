@@ -54,6 +54,11 @@ func (apprSvc *service) CreateAppreciation(ctx context.Context, appreciation dto
 		return dto.Appreciation{}, apperrors.InternalServer
 	}
 
+	if isOnNotice, ok := ctx.Value(constants.IsOnNotice).(bool); ok && isOnNotice {
+		logger.Error(ctx, "appreciationService user on notice period attempted to create appreciation")
+		return dto.Appreciation{}, apperrors.ForbiddenOnNotice
+	}
+
 	//check is receiver present in database
 	chk, err := apprSvc.appreciationRepo.IsUserPresent(ctx, nil, appreciation.Receiver)
 	if err != nil {
