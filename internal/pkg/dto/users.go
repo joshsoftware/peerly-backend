@@ -47,6 +47,7 @@ type User struct {
 	Designation        string `json:"designation"`
 	GradeId            int64  `json:"grade_id"`
 	CreatedAt          int64  `json:"created_at"`
+	IsOnNotice         bool   `json:"is_on_notice"`
 }
 
 type ValidateResp struct {
@@ -64,8 +65,9 @@ type GetIntranetUserDataReq struct {
 }
 
 type Claims struct {
-	Id   int64
-	Role int
+	Id         int64 `json:"id"`
+	Role       int   `json:"role"`
+	IsOnNotice bool  `json:"is_on_notice"`
 	jwt.StandardClaims
 }
 
@@ -160,6 +162,7 @@ type GetUserByIdResp struct {
 	TotalPoints        int64  `json:"total_points" db:"total_points"`
 	Badge              string `json:"badge" db:"name"`
 	BadgeCreatedAt     int64  `json:"badge_created_at" db:"badge_created_at"`
+	IsOnNotice         bool   `json:"is_on_notice"`
 }
 type AdminLoginReq struct {
 	Email    string `json:"email"`

@@ -78,6 +78,7 @@ const (
 	PreviousQuarterRatingNotAllowed    = CustomError("Reward can be given for current quarter appreciations")
 	NotAllowedForReportedAppreciation  = CustomError(`Currently, the appreciation is under review, so we’re unable to proceed with a reward at this time.`)
 	UserNotApproved                    = CustomError("User status is not approved on Intranet")
+	ForbiddenOnNotice                  = CustomError("Users on notice period are not allowed to perform this action")
 )
 
 // ErrKeyNotSet - Returns error object specific to the key value passed in
@@ -100,7 +101,7 @@ func GetHTTPStatusCode(err error) int {
 		return http.StatusUnauthorized
 	case RewardQuotaIsNotSufficient:
 		return http.StatusUnprocessableEntity
-	case OrganizationConfigAlreadyPresent, NotAllowedForReportedAppreciation, UserNotApproved:
+	case OrganizationConfigAlreadyPresent, NotAllowedForReportedAppreciation, UserNotApproved, ForbiddenOnNotice:
 		return http.StatusForbidden
 	default:
 		return http.StatusInternalServerError

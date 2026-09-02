@@ -49,6 +49,7 @@ func JwtAuthMiddleware(next http.Handler, role int) http.Handler {
 
 		Id := claims.Id
 		Role := claims.Role
+		IsOnNotice := claims.IsOnNotice
 
 		if Role > role {
 			err := apperrors.RoleUnathorized
@@ -56,10 +57,11 @@ func JwtAuthMiddleware(next http.Handler, role int) http.Handler {
 			return
 		}
 
-		// set id and role to context
+		// set id, role, and isOnNotice to context
 		fmt.Println("setting id: ", Id)
 		ctx := context.WithValue(req.Context(), constants.UserId, Id)
 		ctx = context.WithValue(ctx, constants.Role, Role)
+		ctx = context.WithValue(ctx, constants.IsOnNotice, IsOnNotice)
 
 		req = req.WithContext(ctx)
 

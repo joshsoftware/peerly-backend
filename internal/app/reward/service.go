@@ -105,6 +105,11 @@ func (rwrdSvc *service) GiveReward(ctx context.Context, rewardReq dto.Reward) (d
 	}
 	rewardReq.SenderId = sender
 
+	if isOnNotice, ok := ctx.Value(constants.IsOnNotice).(bool); ok && isOnNotice {
+		logger.Error(ctx, "rewardService: user on notice period attempted to give reward points")
+		return dto.Reward{}, apperrors.ForbiddenOnNotice
+	}
+
 	appr, err := rwrdSvc.appreciationRepo.GetAppreciationById(ctx, nil, int32(rewardReq.AppreciationId))
 	if err != nil {
 		logger.Errorf(ctx, "rewardService: gerAppreciationById err : %v", err)
