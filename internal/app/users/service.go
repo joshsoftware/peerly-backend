@@ -141,7 +141,7 @@ func (us *service) LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.L
 	var resp dto.LoginUserResp
 	resp.NewUserCreated = false
 
-	if u.Status != "approved" && u.Status != "on_notice" {
+	if u.Status != "approved" && u.Status != "on notice" {
 		err := apperrors.UserNotApproved
 		logger.Errorf(ctx, "login failed, user status not approved on intranet. status: %s", u.Status)
 		return resp, err
@@ -185,7 +185,7 @@ func (us *service) LoginUser(ctx context.Context, u dto.IntranetUserData) (dto.L
 
 	expirationTime := time.Now().Add(time.Hour * time.Duration(config.JWTExpiryDurationHours()))
 
-	isOnNotice := (u.Status == "on_notice")
+	isOnNotice := (u.Status == "on notice")
 	user.IsOnNotice = isOnNotice
 
 	claims := &dto.Claims{
