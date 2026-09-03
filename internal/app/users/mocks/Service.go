@@ -75,13 +75,13 @@ func (_m *Service) DynamicEngagersReport(ctx context.Context, quarter int, year 
 }
 
 
-// GetActiveUserList provides a mock function with given fields: ctx
-func (_m *Service) GetActiveUserList(ctx context.Context) ([]dto.ActiveUser, error) {
-	ret := _m.Called(ctx)
+// GetActiveUserList provides a mock function with given fields: ctx, quarter, year
+func (_m *Service) GetActiveUserList(ctx context.Context, quarter int, year int) ([]dto.ActiveUser, error) {
+	ret := _m.Called(ctx, quarter, year)
 
 	var r0 []dto.ActiveUser
-	if rf, ok := ret.Get(0).(func(context.Context) []dto.ActiveUser); ok {
-		r0 = rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, int, int) []dto.ActiveUser); ok {
+		r0 = rf(ctx, quarter, year)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]dto.ActiveUser)
@@ -89,8 +89,8 @@ func (_m *Service) GetActiveUserList(ctx context.Context) ([]dto.ActiveUser, err
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = rf(ctx)
+	if rf, ok := ret.Get(1).(func(context.Context, int, int) error); ok {
+		r1 = rf(ctx, quarter, year)
 	} else {
 		r1 = ret.Error(1)
 	}

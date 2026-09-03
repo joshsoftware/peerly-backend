@@ -2,8 +2,7 @@ package reward
 
 import (
 	"context"
-	// "database/sql"
-	// "errors"
+	"time"
 	"testing"
 
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
@@ -33,12 +32,14 @@ func TestGiveReward(t *testing.T) {
 				Point:          10,
 			},
 			setup: func(rwrdMock *mocks.RewardStorer, apprMock *mocks.AppreciationStorer) {
-				apprMock.On("GetAppreciationById", mock.Anything, nil, 1).Return(repository.AppreciationResponse{SenderID: 2, ReceiverID: 3}, nil)
+				apprMock.On("GetAppreciationById", mock.Anything, nil, int32(1)).Return(repository.AppreciationResponse{SenderID: 2, ReceiverID: 3, CreatedAt: time.Now().UnixMilli()}, nil)
 				rwrdMock.On("UserHasRewardQuota", mock.Anything, nil, int64(1), int64(10)).Return(true, nil)
 				rwrdMock.On("IsUserRewardForAppreciationPresent", mock.Anything, nil, int64(1), int64(1)).Return(false, nil)
 				rwrdMock.On("BeginTx", mock.Anything).Return(nil, nil)
 				rwrdMock.On("GiveReward", mock.Anything, mock.Anything, mock.Anything).Return(repository.Reward{Id: 1, AppreciationId: 1, SenderId: 1, Point: 10}, nil)
 				rwrdMock.On("DeduceRewardQuotaOfUser", mock.Anything, mock.Anything, int64(1), 10).Return(true, nil)
+				apprMock.On("AddRewardPointsToAppreciation", mock.Anything, mock.Anything, int64(1), int64(1), int64(10)).Return(nil)
+				apprMock.On("UpdateUserBadgesBasedOnTotalRewards", mock.Anything, mock.Anything).Return([]repository.UserBadgeDetails{}, nil)
 				apprMock.On("HandleTransaction", mock.Anything, mock.Anything, true).Return(nil)
 			},
 			isErrorExpected: false,
@@ -65,7 +66,7 @@ func TestGiveReward(t *testing.T) {
 				Point:          10,
 			},
 			setup: func(rwrdMock *mocks.RewardStorer, apprMock *mocks.AppreciationStorer) {
-				apprMock.On("GetAppreciationById", mock.Anything, nil, 1).Return(repository.AppreciationResponse{SenderID: 2, ReceiverID: 3}, nil)
+				apprMock.On("GetAppreciationById", mock.Anything, nil, int32(1)).Return(repository.AppreciationResponse{SenderID: 1, ReceiverID: 3, CreatedAt: time.Now().UnixMilli()}, nil)
 			},
 			isErrorExpected: true,
 			expectedResult:  dto.Reward{},
@@ -79,7 +80,7 @@ func TestGiveReward(t *testing.T) {
 				Point:          10,
 			},
 			setup: func(rwrdMock *mocks.RewardStorer, apprMock *mocks.AppreciationStorer) {
-				apprMock.On("GetAppreciationById", mock.Anything, nil, 1).Return(repository.AppreciationResponse{SenderID: 2, ReceiverID: 3}, nil)
+				apprMock.On("GetAppreciationById", mock.Anything, nil, int32(1)).Return(repository.AppreciationResponse{SenderID: 2, ReceiverID: 1, CreatedAt: time.Now().UnixMilli()}, nil)
 			},
 			isErrorExpected: true,
 			expectedResult:  dto.Reward{},
@@ -93,7 +94,7 @@ func TestGiveReward(t *testing.T) {
 				Point:          10,
 			},
 			setup: func(rwrdMock *mocks.RewardStorer, apprMock *mocks.AppreciationStorer) {
-				apprMock.On("GetAppreciationById", mock.Anything, nil, 1).Return(repository.AppreciationResponse{SenderID: 2, ReceiverID: 3}, nil)
+				apprMock.On("GetAppreciationById", mock.Anything, nil, int32(1)).Return(repository.AppreciationResponse{SenderID: 2, ReceiverID: 3, CreatedAt: time.Now().UnixMilli()}, nil)
 				rwrdMock.On("UserHasRewardQuota", mock.Anything, nil, int64(1), int64(10)).Return(false, nil)
 			},
 			isErrorExpected: true,
@@ -108,7 +109,7 @@ func TestGiveReward(t *testing.T) {
 				Point:          10,
 			},
 			setup: func(rwrdMock *mocks.RewardStorer, apprMock *mocks.AppreciationStorer) {
-				apprMock.On("GetAppreciationById", mock.Anything, nil, 1).Return(repository.AppreciationResponse{SenderID: 2, ReceiverID: 3}, nil)
+				apprMock.On("GetAppreciationById", mock.Anything, nil, int32(1)).Return(repository.AppreciationResponse{SenderID: 2, ReceiverID: 3, CreatedAt: time.Now().UnixMilli()}, nil)
 				rwrdMock.On("UserHasRewardQuota", mock.Anything, nil, int64(1), int64(10)).Return(true, nil)
 				rwrdMock.On("IsUserRewardForAppreciationPresent", mock.Anything, nil, int64(1), int64(1)).Return(true, nil)
 			},
@@ -124,7 +125,7 @@ func TestGiveReward(t *testing.T) {
 				Point:          10,
 			},
 			setup: func(rwrdMock *mocks.RewardStorer, apprMock *mocks.AppreciationStorer) {
-				apprMock.On("GetAppreciationById", mock.Anything, nil, 1).Return(repository.AppreciationResponse{SenderID: 2, ReceiverID: 3}, nil)
+				apprMock.On("GetAppreciationById", mock.Anything, nil, int32(1)).Return(repository.AppreciationResponse{SenderID: 2, ReceiverID: 3, CreatedAt: time.Now().UnixMilli()}, nil)
 				rwrdMock.On("UserHasRewardQuota", mock.Anything, nil, int64(1), int64(10)).Return(true, nil)
 				rwrdMock.On("IsUserRewardForAppreciationPresent", mock.Anything, nil, int64(1), int64(1)).Return(false, nil)
 				rwrdMock.On("BeginTx", mock.Anything).Return(nil, apperrors.InternalServer)
@@ -141,7 +142,7 @@ func TestGiveReward(t *testing.T) {
 				Point:          10,
 			},
 			setup: func(rwrdMock *mocks.RewardStorer, apprMock *mocks.AppreciationStorer) {
-				apprMock.On("GetAppreciationById", mock.Anything, nil, 1).Return(repository.AppreciationResponse{SenderID: 2, ReceiverID: 3}, nil)
+				apprMock.On("GetAppreciationById", mock.Anything, nil, int32(1)).Return(repository.AppreciationResponse{SenderID: 2, ReceiverID: 3, CreatedAt: time.Now().UnixMilli()}, nil)
 				rwrdMock.On("UserHasRewardQuota", mock.Anything, nil, int64(1), int64(10)).Return(true, nil)
 				rwrdMock.On("IsUserRewardForAppreciationPresent", mock.Anything, nil, int64(1), int64(1)).Return(false, nil)
 				rwrdMock.On("BeginTx", mock.Anything).Return(nil, nil)

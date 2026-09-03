@@ -93,20 +93,20 @@ func (_m *Service) ListAppreciations(ctx context.Context, filter dto.Appreciatio
 	return r0, r1
 }
 
-// UpdateAppreciation provides a mock function with given fields: ctx
-func (_m *Service) UpdateAppreciation(ctx context.Context) (bool, error) {
-	ret := _m.Called(ctx)
+// UpdateAppreciation provides a mock function with given fields: ctx, orgTimezone
+func (_m *Service) UpdateAppreciation(ctx context.Context, orgTimezone string) (bool, error) {
+	ret := _m.Called(ctx, orgTimezone)
 
 	var r0 bool
-	if rf, ok := ret.Get(0).(func(context.Context) bool); ok {
-		r0 = rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, string) bool); ok {
+		r0 = rf(ctx, orgTimezone)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = rf(ctx)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, orgTimezone)
 	} else {
 		r1 = ret.Error(1)
 	}

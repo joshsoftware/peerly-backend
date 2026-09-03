@@ -16,6 +16,8 @@ import (
 )
 
 func TestCreateAppreciation(t *testing.T) {
+	t.Setenv("SENDER_EMAIL", "sender@example.com")
+	t.Setenv("SENDGRID_API_KEY", "dummy_key")
 	appreciationRepo := mocks.NewAppreciationStorer(t)
 	corevalueRepo := mocks.NewCoreValueStorer(t)
 	userRepo := mocks.NewUserStorer(t)
@@ -48,6 +50,9 @@ func TestCreateAppreciation(t *testing.T) {
 					ParentCoreValueID: sql.NullInt64{Int64: int64(0), Valid: true},
 				}, nil).Once()
 				apprMock.On("CreateAppreciation", mock.Anything, tx, mock.Anything).Return(repository.Appreciation{ID: 1}, nil).Once()
+				apprMock.On("GetAppreciationById", mock.Anything, tx, int32(1)).Return(repository.AppreciationResponse{ID: 1}, nil).Once()
+				userRepo.On("GetUserById", mock.Anything, mock.Anything).Return(dto.GetUserByIdResp{Email: "test@example.com"}, nil).Maybe()
+				userRepo.On("ListDeviceTokensByUserID", mock.Anything, mock.Anything).Return([]string{}, nil).Maybe()
 				apprMock.On("HandleTransaction", mock.Anything, tx, true).Return(nil).Once()
 			},
 			isErrorExpected: false,
