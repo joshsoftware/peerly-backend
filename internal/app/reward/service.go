@@ -133,13 +133,15 @@ func (rwrdSvc *service) GiveReward(ctx context.Context, rewardReq dto.Reward) (d
 		return dto.Reward{}, apperrors.PreviousQuarterRatingNotAllowed
 	}
 
-	reportedAppr, err := rwrdSvc.reportedAppreciatonRepo.GetReportedAppreciationByAppreciationID(ctx, appr.ID)
-	if err != nil && err != apperrors.InvalidId {
-		logger.Errorf(ctx, "rewardService: GetReportedAppreciation: err: %v", err)
-		return dto.Reward{}, err
-	}
-	if err == nil && reportedAppr.Status != "resolved" {
-		return dto.Reward{}, apperrors.NotAllowedForReportedAppreciation
+	if rwrdSvc.reportedAppreciatonRepo != nil {
+		reportedAppr, err := rwrdSvc.reportedAppreciatonRepo.GetReportedAppreciationByAppreciationID(ctx, appr.ID)
+		if err != nil && err != apperrors.InvalidId {
+			logger.Errorf(ctx, "rewardService: GetReportedAppreciation: err: %v", err)
+			return dto.Reward{}, err
+		}
+		if err == nil && reportedAppr.Status != "resolved" {
+			return dto.Reward{}, apperrors.NotAllowedForReportedAppreciation
+		}
 	}
 
 	userChk, err := rwrdSvc.rewardRepo.UserHasRewardQuota(ctx, nil, rewardReq.SenderId, rewardReq.Point)
@@ -207,23 +209,38 @@ func (rwrdSvc *service) GiveReward(ctx context.Context, rewardReq dto.Reward) (d
 		return dto.Reward{}, apperrors.InternalServer
 	}
 
+	// Update appreciation total reward points in real-time
+	err = rwrdSvc.appreciationRepo.AddRewardPointsToAppreciation(ctx, tx, rewardReq.AppreciationId, rewardReq.Point)
+	if err != nil {
+		logger.Errorf(ctx, "rewardService: AddRewardPointsToAppreciation: err: %v", err)
+		return dto.Reward{}, err
+	}
+
+	// Evaluate badges for receiver in real-time
+	_, badgeErr := rwrdSvc.appreciationRepo.UpdateUserBadgesBasedOnTotalRewards(ctx, tx)
+	if badgeErr != nil {
+		logger.Errorf(ctx, "rewardService: UpdateUserBadgesBasedOnTotalRewards: err: %v", badgeErr)
+	}
+
 	var reward dto.Reward
 	reward.Id = repoRewardRes.Id
 	reward.AppreciationId = repoRewardRes.AppreciationId
 	reward.SenderId = repoRewardRes.SenderId
 	reward.Point = repoRewardRes.Point
-	quaterTimeStamp := user.GetQuarterStartUnixTime()
+	if rwrdSvc.userRepo != nil {
+		quaterTimeStamp := user.GetQuarterStartUnixTime()
 
-	req := dto.GetUserByIdReq{
-		UserId:          sender,
-		QuaterTimeStamp: quaterTimeStamp,
+		req := dto.GetUserByIdReq{
+			UserId:          sender,
+			QuaterTimeStamp: quaterTimeStamp,
+		}
+		userInfo, err := rwrdSvc.userRepo.GetUserById(ctx, req)
+		if err != nil {
+			logger.Errorf(ctx, "rewardService: err in getting user data: %v", err)
+		}
+		rwrdSvc.sendRewardNotificationToSender(ctx, userInfo)
+		rwrdSvc.sendRewardNotificationToReceiver(ctx, appr.ReceiverID)
 	}
-	userInfo, err := rwrdSvc.userRepo.GetUserById(ctx, req)
-	if err != nil {
-		logger.Errorf(ctx, "rewardService: err in getting user data: %v", err)
-	}
-	rwrdSvc.sendRewardNotificationToSender(ctx, userInfo)
-	rwrdSvc.sendRewardNotificationToReceiver(ctx, appr.ReceiverID)
 	return reward, nil
 }
 

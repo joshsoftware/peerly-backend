@@ -429,14 +429,14 @@ func TestGetActiveUserListHandler(t *testing.T) {
 		{
 			name: "Success for get active user list",
 			setup: func(mockSvc *mocks.Service) {
-				mockSvc.On("GetActiveUserList", mock.Anything, mock.Anything).Return([]dto.ActiveUser{}, nil).Once()
+				mockSvc.On("GetActiveUserList", mock.Anything, 1, 2026).Return([]dto.ActiveUser{}, nil).Once()
 			},
 			expectedStatusCode: http.StatusOK,
 		},
 		{
 			name: "Failure",
 			setup: func(mockSvc *mocks.Service) {
-				mockSvc.On("GetActiveUserList", mock.Anything, mock.Anything).Return([]dto.ActiveUser{}, apperrors.InternalServer).Once()
+				mockSvc.On("GetActiveUserList", mock.Anything, 1, 2026).Return([]dto.ActiveUser{}, apperrors.InternalServer).Once()
 			},
 			expectedStatusCode: http.StatusInternalServerError,
 		},
@@ -446,7 +446,7 @@ func TestGetActiveUserListHandler(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			test.setup(userSvc)
 
-			req, err := http.NewRequest("GET", "/users/activeusers", bytes.NewBuffer([]byte("")))
+			req, err := http.NewRequest("GET", "/users/activeusers?quarter=1&year=2026", bytes.NewBuffer([]byte("")))
 			if err != nil {
 				t.Fatal(err)
 				return

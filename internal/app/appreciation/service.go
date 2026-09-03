@@ -130,22 +130,24 @@ func (apprSvc *service) CreateAppreciation(ctx context.Context, appreciation dto
 		UserId:          sender,
 		QuaterTimeStamp: quaterTimeStamp,
 	}
-	senderInfo, getSenderErr := apprSvc.userRepo.GetUserById(ctx, reqGetUserById)
-	if getSenderErr != nil {
-		logger.Infof(ctx, "appreciationService error in getting create appreciation sender info: %v", getSenderErr)
-	}
+	if apprSvc.userRepo != nil {
+		senderInfo, getSenderErr := apprSvc.userRepo.GetUserById(ctx, reqGetUserById)
+		if getSenderErr != nil {
+			logger.Infof(ctx, "appreciationService error in getting create appreciation sender info: %v", getSenderErr)
+		}
 
-	reqGetUserById.UserId = appreciation.Receiver
-	receiverInfo, getReceiverErr := apprSvc.userRepo.GetUserById(ctx, reqGetUserById)
-	if getReceiverErr != nil {
-		logger.Infof(ctx, "appreciationService error in getting create appreciation receiver info: %v", getReceiverErr)
+		reqGetUserById.UserId = appreciation.Receiver
+		receiverInfo, getReceiverErr := apprSvc.userRepo.GetUserById(ctx, reqGetUserById)
+		if getReceiverErr != nil {
+			logger.Infof(ctx, "appreciationService error in getting create appreciation receiver info: %v", getReceiverErr)
+		}
+		emailErr := sendAppreciationEmail(apprInfo, senderInfo.Email, receiverInfo.Email)
+		if emailErr != nil {
+			logger.Infof(ctx, "appreciationService error in sending appreciation email: %v", emailErr)
+		}
+		apprSvc.sendAppreciationNotificationToReceiver(ctx, apprInfo)
+		apprSvc.sendAppreciationNotificationToAll(ctx, apprInfo)
 	}
-	emailErr := sendAppreciationEmail(apprInfo, senderInfo.Email, receiverInfo.Email)
-	if emailErr != nil {
-		logger.Infof(ctx, "appreciationService error in sending appreciation email: %v", emailErr)
-	}
-	apprSvc.sendAppreciationNotificationToReceiver(ctx, apprInfo)
-	apprSvc.sendAppreciationNotificationToAll(ctx, apprInfo)
 	return res, nil
 }
 
@@ -230,7 +232,13 @@ func (apprSvc *service) UpdateAppreciation(ctx context.Context, orgTimezone stri
 	return true, nil
 }
 
-func sendAppreciationEmail(emailData repository.AppreciationResponse, senderEmail string, receiverEmail string) error {
+func sendAppreciationEmail(emailData repository.AppreciationResponse, senderEmail string, receiverEmail string) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			logger.Errorf(context.Background(), "sendAppreciationEmail recovered from panic: %v", r)
+			err = nil
+		}
+	}()
 
 	templateData := struct {
 		SenderName               string
@@ -248,7 +256,7 @@ func sendAppreciationEmail(emailData repository.AppreciationResponse, senderEmai
 
 	logger.Infof(context.Background(), "appreciation sender email: %v :receiver email: %v  ", senderEmail, receiverEmail)
 	mailReq := email.NewMail([]string{receiverEmail}, []string{}, []string{}, fmt.Sprintf("Kudos! You've Been Praised by %s %s! 🎉 ", emailData.SenderFirstName, emailData.SenderLastName))
-	err := mailReq.ParseTemplate("./internal/app/email/templates/receiverAppreciation.html", templateData)
+	err = mailReq.ParseTemplate("./internal/app/email/templates/receiverAppreciation.html", templateData)
 	if err != nil {
 		logger.Errorf(context.Background(), "err in creating html file : %v", err)
 		return err

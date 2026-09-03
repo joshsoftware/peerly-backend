@@ -182,6 +182,29 @@ func (_m *ReportAppreciationStorer) ReportAppreciation(ctx context.Context, repo
 	return r0, r1
 }
 
+// GetReportedAppreciationByAppreciationID provides a mock function with given fields: ctx, appreciationID
+func (_m *ReportAppreciationStorer) GetReportedAppreciationByAppreciationID(ctx context.Context, appreciationID int64) (repository.ListReportedAppreciations, error) {
+	ret := _m.Called(ctx, appreciationID)
+
+	var r0 repository.ListReportedAppreciations
+	if rf, ok := ret.Get(0).(func(context.Context, int64) repository.ListReportedAppreciations); ok {
+		r0 = rf(ctx, appreciationID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(repository.ListReportedAppreciations)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, int64) error); ok {
+		r1 = rf(ctx, appreciationID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ResolveAppreciation provides a mock function with given fields: ctx, moderationReq
 func (_m *ReportAppreciationStorer) ResolveAppreciation(ctx context.Context, moderationReq dto.ModerationReq) error {
 	ret := _m.Called(ctx, moderationReq)
