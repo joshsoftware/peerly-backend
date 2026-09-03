@@ -15,6 +15,7 @@ import (
 func TestReportAppreciation(t *testing.T) {
 	reportAppreciationRepo := mocks.NewReportAppreciationStorer(t)
 	userRepo := mocks.NewUserStorer(t)
+	userRepo.On("GetUserById", mock.Anything, mock.Anything).Return(dto.GetUserByIdResp{}, apperrors.InvalidId).Maybe()
 	appreciationRepo := mocks.NewAppreciationStorer(t)
 	service := NewService(reportAppreciationRepo, userRepo, appreciationRepo)
 

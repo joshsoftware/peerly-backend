@@ -371,70 +371,34 @@ func (appr *appreciationsStore) IsUserPresent(ctx context.Context, tx repository
 	return count > 0, nil
 }
 
-func (appr *appreciationsStore) UpdateAppreciationTotalRewardsOfYesterday(ctx context.Context, tx repository.Transaction, orgTimezone string) (bool, error) {
-	logger.Info(ctx, "appr: UpdateAppreciationTotalRewardsOfYesterday")
-
-	// Initialize query executor
+func (appr *appreciationsStore) AddRewardPointsToAppreciation(ctx context.Context, tx repository.Transaction, apprID int64, ratingPoint int64) error {
+	logger.Info(ctx, "appr: AddRewardPointsToAppreciation real-time update")
 	queryExecutor := appr.InitiateQueryExecutor(tx)
 
-	// Load the location for Asia/Kolkata
-	location, err := time.LoadLocation(orgTimezone)
-	if err != nil {
-		fmt.Printf("error loading location: %v\n", err)
-		return false, apperrors.InternalServerError
+	var pointsToAdd int32
+	switch ratingPoint {
+	case 1:
+		pointsToAdd = 100
+	case 3:
+		pointsToAdd = 150
+	case 5:
+		pointsToAdd = 200
+	default:
+		pointsToAdd = int32(ratingPoint * 100)
 	}
 
-	// Get today's date  00:00:00
-	now := time.Now().In(location)
-	todayMidnight := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, location)
-
-	// Get yesterday's date in Asia/Kolkata at 00:00:00
-	yesterdayMidnight := todayMidnight.AddDate(0, 0, -1)
-
-	// Convert to Unix milliseconds
-	todayMidnightUnixMilli := todayMidnight.UnixMilli()
-	yesterdayMidnightUnixMilli := yesterdayMidnight.UnixMilli()
-
-	// Build the SQL update query with subquery
-	query := `
-	UPDATE appreciations AS app
-	SET total_reward_points = total_reward_points + agg.total_points
-	FROM (
-    SELECT appreciation_id, 
-		SUM(
-			CASE 
-					WHEN r.point = 1 THEN 100
-					WHEN r.point = 3 THEN 150
-					WHEN r.point = 5 THEN 200
-					ELSE 0
-			END
-	) AS total_points
-    FROM rewards r
-    JOIN appreciations a ON r.appreciation_id = a.id
-    JOIN users u ON r.sender = u.id
-    JOIN grades g ON u.grade_id = g.id
-    WHERE a.is_valid = true
-      AND r.created_at >= $1
-     AND r.created_at < $2
-    GROUP BY appreciation_id
-	) AS agg
-	WHERE app.id = agg.appreciation_id;
-    `
-
-	logger.Debug(ctx, " query: ", query)
-	// Execute the query using the query executor
-	res, err := queryExecutor.Exec(query, yesterdayMidnightUnixMilli, todayMidnightUnixMilli)
+	query := `UPDATE appreciations SET total_reward_points = total_reward_points + $1, updated_at = (EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT WHERE id = $2`
+	_, err := queryExecutor.Exec(query, pointsToAdd, apprID)
 	if err != nil {
-		logger.Error(ctx, "Error executing SQL query:", err.Error())
-		return false, apperrors.InternalServer
+		logger.Error(ctx, "appreciationRepo: AddRewardPointsToAppreciation err: ", err.Error())
+		return apperrors.InternalServer
 	}
+	return nil
+}
 
-	rowsAffected, err := res.RowsAffected()
-	if err != nil {
-		logger.Error(ctx, " err: ", err)
-		return false, nil
-	}
-	logger.Info(ctx, "appreciationRepo: rowsAffected: ", rowsAffected)
+
+func (appr *appreciationsStore) UpdateAppreciationTotalRewardsOfYesterday(ctx context.Context, tx repository.Transaction, orgTimezone string) (bool, error) {
+	logger.Info(ctx, "appr: UpdateAppreciationTotalRewardsOfYesterday (Skipped bulk update as points are updated in real-time)")
 	return true, nil
 }
 

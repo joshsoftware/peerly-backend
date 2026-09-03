@@ -90,23 +90,25 @@ func (rs *service) ReportAppreciation(ctx context.Context, reqData dto.ReportApp
 		UserId:          data,
 		QuaterTimeStamp: quaterTimeStamp,
 	}
-	senderInfo, err := rs.userRepo.GetUserById(ctx, reqGetUserById)
-	if err != nil {
-		return
-	}
+	if rs.userRepo != nil {
+		senderInfo, err := rs.userRepo.GetUserById(ctx, reqGetUserById)
+		if err != nil {
+			return resp, nil
+		}
 
-	apprInfo, err := rs.appreciationRepo.GetAppreciationById(ctx, nil, int32(reqData.AppreciationId))
-	if err != nil {
-		return
+		apprInfo, err := rs.appreciationRepo.GetAppreciationById(ctx, nil, int32(reqData.AppreciationId))
+		if err != nil {
+			return resp, nil
+		}
+		err = sendReportEmail(senderInfo.Email,
+			senderInfo.FirstName,
+			senderInfo.LastName,
+			apprInfo.SenderFirstName,
+			apprInfo.SenderLastName,
+			apprInfo.ReceiverFirstName,
+			apprInfo.ReceiverLastName,
+			reqData.ReportingComment)
 	}
-	err = sendReportEmail(senderInfo.Email,
-		senderInfo.FirstName,
-		senderInfo.LastName,
-		apprInfo.SenderFirstName,
-		apprInfo.SenderLastName,
-		apprInfo.ReceiverFirstName,
-		apprInfo.ReceiverLastName,
-		reqData.ReportingComment)
 
 	return
 }

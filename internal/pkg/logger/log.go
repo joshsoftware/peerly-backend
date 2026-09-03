@@ -88,6 +88,10 @@ func SetupLogger() (*l.Logger, error) {
 }
 
 func getLoggerWithRequestContext(ctx context.Context) *l.Entry {
+	if Logger == nil {
+		Logger = l.New()
+	}
+
 	requestID, ok := ctx.Value(constants.RequestID).(string)
 	if !ok {
 		requestID = "N/A"
@@ -148,6 +152,10 @@ func SetupCronLogger() (*l.Logger, error) {
 }
 
 func getCronLoggerWithRequestContext(ctx context.Context) *l.Entry {
+	if CronLogger == nil {
+		CronLogger = l.New()
+	}
+
 	requestID, ok := ctx.Value(constants.RequestID).(string)
 	if !ok {
 		requestID = "N/A"
