@@ -40,7 +40,7 @@ func NewService(appreciationRepo repository.AppreciationStorer, coreValuesRepo r
 	}
 }
 
-func (apprSvc *service) CreateAppreciation(ctx context.Context, appreciation dto.Appreciation) (dto.Appreciation, error) {
+func (apprSvc *service) CreateAppreciation(ctx context.Context, appreciation dto.Appreciation) (res dto.Appreciation, err error) {
 
 	//add quarter
 	appreciation.Quarter = utils.GetQuarter()
@@ -116,10 +116,10 @@ func (apprSvc *service) CreateAppreciation(ctx context.Context, appreciation dto
 		return dto.Appreciation{}, err
 	}
 
-	res := mapAppreciationDBToDTO(appr)
-	apprInfo, err := apprSvc.appreciationRepo.GetAppreciationById(ctx, tx, int32(res.ID))
-	if err != nil {
-		logger.Errorf(ctx, "appreciationService err: %v", err)
+	res = mapAppreciationDBToDTO(appr)
+	apprInfo, getApprErr := apprSvc.appreciationRepo.GetAppreciationById(ctx, tx, int32(res.ID))
+	if getApprErr != nil {
+		logger.Errorf(ctx, "appreciationService err: %v", getApprErr)
 		return res, nil
 	}
 
@@ -130,17 +130,20 @@ func (apprSvc *service) CreateAppreciation(ctx context.Context, appreciation dto
 		UserId:          sender,
 		QuaterTimeStamp: quaterTimeStamp,
 	}
-	senderInfo, err := apprSvc.userRepo.GetUserById(ctx, reqGetUserById)
-	if err != nil {
-		logger.Info(ctx, "appreciationService error in getting create appreciation sender info")
+	senderInfo, getSenderErr := apprSvc.userRepo.GetUserById(ctx, reqGetUserById)
+	if getSenderErr != nil {
+		logger.Infof(ctx, "appreciationService error in getting create appreciation sender info: %v", getSenderErr)
 	}
 
 	reqGetUserById.UserId = appreciation.Receiver
-	receiverInfo, err := apprSvc.userRepo.GetUserById(ctx, reqGetUserById)
-	if err != nil {
-		logger.Info(ctx, "appreciationService error in getting create appreciation sender info")
+	receiverInfo, getReceiverErr := apprSvc.userRepo.GetUserById(ctx, reqGetUserById)
+	if getReceiverErr != nil {
+		logger.Infof(ctx, "appreciationService error in getting create appreciation receiver info: %v", getReceiverErr)
 	}
-	err = sendAppreciationEmail(apprInfo, senderInfo.Email, receiverInfo.Email)
+	emailErr := sendAppreciationEmail(apprInfo, senderInfo.Email, receiverInfo.Email)
+	if emailErr != nil {
+		logger.Infof(ctx, "appreciationService error in sending appreciation email: %v", emailErr)
+	}
 	apprSvc.sendAppreciationNotificationToReceiver(ctx, apprInfo)
 	apprSvc.sendAppreciationNotificationToAll(ctx, apprInfo)
 	return res, nil
