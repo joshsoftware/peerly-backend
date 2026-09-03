@@ -375,12 +375,20 @@ func (appr *appreciationsStore) AddRewardPointsToAppreciation(ctx context.Contex
 	logger.Info(ctx, "appr: AddRewardPointsToAppreciation real-time update")
 	queryExecutor := appr.InitiateQueryExecutor(tx)
 
-	query := `
-		UPDATE appreciations 
-		SET total_reward_points = total_reward_points + ($1 * COALESCE((SELECT g.points FROM users u JOIN grades g ON u.grade_id = g.id WHERE u.id = $2), 100)), 
-		    updated_at = (EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT 
-		WHERE id = $3`
-	_, err := queryExecutor.Exec(query, ratingPoint, senderID, apprID)
+	var pointsToAdd int32
+	switch ratingPoint {
+	case 1:
+		pointsToAdd = 100
+	case 3:
+		pointsToAdd = 150
+	case 5:
+		pointsToAdd = 200
+	default:
+		pointsToAdd = int32(ratingPoint * 100)
+	}
+
+	query := `UPDATE appreciations SET total_reward_points = total_reward_points + $1, updated_at = (EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT WHERE id = $2`
+	_, err := queryExecutor.Exec(query, pointsToAdd, apprID)
 	if err != nil {
 		logger.Error(ctx, "appreciationRepo: AddRewardPointsToAppreciation err: ", err.Error())
 		return apperrors.InternalServer
