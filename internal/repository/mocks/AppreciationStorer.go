@@ -132,9 +132,9 @@ func (_m *AppreciationStorer) ListAppreciations(ctx context.Context, tx reposito
 	return ret.Get(0).([]repository.AppreciationResponse), ret.Get(1).(repository.Pagination), ret.Error(2)
 }
 
-// AddRewardPointsToAppreciation provides a mock function with given fields: ctx, tx, apprID, ratingPoint
-func (_m *AppreciationStorer) AddRewardPointsToAppreciation(ctx context.Context, tx repository.Transaction, apprID int64, ratingPoint int64) error {
-	ret := _m.Called(ctx, tx, apprID, ratingPoint)
+// AddRewardPointsToAppreciation provides a mock function with given fields: ctx, tx, apprID, senderID, ratingPoint
+func (_m *AppreciationStorer) AddRewardPointsToAppreciation(ctx context.Context, tx repository.Transaction, apprID int64, senderID int64, ratingPoint int64) error {
+	ret := _m.Called(ctx, tx, apprID, senderID, ratingPoint)
 	return ret.Error(0)
 }
 
