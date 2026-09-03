@@ -210,7 +210,7 @@ func (rwrdSvc *service) GiveReward(ctx context.Context, rewardReq dto.Reward) (d
 	}
 
 	// Update appreciation total reward points in real-time
-	err = rwrdSvc.appreciationRepo.AddRewardPointsToAppreciation(ctx, tx, rewardReq.AppreciationId, rewardReq.Point)
+	err = rwrdSvc.appreciationRepo.AddRewardPointsToAppreciation(ctx, tx, rewardReq.AppreciationId, rewardReq.SenderId, rewardReq.Point)
 	if err != nil {
 		logger.Errorf(ctx, "rewardService: AddRewardPointsToAppreciation: err: %v", err)
 		return dto.Reward{}, err

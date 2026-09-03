@@ -38,7 +38,7 @@ func TestGiveReward(t *testing.T) {
 				rwrdMock.On("BeginTx", mock.Anything).Return(nil, nil)
 				rwrdMock.On("GiveReward", mock.Anything, mock.Anything, mock.Anything).Return(repository.Reward{Id: 1, AppreciationId: 1, SenderId: 1, Point: 10}, nil)
 				rwrdMock.On("DeduceRewardQuotaOfUser", mock.Anything, mock.Anything, int64(1), 10).Return(true, nil)
-				apprMock.On("AddRewardPointsToAppreciation", mock.Anything, mock.Anything, int64(1), int64(10)).Return(nil)
+				apprMock.On("AddRewardPointsToAppreciation", mock.Anything, mock.Anything, int64(1), int64(1), int64(10)).Return(nil)
 				apprMock.On("UpdateUserBadgesBasedOnTotalRewards", mock.Anything, mock.Anything).Return([]repository.UserBadgeDetails{}, nil)
 				apprMock.On("HandleTransaction", mock.Anything, mock.Anything, true).Return(nil)
 			},
