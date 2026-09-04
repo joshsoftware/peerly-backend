@@ -85,23 +85,10 @@ func (rwrd *rewardStore) IsUserRewardForAppreciationPresent(ctx context.Context,
 
 func (rwrd *rewardStore) DeduceRewardQuotaOfUser(ctx context.Context, tx repository.Transaction, userId int64, points int) (bool, error) {
 	queryExecutor := rwrd.InitiateQueryExecutor(tx)
-
-	var quotaToDeduct int
-	switch points {
-	case 1:
-		quotaToDeduct = 100
-	case 3:
-		quotaToDeduct = 150
-	case 5:
-		quotaToDeduct = 200
-	default:
-		quotaToDeduct = points * 100
-	}
-
 	// Build the SQL query to update the reward_quota_balance
 	updateQuery, args, err := repository.Sq.
 		Update("users").
-		Set("reward_quota_balance", squirrel.Expr("reward_quota_balance - ?", quotaToDeduct)).
+		Set("reward_quota_balance", squirrel.Expr("reward_quota_balance - ? * (SELECT points FROM grades WHERE id = users.grade_id)", points)).
 		Where(squirrel.Eq{"id": userId}).
 		ToSql()
 
@@ -130,29 +117,18 @@ func (rwrd *rewardStore) DeduceRewardQuotaOfUser(ctx context.Context, tx reposit
 }
 
 func (rwrd *rewardStore) UserHasRewardQuota(ctx context.Context, tx repository.Transaction, userID int64, points int64) (bool, error) {
-	var requiredQuota int64
-	switch points {
-	case 1:
-		requiredQuota = 100
-	case 3:
-		requiredQuota = 150
-	case 5:
-		requiredQuota = 200
-	default:
-		requiredQuota = points * 100
-	}
-
 	logger.Info(ctx, " rwrd: UserHasRewardQuota", userID, " ", points)
 	// Build the SQL query
 	query := `
 		SELECT COUNT(*)
 		FROM users u
+		JOIN grades g ON u.grade_id = g.id
 		WHERE u.id = $1
-		AND u.reward_quota_balance >= $2
+		AND u.reward_quota_balance >= $2 * g.points
 	`
 
 	// Arguments for the query
-	args := []interface{}{userID, requiredQuota}
+	args := []interface{}{userID, points}
 
 	logger.Infof(ctx, "rewardRepo: query: %s,id: %d,points: %d", query, userID, points)
 
