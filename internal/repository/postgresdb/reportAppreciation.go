@@ -41,7 +41,7 @@ func (rs *reportAppreciationStore) CheckAppreciation(ctx context.Context, reqDat
 		reqData.AppreciationId,
 	)
 	if err != nil {
-		logger.Errorf(ctx, "error in retriving appreciation, err: %v")
+		logger.Errorf(ctx, "error in retrieving appreciation, err: %v", err)
 		return
 	}
 	if count == 0 {
@@ -275,7 +275,7 @@ func (rs *reportAppreciationStore) GetResolution(ctx context.Context, id int64) 
 			err = apperrors.InvalidId
 			return
 		}
-		logger.Errorf(ctx, "error in retriving reported appriciation, err:%w", err)
+		logger.Errorf(ctx, "error in retrieving reported appriciation, err:%s", err.Error())
 		err = apperrors.InternalServerError
 		return
 	}
