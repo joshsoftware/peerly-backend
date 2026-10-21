@@ -234,15 +234,6 @@ func (us *service) RegisterUser(ctx context.Context, u dto.IntranetUserData) (us
 		return
 	}
 
-	//reward_multiplier from organization config
-	reward_multiplier, err := us.userRepo.GetRewardMultiplier(ctx)
-	if err != nil {
-		logger.Error(ctx, err.Error())
-		err = apperrors.InternalServerError
-		return
-	}
-	reward_quota_balance := grade.Points * reward_multiplier
-
 	//get role by name
 	roleId, err := us.userRepo.GetRoleByName(ctx, constants.UserRole)
 	if err != nil {
@@ -254,7 +245,7 @@ func (us *service) RegisterUser(ctx context.Context, u dto.IntranetUserData) (us
 	svcData := mapIntranetUserDataToSvcUser(u)
 
 	svcData.GradeId = grade.Id
-	svcData.RewardQuotaBalance = reward_quota_balance
+	svcData.RewardQuotaBalance = constants.MonthlyRewardQuota
 	svcData.RoleId = roleId
 
 	//register user
@@ -468,21 +459,7 @@ func (us *service) GetUserById(ctx context.Context) (user dto.GetUserByIdResp, e
 		return
 	}
 
-	grade, err := us.userRepo.GetGradeById(ctx, user.GradeId)
-	if err != nil {
-		logger.Errorf(ctx, err.Error())
-		err = apperrors.InternalServerError
-		return
-	}
-
-	reward_multiplier, err := us.userRepo.GetRewardMultiplier(ctx)
-	if err != nil {
-		err = apperrors.InternalServerError
-		return
-	}
-	total_reward_quota := grade.Points * reward_multiplier
-
-	user.TotalRewardQuota = int64(total_reward_quota)
+	user.TotalRewardQuota = int64(constants.MonthlyRewardQuota)
 
 	now := time.Now()
 

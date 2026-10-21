@@ -17,7 +17,13 @@ var OrgConfigColumns = []string{
 	"updated_by",
 }
 
-const DefaultAppreciationPoint = 200
+const (
+	DefaultAppreciationPoint = 200
+	MonthlyRewardQuota       = 500
+	RewardPointsExcellent    = 200
+	RewardPointsGood         = 150
+	RewardPointsNice         = 100
+)
 
 var DL = map[string]string{
 	"hr_team": "dl_hr.team@joshsoftware.com",
