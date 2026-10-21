@@ -346,7 +346,7 @@ func (appr *appreciationsStore) IsUserPresent(ctx context.Context, tx repository
 	// Build the SQL query
 	query, args, err := repository.Sq.Select("COUNT(*)").
 		From(appr.UsersTable).
-		Where(squirrel.Eq{"id": userID}).
+		Where(squirrel.Eq{"id": userID, "status": constants.UserStatusActive}).
 		ToSql()
 
 	logger.Debug(ctx, " query: ", query)
@@ -378,11 +378,11 @@ func (appr *appreciationsStore) AddRewardPointsToAppreciation(ctx context.Contex
 	var pointsToAdd int32
 	switch ratingPoint {
 	case 1:
-		pointsToAdd = 100
+		pointsToAdd = int32(constants.RewardPointsNice)
 	case 3:
-		pointsToAdd = 150
+		pointsToAdd = int32(constants.RewardPointsGood)
 	case 5:
-		pointsToAdd = 200
+		pointsToAdd = int32(constants.RewardPointsExcellent)
 	default:
 		pointsToAdd = int32(ratingPoint * 100)
 	}
