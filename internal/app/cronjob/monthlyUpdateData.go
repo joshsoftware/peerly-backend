@@ -8,6 +8,7 @@ import (
 	"github.com/joshsoftware/peerly-backend/internal/app/notification"
 	orgSvc "github.com/joshsoftware/peerly-backend/internal/app/organizationConfig"
 	user "github.com/joshsoftware/peerly-backend/internal/app/users"
+	"github.com/joshsoftware/peerly-backend/internal/pkg/config"
 	logger "github.com/joshsoftware/peerly-backend/internal/pkg/logger"
 )
 
@@ -87,7 +88,7 @@ func sendRewardQuotaRefilledNotificationToAll() {
 	}
 
 	logger.CronDebug(context.Background(), "msg:", msg)
-	msg.SendNotificationToTopic("peerly")
+	msg.SendNotificationToTopic(config.FCMTopic())
 }
 
 func (cron *MonthlyJob) setMonthlyInterval() error {

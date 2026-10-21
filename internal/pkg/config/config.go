@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/joho/godotenv"
 	"github.com/joshsoftware/peerly-backend/internal/pkg/apperrors"
@@ -111,4 +112,18 @@ func IntranetBaseUrl() string {
 
 func DeveloperKey() string {
 	return (ReadEnvString(constants.DeveloperKey))
+}
+
+// FCMTopic returns the Firebase topic used for broadcast notifications.
+// Override with FCM_TOPIC. Otherwise stage hosts (intranet URL containing "stage")
+// use "peerly-stage"; production keeps legacy "peerly".
+func FCMTopic() string {
+	if topic := strings.TrimSpace(ReadEnvStringOptional(constants.FCMTopic)); topic != "" {
+		return topic
+	}
+	base := strings.ToLower(ReadEnvStringOptional(constants.IntranetBaseUrl))
+	if strings.Contains(base, "stage") {
+		return "peerly-stage"
+	}
+	return "peerly"
 }

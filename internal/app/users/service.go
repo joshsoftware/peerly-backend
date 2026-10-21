@@ -636,7 +636,7 @@ func (us *service) NotificationByAdmin(ctx context.Context, notificationReq dto.
 	}
 
 	if notificationReq.All {
-		err = notificationReq.Message.SendNotificationToTopic("peerly")
+		err = notificationReq.Message.SendNotificationToTopic(config.FCMTopic())
 		if err != nil {
 			return
 		}
