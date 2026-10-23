@@ -39,12 +39,14 @@ type AppreciationResponse struct {
 	SenderEmployeeID    string `json:"sender_employee_id"`
 	SenderFirstName     string `json:"sender_first_name"`
 	SenderLastName      string `json:"sender_last_name"`
+	SenderEmail         string `json:"sender_email"`
 	SenderImageURL      string `json:"sender_image_url"`
 	SenderDesignation   string `json:"sender_designation"`
 	ReceiverID          int64  `json:"receiver_id"`
 	ReceiverEmployeeID  string `json:"receiver_employee_id"`
 	ReceiverFirstName   string `json:"receiver_first_name"`
 	ReceiverLastName    string `json:"receiver_last_name"`
+	ReceiverEmail       string `json:"receiver_email"`
 	ReceiverImageURL    string `json:"receiver_image_url"`
 	ReceiverDesignation string `json:"receiver_designation"`
 	TotalRewards        int32  `json:"total_rewards"`

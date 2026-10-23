@@ -231,6 +231,7 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 		"u_sender.profile_image_url AS sender_image_url",
 		"u_sender.designation AS sender_designation",
 		"u_sender.employee_id AS sender_employee_id",
+		"u_sender.email AS sender_email",
 		"u_sender.grade_id AS sender_grade_id", // Select grade_id directly
 		"u_receiver.id AS receiver_id",
 		"u_receiver.first_name AS receiver_first_name",
@@ -238,6 +239,7 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 		"u_receiver.profile_image_url AS receiver_image_url",
 		"u_receiver.designation AS receiver_designation",
 		"u_receiver.employee_id AS receiver_employee_id",
+		"u_receiver.email AS receiver_email",
 		"a.created_at",
 		"a.updated_at",
 		"COUNT(r.id) AS total_rewards",
