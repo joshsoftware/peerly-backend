@@ -201,7 +201,7 @@ func (us *userStore) SyncData(ctx context.Context, updateData dto.User) (err err
 
 func (us *userStore) GetTotalUserCount(ctx context.Context, reqData dto.ListUsersReq) (totalCount int64, err error) {
 
-	queryBuilder := repository.Sq.Select("count(*)").From(us.UsersTable)
+	queryBuilder := repository.Sq.Select("count(*)").From(us.UsersTable).Where("grade_id NOT IN (?, ?)", 1, 2).Where(squirrel.Eq{"status": constants.UserStatusActive})
 	conditions := []squirrel.Sqlizer{}
 	for _, name := range reqData.Name {
 		conditions = append(conditions, squirrel.Like{"lower(first_name)": "%" + name + "%"})
@@ -232,7 +232,7 @@ func (us *userStore) ListUsers(ctx context.Context, reqData dto.ListUsersReq) (r
 		return
 	}
 
-	queryBuilder := repository.Sq.Select(userColumns...).From(us.UsersTable).Where("grade_id NOT IN (?, ?)", 1, 2).OrderBy("first_name")
+	queryBuilder := repository.Sq.Select(userColumns...).From(us.UsersTable).Where("grade_id NOT IN (?, ?)", 1, 2).Where(squirrel.Eq{"status": constants.UserStatusActive}).OrderBy("first_name")
 	conditions := []squirrel.Sqlizer{}
 	for _, name := range reqData.Name {
 		conditions = append(conditions, squirrel.Like{"lower(first_name)": "%" + name + "%"})
@@ -461,12 +461,7 @@ func (us *userStore) GetDynamicEngagersReport(ctx context.Context, tx repository
 func (us *userStore) UpdateRewardQuota(ctx context.Context, tx repository.Transaction) (err error) {
 
 	queryExecutor := us.InitiateQueryExecutor(tx)
-	query := `UPDATE users
-	SET reward_quota_balance = (
-    SELECT oc.reward_multiplier * g.points
-    FROM organization_config oc,grades g
-    WHERE users.grade_id = g.id
-	)`
+	query := fmt.Sprintf("UPDATE users SET reward_quota_balance = %d", constants.MonthlyRewardQuota)
 
 	_, err = queryExecutor.Exec(query)
 	if err != nil {

@@ -233,6 +233,19 @@ func (cron *QuarterlyReportJob) sendSuccessEmail(ctx context.Context, sheetLink 
 	}
 }
 
+func getQuarterLabel(month time.Month) string {
+	switch month {
+	case time.March, time.April, time.May:
+		return "Q1"
+	case time.June, time.July, time.August:
+		return "Q2"
+	case time.September, time.October, time.November:
+		return "Q3"
+	default: // December, January, February
+		return "Q4"
+	}
+}
+
 func getPreviousQuarterAndYear() (quarter int, year int) {
 	ist, _ := time.LoadLocation("Asia/Kolkata")
 	now := time.Now().In(ist)
@@ -266,7 +279,7 @@ func buildSheetRows(appreciations []dto.AppreciationResponse, reportedMap map[in
 		"Appreciated Date", "Quarter", "Year", "Reporter Emp ID",
 		"Reporting Comment", "Reporter Full Name", "Reported Date",
 		"Moderator comment", "Moderator Full Name", "Moderated Date",
-		"Appreciation Status",
+		"Appreciation Status", "Employee Email ID", "Employee Status",
 	}
 
 	rows := [][]interface{}{headers}
@@ -274,7 +287,7 @@ func buildSheetRows(appreciations []dto.AppreciationResponse, reportedMap map[in
 	for _, appr := range appreciations {
 		createdTime := time.UnixMilli(appr.CreatedAt)
 		appreciatedDate := createdTime.Format("02/01/2006")
-		quarterName := user.GetQuarterName(createdTime)
+		quarterName := getQuarterLabel(createdTime.Month())
 
 		reporterEmpID := ""
 		reportingComment := ""
@@ -302,6 +315,11 @@ func buildSheetRows(appreciations []dto.AppreciationResponse, reportedMap map[in
 			appreciationStatus = reported.Status
 		}
 
+		employeeStatus := "Inactive"
+		if appr.ReceiverStatus == constants.UserStatusActive {
+			employeeStatus = "Active"
+		}
+
 		row := []interface{}{
 			appr.CoreValueName,    // Core value
 			appreciatedDate,       // Time Stamp
@@ -325,6 +343,8 @@ func buildSheetRows(appreciations []dto.AppreciationResponse, reportedMap map[in
 			moderatorFullName,                                    // Moderator Full Name
 			moderatedDate,                                        // Moderated Date
 			appreciationStatus,                                   // Appreciation Status
+			appr.ReceiverEmail,                                   // Employee Email ID
+			employeeStatus,                                       // Employee Status
 		}
 
 		rows = append(rows, row)

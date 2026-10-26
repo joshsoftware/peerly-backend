@@ -109,7 +109,6 @@ func TestLoginUser(t *testing.T) {
 					Name:   "J12",
 					Points: 100,
 				}, nil).Once()
-				userMock.On("GetRewardMultiplier", mock.Anything).Return(int64(10), nil).Once()
 				userMock.On("GetRoleByName", mock.Anything, mock.Anything).Return(int64(1), nil).Once()
 				userMock.On("CreateNewUser", mock.Anything, mock.Anything).Return(repository.User{
 					Id:         1,
@@ -263,7 +262,6 @@ func TestLoginUser(t *testing.T) {
 					Name:   "J12",
 					Points: 100,
 				}, nil).Once()
-				userMock.On("GetRewardMultiplier", mock.Anything).Return(int64(1), nil).Once()
 				userMock.On("GetRoleByName", mock.Anything, mock.Anything).Return(int64(1), apperrors.InternalServerError).Once()
 			},
 			isErrorExpected: true,
@@ -295,7 +293,6 @@ func TestLoginUser(t *testing.T) {
 					Name:   "J12",
 					Points: 100,
 				}, nil).Once()
-				userMock.On("GetRewardMultiplier", mock.Anything).Return(int64(1), nil).Once()
 				userMock.On("GetRoleByName", mock.Anything, mock.Anything).Return(int64(1), nil).Once()
 				userMock.On("CreateNewUser", mock.Anything, mock.Anything).Return(repository.User{}, apperrors.InternalServerError).Once()
 			},
@@ -602,13 +599,6 @@ func TestGetUserById(t *testing.T) {
 			userId:  2,
 			setup: func(userMock *mocks.UserStorer) {
 				userMock.On("GetUserById", mock.Anything, mock.Anything).Return(dto.GetUserByIdResp{}, nil).Once()
-				userMock.On("GetGradeById", mock.Anything, mock.Anything).Return(repository.Grade{
-					Id:     1,
-					Name:   "J1",
-					Points: 100,
-				}, nil).Once()
-				userMock.On("GetRewardMultiplier", mock.Anything).Return(int64(10), nil).Once()
-
 			},
 			isErrorExpected: false,
 		},

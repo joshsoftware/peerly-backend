@@ -30,6 +30,12 @@ const (
 	User
 )
 
+// User status constants
+const (
+	UserStatusInactive = 0
+	UserStatusActive   = 1
+)
+
 // User required constants
 const (
 	RequestID               RequestIDCtxKey  = "RequestID"
