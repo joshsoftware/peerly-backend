@@ -233,6 +233,19 @@ func (cron *QuarterlyReportJob) sendSuccessEmail(ctx context.Context, sheetLink 
 	}
 }
 
+func getQuarterLabel(month time.Month) string {
+	switch month {
+	case time.March, time.April, time.May:
+		return "Q1"
+	case time.June, time.July, time.August:
+		return "Q2"
+	case time.September, time.October, time.November:
+		return "Q3"
+	default: // December, January, February
+		return "Q4"
+	}
+}
+
 func getPreviousQuarterAndYear() (quarter int, year int) {
 	ist, _ := time.LoadLocation("Asia/Kolkata")
 	now := time.Now().In(ist)
@@ -274,7 +287,7 @@ func buildSheetRows(appreciations []dto.AppreciationResponse, reportedMap map[in
 	for _, appr := range appreciations {
 		createdTime := time.UnixMilli(appr.CreatedAt)
 		appreciatedDate := createdTime.Format("02/01/2006")
-		quarterName := user.GetQuarterName(createdTime)
+		quarterName := getQuarterLabel(createdTime.Month())
 
 		reporterEmpID := ""
 		reportingComment := ""
