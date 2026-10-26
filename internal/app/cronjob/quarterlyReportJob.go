@@ -273,13 +273,13 @@ func getPreviousQuarterAndYear() (quarter int, year int) {
 // buildSheetRows constructs the header + data rows matching the 21-column sheet format.
 func buildSheetRows(appreciations []dto.AppreciationResponse, reportedMap map[int64]dto.ReportedAppreciation) [][]interface{} {
 	headers := []interface{}{
-		"Core value", "Time Stamp", "Sender Employee ID", "Sender Full Name", "Sender Email",
-		"Sender designation", "Receiver Employee ID", "Receiver Full Name", "Receiver Email",
+		"Core value", "Time Stamp", "Sender Employee ID", "Sender Full Name",
+		"Sender designation", "Receiver Employee ID", "Receiver Full Name",
 		"Receiver designation", "Appreciation description", "Total rewards", "Total reward points",
 		"Appreciated Date", "Quarter", "Year", "Reporter Emp ID",
 		"Reporting Comment", "Reporter Full Name", "Reported Date",
 		"Moderator comment", "Moderator Full Name", "Moderated Date",
-		"Appreciation Status",
+		"Appreciation Status", "Employee Email ID", "Employee Status",
 	}
 
 	rows := [][]interface{}{headers}
@@ -315,16 +315,19 @@ func buildSheetRows(appreciations []dto.AppreciationResponse, reportedMap map[in
 			appreciationStatus = reported.Status
 		}
 
+		employeeStatus := "Inactive"
+		if appr.ReceiverStatus == constants.UserStatusActive {
+			employeeStatus = "Active"
+		}
+
 		row := []interface{}{
 			appr.CoreValueName,    // Core value
 			appreciatedDate,       // Time Stamp
 			appr.SenderEmployeeID, // Sender Employee ID
 			appr.SenderFirstName + " " + appr.SenderLastName,     // Sender Full Name
-			appr.SenderEmail,                                      // Sender Email
 			appr.SenderDesignation,                               // Sender designation
 			appr.ReceiverEmployeeID,                              // Receiver Employee ID
 			appr.ReceiverFirstName + " " + appr.ReceiverLastName, // Receiver Full Name
-			appr.ReceiverEmail,                                    // Receiver Email
 			appr.ReceiverDesignation,                             // Receiver designation
 			appr.Description,                                     // Appreciation description
 			appr.TotalRewards,                                    // Total rewards
@@ -340,6 +343,8 @@ func buildSheetRows(appreciations []dto.AppreciationResponse, reportedMap map[in
 			moderatorFullName,                                    // Moderator Full Name
 			moderatedDate,                                        // Moderated Date
 			appreciationStatus,                                   // Appreciation Status
+			appr.ReceiverEmail,                                   // Employee Email ID
+			employeeStatus,                                       // Employee Status
 		}
 
 		rows = append(rows, row)
