@@ -54,6 +54,8 @@ type AppreciationResponse struct {
 	ReceiverImageURL    sql.NullString `db:"receiver_image_url"`
 	ReceiverDesignation string         `db:"receiver_designation"`
 	ReceiverEmployeeID  string         `db:"receiver_employee_id"`
+	ReceiverEmail       string         `db:"receiver_email"`
+	ReceiverStatus      int            `db:"receiver_status"`
 	TotalRewards        int32          `db:"total_rewards"`
 	ReportedFlag        bool           `db:"reported_flag"`
 	GivenRewardPoint    int8           `db:"given_reward_point"`

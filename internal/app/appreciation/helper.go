@@ -42,6 +42,8 @@ func mapRepoGetAppreciationInfoToDTOGetAppreciationInfo(info repository.Apprecia
 		ReceiverEmployeeID:  info.ReceiverEmployeeID,
 		ReceiverFirstName:   info.ReceiverFirstName,
 		ReceiverLastName:    info.ReceiverLastName,
+		ReceiverEmail:       info.ReceiverEmail,
+		ReceiverStatus:      info.ReceiverStatus,
 		ReceiverImageURL:    receiverImageURL,
 		ReceiverDesignation: info.ReceiverDesignation,
 		TotalRewards:        info.TotalRewards,

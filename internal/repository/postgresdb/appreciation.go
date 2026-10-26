@@ -238,6 +238,8 @@ func (appr *appreciationsStore) ListAppreciations(ctx context.Context, tx reposi
 		"u_receiver.profile_image_url AS receiver_image_url",
 		"u_receiver.designation AS receiver_designation",
 		"u_receiver.employee_id AS receiver_employee_id",
+		"u_receiver.email AS receiver_email",
+		"u_receiver.status AS receiver_status",
 		"a.created_at",
 		"a.updated_at",
 		"COUNT(r.id) AS total_rewards",
